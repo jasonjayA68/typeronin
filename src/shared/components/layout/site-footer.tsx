@@ -101,7 +101,7 @@ export async function SiteFooter() {
 
         <div className="flex flex-col items-center justify-between gap-3 py-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Samurai Script. All rights reserved.
+            © {new Date().getFullYear()} TypeRonin. All rights reserved.
           </p>
           <p className="font-heading text-xs tracking-[0.2em] text-muted-foreground uppercase">
             道 · The Way

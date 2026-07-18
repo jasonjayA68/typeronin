@@ -1,4 +1,4 @@
-# Samurai Script
+# TypeRonin
 
 **Master Your Keyboard Like a Samurai Masters the Sword.**
 Discipline. Precision. Mastery.

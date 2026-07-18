@@ -1,4 +1,4 @@
-// Samurai Script — data foundations.
+// TypeRonin — data foundations.
 //
 // Identity lives in Supabase `auth.users`; everything here is ours, in `public`.
 // Profile.id carries the same UUID as the auth user, but there is deliberately

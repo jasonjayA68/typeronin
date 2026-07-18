@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The Samurai Script mark: a katana bent into an "S", held inside an ensō.
+ * The TypeRonin mark: a katana bent into an "S", held inside an ensō.
  *
  * Every path here is generated geometry, not hand-authored:
  *  - The ensō is a brush stroke — a filled outline whose width swells and dries

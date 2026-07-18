@@ -41,20 +41,20 @@ const DESCRIPTION =
 
 export const metadata: Metadata = {
   title: {
-    default: "Samurai Script — Master Your Keyboard Like a Samurai Masters the Sword",
-    template: "%s · Samurai Script",
+    default: "TypeRonin — Master Your Keyboard Like a Samurai Masters the Sword",
+    template: "%s · TypeRonin",
   },
   description: DESCRIPTION,
-  applicationName: "Samurai Script",
+  applicationName: "TypeRonin",
   openGraph: {
     type: "website",
-    siteName: "Samurai Script",
-    title: "Samurai Script — Master Your Keyboard Like a Samurai Masters the Sword",
+    siteName: "TypeRonin",
+    title: "TypeRonin — Master Your Keyboard Like a Samurai Masters the Sword",
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Samurai Script",
+    title: "TypeRonin",
     description: "Master your keyboard like a samurai masters the sword.",
   },
 };

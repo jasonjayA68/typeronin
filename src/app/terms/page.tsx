@@ -41,7 +41,7 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
     body: (
       <>
         <p>
-          These terms govern your use of Samurai Script. By creating an account or training
+          These terms govern your use of TypeRonin. By creating an account or training
           here, you agree to them. If you do not agree, do not use the service.
         </p>
         <p>
@@ -167,7 +167,7 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
     body: (
       <>
         <p>
-          The kata, passages, artwork, and software of Samurai Script belong to us and our
+          The kata, passages, artwork, and software of TypeRonin belong to us and our
           licensors. We grant you a personal, non-exclusive, non-transferable, revocable
           licence to use the service for its intended purpose while your account is in good
           standing.
@@ -241,10 +241,10 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
       <p>
         Questions about these terms go to{" "}
         <a
-          href="mailto:legal@samuraiscript.com"
+          href="mailto:legal@typeronin.com"
           className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
         >
-          legal@samuraiscript.com
+          legal@typeronin.com
         </a>
         .
       </p>

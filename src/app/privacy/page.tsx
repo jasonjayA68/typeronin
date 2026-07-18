@@ -77,7 +77,7 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
           Advertising
         </h3>
         <p>
-          Samurai Script is free and carries display advertising. We take no payments, so we
+          TypeRonin is free and carries display advertising. We take no payments, so we
           hold no card details and no billing records of any kind.
         </p>
         <p>
@@ -234,10 +234,10 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
       <p>
         Questions about this notice, or about your data, go to{" "}
         <a
-          href="mailto:privacy@samuraiscript.com"
+          href="mailto:privacy@typeronin.com"
           className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
         >
-          privacy@samuraiscript.com
+          privacy@typeronin.com
         </a>
         .
       </p>

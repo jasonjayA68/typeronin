@@ -1,7 +1,7 @@
 /**
  * Passages are prose, not word salad. Random word lists are what every typing
  * site drills; sentences with rhythm are what a student can actually breathe to,
- * and rhythm is the thing Samurai Script measures.
+ * and rhythm is the thing TypeRonin measures.
  */
 
 export type Discipline = "kata" | "iai" | "scroll";

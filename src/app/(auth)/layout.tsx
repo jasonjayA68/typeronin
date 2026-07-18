@@ -1,7 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { BrandMark } from "@/shared/components/brand-mark";
 import { Logo } from "@/shared/components/logo";
 import { ThemeToggle } from "@/shared/components/theme-toggle";
 
@@ -22,7 +22,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <Logo />
 
         <div className="max-w-sm">
-          <BrandMark className="size-24" />
+          <Image
+            src="/brand/typeronin-logo.png"
+            alt="TypeRonin — Type fast. Earn honors."
+            width={512}
+            height={512}
+            priority
+            className="w-44 rounded-2xl ring-1 ring-border/50"
+          />
           <blockquote className="mt-8">
             <p className="font-heading text-2xl leading-snug tracking-wide text-balance">
               A cut once made cannot be unmade.

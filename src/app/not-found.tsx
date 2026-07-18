@@ -1,6 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
 
-import { BrandMark } from "@/shared/components/brand-mark";
 import { InkDivider } from "@/shared/components/ink-divider";
 import { Button } from "@/shared/components/ui/button";
 
@@ -19,7 +19,14 @@ export default function NotFound() {
       />
 
       <div className="flex w-full max-w-xl flex-col items-center text-center">
-        <BrandMark className="size-24 sm:size-28" />
+        <Image
+          src="/brand/typeronin-emblem.png"
+          alt="TypeRonin"
+          width={256}
+          height={256}
+          priority
+          className="size-24 rounded-2xl ring-1 ring-border/50 sm:size-28"
+        />
 
         <p className="mt-8 font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
           Off the path
