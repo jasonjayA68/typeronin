@@ -1,0 +1,374 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------
+ * Brand palette.
+ *
+ * These were once constant across both themes, which quietly broke light mode:
+ * a single mid-tone gold cannot carry text on both #101214 and warm white, and
+ * text-gold on paper measured about 2:1. So the accents are theme-adaptive —
+ * declared per theme below and merely *referenced* here. Every text-gold /
+ * bg-sakura in the app then resolves correctly in both themes for free.
+ *
+ * Purely decorative tones that never carry text stay constant.
+ * ------------------------------------------------------------------ */
+@theme inline {
+  /* Deep rose. The primary action, and dark enough to hold white text. */
+  --color-sakura: var(--sakura);
+  /* Soft petal pink: glows, gradients, petals. Decorative only. */
+  --color-blossom: var(--blossom);
+  /* The palest wash, for tinted surfaces. */
+  --color-petal: var(--petal);
+  /* The secondary accent — champagne on paper, warm gold at dusk. */
+  --color-gold: var(--gold);
+  /* The mark's blade. */
+  --color-steel: var(--brand-steel);
+}
+
+@theme {
+  --color-plum: #3b2b36;
+  --color-charcoal: #171015;
+  --color-bamboo: #6f9f5c;
+  --color-amber: #f6b73c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* Yu Gothic ships with Windows and macOS and carries no webfont licence, so
+     it can only ever be asked for by name — never self-hosted. Hence a stack:
+       1. "Yu Gothic UI" — the Windows UI cut; better hinted at small sizes.
+       2. "Yu Gothic" / "YuGothic" — the Windows and macOS family names.
+       3. 游ゴシック — the same faces as a JP-locale system names them.
+       4. Hiragino / Meiryo — the platform JP fallbacks.
+       5. Inter — Latin fallback where none of the above exist (Linux, Android),
+          so the design degrades to our own typeface rather than a generic sans.
+     Headings stay on Cinzel and the trainer stays on the mono stack below. */
+  --font-sans:
+    "Yu Gothic UI", "Yu Gothic", "YuGothic", "游ゴシック体", "游ゴシック",
+    "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Meiryo", var(--font-inter),
+    system-ui, sans-serif;
+  --font-heading: var(--font-cinzel);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-special: var(--special);
+  --color-special-foreground: var(--special-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ------------------------------------------------------------------
+ * Sakura — warm white, first light through the blossom. The default.
+ *
+ * Accent tones are deliberately deeper than the petals they evoke: a true
+ * blossom pink cannot carry text on warm white. The soft pinks live in
+ * --blossom / --petal, which are decorative and never asked to hold a letter.
+ * ------------------------------------------------------------------ */
+:root {
+  --radius: 0.875rem;
+
+  /* Brand accents, tuned for paper. */
+  --sakura: #b8446b; /* deep rose — 5.9:1 on --background, carries white text */
+  --blossom: #f4aac6; /* soft petal — decorative */
+  --petal: #fdeaf1; /* palest wash */
+  /* Leaf gold. Decorative ONLY — it survives on the mark's tsuba and nowhere
+     else. A gold bright enough to look gilt measures ~2:1 on warm white, so it
+     must never carry text; accents use --sakura instead. */
+  --gold: #c9a227;
+  --brand-steel: #4a3d46;
+
+  --background: #fdf8fa;
+  --foreground: #33242d;
+  --card: #ffffff;
+  --card-foreground: #33242d;
+  --popover: #ffffff;
+  --popover-foreground: #33242d;
+  --primary: #b8446b;
+  --primary-foreground: #fff7fa;
+  --secondary: #f4aac6;
+  --secondary-foreground: #4a2233;
+  --muted: #f6edf1;
+  --muted-foreground: #6d5c66;
+  --accent: #fbe6ee;
+  --accent-foreground: #33242d;
+  --destructive: #c2334a;
+  --destructive-foreground: #fff1f3;
+  --success: #4f7f3f;
+  --success-foreground: #f3fbf1;
+  /* Just dark enough to clear 4.5:1 on warm white — it carries the third-place
+     medal as text, not only warning chips. */
+  --warning: #8d6118;
+  --warning-foreground: #fffaf0;
+  --special: #a563b8;
+  --special-foreground: #fdf5ff;
+  --border: #f0dde5;
+  --input: #ead6de;
+  --ring: #b8446b;
+
+  --chart-1: #b8446b;
+  --chart-2: #e07fa4;
+  --chart-3: #8a6a24;
+  --chart-4: #4f7f3f;
+  --chart-5: #a563b8;
+
+  --sidebar: #fbf3f6;
+  --sidebar-foreground: #33242d;
+  --sidebar-primary: #b8446b;
+  --sidebar-primary-foreground: #fff7fa;
+  --sidebar-accent: #fbe6ee;
+  --sidebar-accent-foreground: #33242d;
+  --sidebar-border: #f0dde5;
+  --sidebar-ring: #b8446b;
+}
+
+/* ------------------------------------------------------------------
+ * Sakura at night — the same blossom under a plum sky.
+ *
+ * Not the old dojo palette. The toggle is a comfort setting, not a second
+ * brand, so the hues match Sakura and only the ground beneath them changes.
+ * On dark the accents invert: the petals can now carry text, and so they do.
+ * ------------------------------------------------------------------ */
+.dark {
+  --sakura: #f08cb0;
+  --blossom: #f4aac6;
+  --petal: #3a2732;
+  --gold: #e0c07a;
+  --brand-steel: #d8ccd3;
+
+  --background: #171015;
+  --foreground: #ece0e6;
+  --card: #221822;
+  --card-foreground: #ece0e6;
+  --popover: #221822;
+  --popover-foreground: #ece0e6;
+  /* Matches --sakura: the primary surface and the brand accent must be the same
+     pink, or `bg-sakura text-primary-foreground` pairs the wrong two tones. */
+  --primary: #f08cb0;
+  /* Dark ink on light petal. At night the accent is lighter than the page, so
+     the foreground has to invert with it — near-white here measured ~2:1. */
+  --primary-foreground: #2a1522;
+  --secondary: #f4aac6;
+  --secondary-foreground: #2a1a22;
+  --muted: #2b1f28;
+  --muted-foreground: #a8949f;
+  --accent: #35242f;
+  --accent-foreground: #f5e9ef;
+  --destructive: #e0576e;
+  --destructive-foreground: #2a0d13;
+  --success: #7fb567;
+  --success-foreground: #0f1c0b;
+  --warning: #f6b73c;
+  --warning-foreground: #1f1503;
+  --special: #c88fd8;
+  --special-foreground: #24102b;
+  --border: #3a2a35;
+  --input: #402e3a;
+  --ring: #f08cb0;
+
+  --chart-1: #f08cb0;
+  --chart-2: #f4aac6;
+  --chart-3: #e0c07a;
+  --chart-4: #7fb567;
+  --chart-5: #c88fd8;
+
+  --sidebar: #1e151d;
+  --sidebar-foreground: #ece0e6;
+  --sidebar-primary: #d95c88;
+  --sidebar-primary-foreground: #fff7fa;
+  --sidebar-accent: #35242f;
+  --sidebar-accent-foreground: #f5e9ef;
+  --sidebar-border: #3a2a35;
+  --sidebar-ring: #f08cb0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading tracking-wide;
+  }
+
+  /* Numerals read as instrument dials, not prose. */
+  .tabular {
+    @apply font-mono tabular-nums;
+  }
+}
+
+@layer utilities {
+  /* Washi paper grain. Layered under content, never over it. */
+  .paper-texture {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .paper-texture::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Light glassmorphism. Softer and lighter-handed than the old lacquer:
+     on warm white the blur should read as rice paper, not as smoked glass. */
+  .glass-panel {
+    background-color: color-mix(in oklab, var(--card) 66%, transparent);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    box-shadow: 0 1px 2px color-mix(in oklab, var(--color-plum) 4%, transparent);
+  }
+
+  /* A blossom edge, for surfaces that deserve emphasis.
+     Name kept as gold-edge: 20-odd call sites, and it still reads as "the
+     precious border". The tone now follows the theme accent. */
+  .gold-edge {
+    border: 1px solid color-mix(in oklab, var(--color-sakura) 30%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in oklab, var(--color-blossom) 14%, transparent),
+      0 10px 34px -14px color-mix(in oklab, var(--color-sakura) 26%, transparent);
+  }
+
+  /* Soft shadows — the SaaS lift. Two stacked shadows: a tight contact shadow
+     and a wide ambient one, which is what stops it looking like a drop shadow. */
+  .soft-shadow {
+    box-shadow:
+      0 1px 2px color-mix(in oklab, var(--color-plum) 6%, transparent),
+      0 12px 32px -12px color-mix(in oklab, var(--color-plum) 14%, transparent);
+  }
+
+  /* Cards gently lift. Transform only — animating shadow alone forces paint. */
+  .lift {
+    transition:
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 300ms ease;
+    will-change: transform;
+  }
+
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 2px 4px color-mix(in oklab, var(--color-plum) 6%, transparent),
+      0 18px 44px -14px color-mix(in oklab, var(--color-sakura) 30%, transparent);
+  }
+
+  /* A soft pink bloom on hover.
+     Built from box-shadow rather than an oversized ::after: a pseudo-element
+     hung outside its parent (inset: -30%) still counts toward scrollable
+     overflow, which pushed the page sideways wherever a full-width button sat
+     near the edge. Box shadows never affect layout. */
+  .bloom {
+    transition:
+      box-shadow 320ms ease,
+      background-color 200ms ease;
+  }
+
+  .bloom:hover {
+    box-shadow:
+      0 0 0 6px color-mix(in oklab, var(--color-blossom) 26%, transparent),
+      0 0 28px 6px color-mix(in oklab, var(--color-blossom) 40%, transparent),
+      0 14px 36px -10px color-mix(in oklab, var(--color-sakura) 55%, transparent);
+  }
+
+  /* Sumi-e brush stroke: dense in the middle, dry at the ends. */
+  .ink-divider {
+    height: 1px;
+    border: 0;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--foreground) 8%, transparent) 15%,
+      color-mix(in oklab, var(--foreground) 30%, transparent) 50%,
+      color-mix(in oklab, var(--foreground) 8%, transparent) 85%,
+      transparent
+    );
+  }
+
+  /* Name kept for its call sites; the gradient is blossom now, not gilt.
+     Both stops stay dark enough to read as display text on warm white. */
+  .text-gradient-gold {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-sakura) 78%, white) 0%,
+      var(--color-sakura) 45%,
+      color-mix(in oklab, var(--color-sakura) 72%, var(--color-plum)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Honour the user's motion preference across every animation we ship. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

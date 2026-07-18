@@ -1,7 +1,10 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// Samurai Script — data foundations.
+//
+// Identity lives in Supabase `auth.users`; everything here is ours, in `public`.
+// Profile.id carries the same UUID as the auth user, but there is deliberately
+// no foreign key across to `auth` — Prisma does not own that schema, and a
+// cross-schema FK would make every migration depend on Supabase internals.
+// Profiles are created lazily on first authenticated request instead.
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +13,988 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- enums
+
+/// The *shape* of a mode, not the mode itself.
+///
+/// Renamed from `GameMode` because that name now belongs to the admin-editable
+/// table below. Kinds stay an enum on purpose: each one implies different engine
+/// behaviour (a clock or no clock), so adding one is a code change, not a row.
+/// Everything else about a mode — its clock, pool, difficulty, rewards — is data.
+enum GameModeKind {
+  /// Untimed. The passage ends when it ends.
+  PRACTICE
+  /// Race a clock: 2 min, 5 min, or a custom span.
+  TIMED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum ReferralStatus {
+  /// Referee signed up but has not yet met the qualifying bar.
+  PENDING
+  /// Bar met; reward owed.
+  QUALIFIED
+  /// Reward paid out.
+  REWARDED
+}
+
+enum NotificationKind {
+  SYSTEM
+  ACHIEVEMENT
+  REFERRAL
+  REWARD
+}
+
+enum RewardKind {
+  DAILY
+  LOGIN_STREAK
+  REFERRAL
+  ACHIEVEMENT
+  SESSION
+}
+
+// ---------------------------------------------------------------- identity
+
+model Profile {
+  /// Same UUID as the Supabase auth user. Not generated here.
+  id String @id @db.Uuid
+
+  /// Public, URL-safe, and changeable — never used as a join key.
+  handle      String  @unique
+  displayName String
+  avatarUrl   String?
+  /// ISO 3166-1 alpha-2, for the country leaderboard.
+  countryCode String? @db.Char(2)
+  bio         String?
+
+  /// Earned currency; the only thing that moves rank.
+  honor Int @default(0)
+  /// Spendable energy.
+  ki    Int @default(100)
+  xp    Int @default(0)
+
+  /// Their own code, handed to others.
+  referralCode String @unique
+
+  /// Denormalised login-streak state. Kept here rather than derived because it
+  /// is read on every dashboard load and written at most once a day.
+  streakDays   Int       @default(0)
+  lastPlayedOn DateTime? @db.Date
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions      TypingSession[]
+  achievements  ProfileAchievement[]
+  notifications Notification[]
+  rewardClaims  RewardClaim[]
+  /// Referrals where this profile did the referring.
+  referralsMade Referral[]           @relation("Referrer")
+  /// At most one: the referral that brought this profile in.
+  referredBy    Referral?            @relation("Referee")
+
+  roles            ProfileRole[]
+  leaderboardRanks LeaderboardEntry[]
+  posts            BlogPost[]         @relation("PostAuthor")
+  uploads          Media[]            @relation("MediaUploader")
+  comments         Comment[]          @relation("CommentAuthor")
+  unlocks          ContentUnlock[]    @relation("UnlockedBy")
+  reportsMade      Report[]           @relation("Reporter")
+  reportsResolved  Report[]           @relation("ReportResolver")
+
+  withdrawals         Withdrawal[] @relation("WithdrawalOwner")
+  withdrawalsResolved Withdrawal[] @relation("WithdrawalResolver")
+
+  @@index([honor])
+  @@index([countryCode])
+}
+
+// ---------------------------------------------------------------- game content
+
+model Category {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+  /// Display order in pickers.
+  sort        Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  words     Word[]
+  sessions  TypingSession[]
+  gameModes GameModeCategory[]
+}
+
+model Word {
+  id         String     @id @default(uuid()) @db.Uuid
+  text       String
+  difficulty Difficulty
+  /// Language tag. Present from the start so a second language is a data
+  /// change rather than a migration.
+  lang       String     @default("en")
+  isActive   Boolean    @default(true)
+
+  /// Free-form labels. An array rather than a join table: word tags are filter
+  /// terms typed into a CSV column, not entities anyone manages. Blog tags get
+  /// a real table because they are pages with URLs.
+  tags String[] @default([])
+
+  /// Corpus frequency rank, lower being commoner. Lets difficulty be tuned from
+  /// evidence rather than by eye, and drives weighted random selection.
+  frequency Int?
+
+  categoryId String   @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// The same word may appear in several categories, but only once in each.
+  @@unique([text, categoryId, lang])
+  /// Covers the generator's hot path: pick N words of a difficulty in a category.
+  @@index([categoryId, difficulty, isActive])
+  /// Admin search by text, and tag filtering.
+  @@index([text])
+  @@index([tags], type: Gin)
+}
+
+// ---------------------------------------------------------------- play
+
+model TypingSession {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Null for guests. The game is playable without an account, so history is
+  /// simply not kept for them.
+  profileId String?  @db.Uuid
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  /// Denormalised on purpose: an admin may delete a game mode, and history must
+  /// still say what kind of run this was.
+  mode       GameModeKind
+  difficulty Difficulty
+  categoryId String?      @db.Uuid
+  category   Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  /// SetNull, not Cascade: retiring a mode must not delete the runs played on
+  /// it. `mode` above survives as the record of what kind it was.
+  gameModeId String?   @db.Uuid
+  gameMode   GameMode? @relation(fields: [gameModeId], references: [id], onDelete: SetNull)
+
+  /// Actual time at the keyboard.
+  durationMs    Int
+  /// The clock the player chose, for TIMED. Null for PRACTICE.
+  targetSeconds Int?
+
+  /// Net speed (correct characters only) and gross speed.
+  wpm      Int
+  rawWpm   Int
+  /// Percent, one decimal. A float because it is only ever displayed and
+  /// ranked, never summed into money.
+  accuracy Float
+
+  correctWords   Int
+  incorrectWords Int
+  correctChars   Int
+  incorrectChars Int
+
+  longestStreak Int @default(0)
+  maxCombo      Int @default(0)
+
+  /// Rhythm evenness, 0-100. Optional: only meaningful once a run is long
+  /// enough to have a rhythm at all.
+  ma Int?
+
+  honorEarned Int @default(0)
+  xpEarned    Int @default(0)
+
+  playedAt DateTime @default(now())
+
+  /// Personal bests and recent-battles lists.
+  @@index([profileId, playedAt])
+  /// Leaderboards: rank by speed within a time window.
+  @@index([playedAt, wpm])
+  @@index([mode, wpm])
+}
+
+// ---------------------------------------------------------------- progression
+
+model Achievement {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String
+  /// Optional kanji shown as the badge face.
+  kanji       String?
+  honorReward Int     @default(0)
+  xpReward    Int     @default(0)
+  isActive    Boolean @default(true)
+  sort        Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profiles ProfileAchievement[]
+}
+
+model ProfileAchievement {
+  profileId     String @db.Uuid
+  achievementId String @db.Uuid
+
+  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  unlockedAt DateTime @default(now())
+
+  /// The composite key is the idempotency guard: an achievement cannot unlock twice.
+  @@id([profileId, achievementId])
+  @@index([profileId, unlockedAt])
+}
+
+model RewardClaim {
+  id   String     @id @default(uuid()) @db.Uuid
+  kind RewardKind
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  /// Nullable: session and referral payouts are computed, not claimed against a
+  /// row an admin defined.
+  rewardId String? @db.Uuid
+  reward   Reward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  honor Int @default(0)
+  xp    Int @default(0)
+  ki    Int @default(0)
+
+  /// The day this grant belongs to, for grants that are once-per-day.
+  /// Null for grants with no daily bound.
+  grantedOn DateTime? @db.Date
+  grantedAt DateTime  @default(now())
+
+  /// Enforces "one daily reward per day" in the database rather than in a racy
+  /// read-then-write in application code.
+  @@unique([profileId, kind, grantedOn])
+  @@index([profileId, grantedAt])
+}
+
+// ---------------------------------------------------------------- referrals
+
+model Referral {
+  id String @id @default(uuid()) @db.Uuid
+
+  referrerId String  @db.Uuid
+  referrer   Profile @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  /// Unique: a profile can be referred exactly once, ever.
+  refereeId String  @unique @db.Uuid
+  referee   Profile @relation("Referee", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  status      ReferralStatus @default(PENDING)
+  honorReward Int            @default(0)
+
+  createdAt   DateTime  @default(now())
+  qualifiedAt DateTime?
+  rewardedAt  DateTime?
+
+  @@index([referrerId, status])
+}
+
+// ---------------------------------------------------------------- misc
+
+model Notification {
+  id   String           @id @default(uuid()) @db.Uuid
+  kind NotificationKind @default(SYSTEM)
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  title String
+  body  String?
+  /// Where clicking it should land, if anywhere.
+  href  String?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([profileId, readAt, createdAt])
+}
+
+/// Admin-editable configuration: reward values, ad placements, feature flags.
+/// One row per key with a JSON value, so a new knob needs no migration.
+model Setting {
+  key         String   @id
+  value       Json
+  description String?
+  updatedById String?  @db.Uuid
+  updatedAt   DateTime @updatedAt
+}
+
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Nullable: the actor may be the system, or an account since deleted.
+  actorId  String? @db.Uuid
+  action   String
+  entity   String
+  entityId String?
+  meta     Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+// ================================================================
+// Expansion — access control, configurable play, content, revenue.
+//
+// `Profile` IS the users table. There is no separate `User` model: Supabase
+// already owns credentials in auth.users, and a second identity row would be a
+// second source of truth about who someone is. Profile carries everything the
+// product knows about them.
+// ================================================================
+
+// ---------------------------------------------------------------- enums
+
+enum PostStatus {
+  DRAFT
+  /// Written, dated, waiting. A publisher job flips these to PUBLISHED.
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+  REJECTED
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+enum AdProvider {
+  ADSENSE
+  /// A placeholder that renders a labelled box. What dev and preview use.
+  HOUSE
+}
+
+enum AdFormat {
+  BANNER
+  IN_ARTICLE
+  RESPONSIVE
+  REWARDED
+  INTERSTITIAL
+}
+
+enum LeaderboardScope {
+  GLOBAL
+  WEEKLY
+  MONTHLY
+  COUNTRY
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+enum SubscriberStatus {
+  /// Address given, not yet proven. Never mail these.
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
+// ---------------------------------------------------------------- access control
+
+/// A named bundle of permissions.
+///
+/// The database is the source of truth for authorization, so an admin can grant
+/// a role from the panel without a deploy. Supabase `app_metadata.role` remains
+/// a break-glass superuser check in code — if these tables were the only path, a
+/// bad grant could lock every admin out of the panel that fixes grants.
+/// Both paths are unforgeable by an account holder: one needs the service key,
+/// the other needs server-side database access.
+model Role {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String?
+  /// Seeded roles the UI must not offer to delete.
+  isSystem    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  permissions RolePermission[]
+  profiles    ProfileRole[]
+}
+
+/// A single capability, named `resource:action` (e.g. "blog:publish").
+model Permission {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  description String?
+  /// Groups permissions in the role editor.
+  resource    String
+
+  roles RolePermission[]
+
+  @@index([resource])
+}
+
+model RolePermission {
+  roleId       String @db.Uuid
+  permissionId String @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model ProfileRole {
+  profileId String @db.Uuid
+  roleId    String @db.Uuid
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  grantedAt DateTime @default(now())
+  /// Who granted it. Nullable: the seed grants the first admin, and no one
+  /// granted the seed.
+  grantedBy String?  @db.Uuid
+
+  @@id([profileId, roleId])
+  @@index([roleId])
+}
+
+// ---------------------------------------------------------------- configurable play
+
+/// A game mode, as data.
+///
+/// "Nothing hardcoded": the clock, the word pool, the difficulty and the payout
+/// all live here, so a new mode is a row rather than a deploy. Only `kind` is an
+/// enum, because a kind implies engine behaviour that must exist in code.
+model GameMode {
+  id          String       @id @default(uuid()) @db.Uuid
+  slug        String       @unique
+  name        String
+  description String?
+  kanji       String?
+  kind        GameModeKind
+  isActive    Boolean      @default(true)
+  sort        Int          @default(0)
+
+  /// Clocks offered, in seconds. Empty for PRACTICE.
+  timeOptions      Int[]
+  /// Whether the player may name their own clock, and within what bounds.
+  allowCustomTime  Boolean @default(false)
+  customMinSeconds Int?
+  customMaxSeconds Int?
+
+  /// Null means the mode offers every difficulty and the player chooses.
+  difficulty Difficulty?
+
+  /// Multiplies the Honor a run earns. 100 = unchanged, stored as an integer
+  /// percentage so a rounding error cannot creep into a balance.
+  honorMultiplier Int @default(100)
+  xpMultiplier    Int @default(100)
+  /// Ki charged to start. Free modes charge nothing.
+  kiCost          Int @default(0)
+  /// Runs under this accuracy earn nothing. 0 disables the floor.
+  minAccuracy     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  categories GameModeCategory[]
+  sessions   TypingSession[]
+
+  @@index([isActive, sort])
+}
+
+/// A mode's word pool. Empty means every active category.
+model GameModeCategory {
+  gameModeId String @db.Uuid
+  categoryId String @db.Uuid
+
+  gameMode GameMode @relation(fields: [gameModeId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([gameModeId, categoryId])
+}
+
+/// A leaderboard window, so "reset schedule" is data rather than a cron literal.
+model LeaderboardSeason {
+  id       String           @id @default(uuid()) @db.Uuid
+  scope    LeaderboardScope
+  /// Human label, e.g. "July 2026".
+  label    String
+  startsAt DateTime
+  endsAt   DateTime
+  /// Set once the season is closed and its standings frozen.
+  closedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  entries LeaderboardEntry[]
+
+  /// One live season per scope at a time.
+  @@unique([scope, startsAt])
+  @@index([scope, endsAt])
+}
+
+/// A cached standing.
+///
+/// Rankings are derivable from TypingSession, and were derived until now. This
+/// is a cache refreshed by a job, because ranking every session on every page
+/// view does not survive contact with a real leaderboard. The sessions remain
+/// the truth; this table can be rebuilt from them at any time.
+model LeaderboardEntry {
+  id       String            @id @default(uuid()) @db.Uuid
+  seasonId String            @db.Uuid
+  season   LeaderboardSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  rank     Int
+  wpm      Int
+  accuracy Float
+  ma       Int?
+  honor    Int
+  sessions Int   @default(0)
+
+  computedAt DateTime @default(now())
+
+  @@unique([seasonId, profileId])
+  @@index([seasonId, rank])
+}
+
+/// A reward the admin defines. RewardClaim records someone taking one.
+model Reward {
+  id          String     @id @default(uuid()) @db.Uuid
+  slug        String     @unique
+  name        String
+  description String?
+  kind        RewardKind
+  isActive    Boolean    @default(true)
+
+  honor Int @default(0)
+  xp    Int @default(0)
+  ki    Int @default(0)
+
+  /// How often it may be claimed, in hours. Null means once, ever.
+  cooldownHours Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  claims RewardClaim[]
+}
+
+// ---------------------------------------------------------------- content
+
+model BlogCategory {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String?
+  /// Long-form copy for the category landing page.
+  intro       String?
+  kanji       String?
+  isActive    Boolean @default(true)
+  sort        Int     @default(0)
+
+  /// Per-category SEO overrides. Null falls back to name/description.
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String? @db.Uuid
+  ogImage        Media?  @relation("BlogCategoryOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts BlogPost[]
+
+  @@index([isActive, sort])
+}
+
+model BlogTag {
+  id   String @id @default(uuid()) @db.Uuid
+  slug String @unique
+  name String
+
+  createdAt DateTime @default(now())
+
+  posts BlogPostTag[]
+}
+
+model BlogPost {
+  id      String  @id @default(uuid()) @db.Uuid
+  slug    String  @unique
+  title   String
+  /// One-paragraph summary, used in cards and as the SEO fallback.
+  excerpt String?
+
+  /// Editor output as a document tree, not an HTML string. A tree can be
+  /// re-rendered, migrated and searched; stored HTML is a permanent decision
+  /// and an injection surface.
+  content   Json
+  /// Flattened text, maintained on save purely so search does not have to walk
+  /// the tree.
+  plainText String?
+
+  status       PostStatus @default(DRAFT)
+  publishedAt  DateTime?
+  /// Set for SCHEDULED posts; the publisher job compares against it.
+  scheduledFor DateTime?
+
+  isFeatured     Boolean @default(false)
+  /// Editorial pin, independent of view counts.
+  isTrending     Boolean @default(false)
+  viewCount      Int     @default(0)
+  /// Minutes, computed on save from plainText.
+  readingMinutes Int     @default(1)
+
+  seoTitle       String?
+  seoDescription String?
+  canonicalUrl   String?
+
+  categoryId String?       @db.Uuid
+  category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  /// Nullable so deleting a staff account does not delete the archive.
+  authorId String?  @db.Uuid
+  author   Profile? @relation("PostAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  featuredImageId String? @db.Uuid
+  featuredImage   Media?  @relation("PostFeaturedImage", fields: [featuredImageId], references: [id], onDelete: SetNull)
+  ogImageId       String? @db.Uuid
+  ogImage         Media?  @relation("PostOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  /// Access rule for this post. Null inherits the global setting.
+  accessRule Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags     BlogPostTag[]
+  comments Comment[]
+  unlocks  ContentUnlock[]
+
+  /// The blog index: newest published first.
+  @@index([status, publishedAt])
+  @@index([categoryId, status, publishedAt])
+  @@index([isFeatured, status])
+  /// The publisher job's only query.
+  @@index([status, scheduledFor])
+}
+
+model BlogPostTag {
+  postId String @db.Uuid
+  tagId  String @db.Uuid
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+/// The media library.
+model Media {
+  id   String    @id @default(uuid()) @db.Uuid
+  kind MediaKind @default(IMAGE)
+
+  /// Storage path (Supabase Storage), not a signed URL — signatures expire and
+  /// must never be persisted.
+  path     String  @unique
+  fileName String
+  mimeType String
+  bytes    Int
+  width    Int?
+  height   Int?
+  /// Required for IMAGE at the application layer; nullable here because a
+  /// document has nothing to describe.
+  altText  String?
+  caption  String?
+
+  uploadedById String?  @db.Uuid
+  uploadedBy   Profile? @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  featuredFor   BlogPost[]     @relation("PostFeaturedImage")
+  ogFor         BlogPost[]     @relation("PostOgImage")
+  categoryOgFor BlogCategory[] @relation("BlogCategoryOgImage")
+
+  @@index([kind, createdAt])
+}
+
+model Comment {
+  id     String        @id @default(uuid()) @db.Uuid
+  status CommentStatus @default(PENDING)
+
+  postId String   @db.Uuid
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  /// Null for a guest comment; guestName then carries attribution.
+  authorId  String?  @db.Uuid
+  author    Profile? @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  guestName String?
+
+  body String
+
+  /// Threading, one level deep in the UI but unbounded here.
+  parentId String?   @db.Uuid
+  parent   Comment?  @relation("CommentThread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentThread")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports Report[]
+
+  @@index([postId, status, createdAt])
+}
+
+model NewsletterSubscriber {
+  id     String           @id @default(uuid()) @db.Uuid
+  email  String           @unique
+  status SubscriberStatus @default(PENDING)
+
+  /// Where they signed up, for the growth report.
+  source String?
+
+  confirmToken   String?   @unique
+  confirmedAt    DateTime?
+  unsubscribedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
+/// Ad-gated or account-gated access, granted for a window.
+model ContentUnlock {
+  id String @id @default(uuid()) @db.Uuid
+
+  postId String   @db.Uuid
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  /// One of these is set. Guests are identified by an opaque cookie id, so an
+  /// unlock survives a reload without requiring an account.
+  profileId String?  @db.Uuid
+  profile   Profile? @relation("UnlockedBy", fields: [profileId], references: [id], onDelete: Cascade)
+  guestKey  String?
+
+  /// How it was earned, e.g. "rewarded_ad".
+  grantedVia String
+  expiresAt  DateTime
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, guestKey])
+  @@unique([postId, profileId])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------- revenue
+
+/// A slot in the layout. Components render placements by `slug`, so a page never
+/// names a provider or an ad unit.
+model AdvertisementPlacement {
+  id          String  @id @default(uuid()) @db.Uuid
+  slug        String  @unique
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+
+  /// Per-device switches — the same slot is often worth showing on one and not
+  /// the other.
+  showOnDesktop Boolean @default(true)
+  showOnMobile  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  advertisements Advertisement[]
+
+  @@index([isActive])
+}
+
+model Advertisement {
+  id       String     @id @default(uuid()) @db.Uuid
+  name     String
+  provider AdProvider @default(HOUSE)
+  format   AdFormat   @default(BANNER)
+  isActive Boolean    @default(false)
+
+  placementId String                 @db.Uuid
+  placement   AdvertisementPlacement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  /// AdSense publisher and slot ids. Nullable because a HOUSE ad has neither.
+  adClientId String?
+  adSlotId   String?
+  /// Provider-specific knobs, kept as JSON so a new network needs no migration.
+  config     Json?
+
+  /// Show to this share of eligible views, 0-100. Frequency capping.
+  frequency Int @default(100)
+
+  /// Internal counters. Never a substitute for the network's own reporting —
+  /// these measure what we rendered, not what was billed.
+  impressions Int @default(0)
+  clicks      Int @default(0)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([placementId, isActive])
+}
+
+// ---------------------------------------------------------------- operations
+
+model Announcement {
+  id       String  @id @default(uuid()) @db.Uuid
+  title    String
+  body     String
+  /// Rendered as a banner while live.
+  isActive Boolean @default(false)
+  href     String?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, startsAt])
+}
+
+/// A moderation report: someone flagging content.
+///
+/// Read as abuse reports rather than analytics — analytics are computed from
+/// the tables above and need no storage of their own.
+model Report {
+  id     String       @id @default(uuid()) @db.Uuid
+  status ReportStatus @default(OPEN)
+
+  /// Null when reported by a guest.
+  reporterId String?  @db.Uuid
+  reporter   Profile? @relation("Reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+
+  commentId String?  @db.Uuid
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  reason String
+  notes  String?
+
+  resolvedById String?   @db.Uuid
+  resolvedBy   Profile?  @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
+// ================================================================
+// Payouts — turning Honor into cash.
+//
+// The money model is ESCROW. The Honor leaves Profile.honor the instant a
+// request is made and is held against the row, so a balance cannot be spent
+// twice while a payout is in flight. It returns to the balance on REJECTED or
+// CANCELLED; on PAID it is gone for good, because it became the cash that was
+// sent. Every balance move is a conditional, atomic update — never a read of the
+// balance followed by a write of it — see features/withdrawals/actions.ts.
+// ================================================================
+
+enum PayoutMethod {
+  GCASH
+  MAYA
+  PAYPAL
+  WISE
+  BANK
+}
+
+enum WithdrawalStatus {
+  /// Requested. Honor is already debited and held.
+  PENDING
+  /// An admin accepted it; the cash is owed but not yet sent.
+  APPROVED
+  /// Cash sent. Terminal. The Honor stays spent.
+  PAID
+  /// Refused by an admin. The Honor is returned. Terminal.
+  REJECTED
+  /// Pulled by the user before it was approved. The Honor is returned. Terminal.
+  CANCELLED
+}
+
+model Withdrawal {
+  id String @id @default(uuid()) @db.Uuid
+
+  profileId String  @db.Uuid
+  profile   Profile @relation("WithdrawalOwner", fields: [profileId], references: [id], onDelete: Cascade)
+
+  method PayoutMethod
+  status WithdrawalStatus @default(PENDING)
+
+  /// The payout destination as the user gave it. `accountRef` is the number,
+  /// email or IBAN; `accountName` the holder; `details` anything extra, like a
+  /// bank name. Three facts, because a method is only a label on the same three.
+  accountName String
+  accountRef  String
+  details     String?
+
+  /// Debited from the balance — the truth of what this cost the user.
+  honorAmount Int
+  /// The rate this payout was frozen at: Honor to the dollar. The live rate may
+  /// move before it is paid; this one does not.
+  rateHonorPerDollar Int
+  /// Cash before fee, the fee, and what the user receives — integer cents, all
+  /// snapshot at request and never recomputed from the live rate.
+  grossCents Int
+  feeCents   Int
+  netCents   Int
+
+  /// Filled when an admin resolves it.
+  reference    String?
+  adminNote    String?
+  resolvedById String?  @db.Uuid
+  resolvedBy   Profile? @relation("WithdrawalResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+  paidAt     DateTime?
+
+  /// A user's own history, newest first.
+  @@index([profileId, status, createdAt])
+  /// The admin queue, by state.
+  @@index([status, createdAt])
+  /// The daily-limit count: this user's requests since midnight.
+  @@index([profileId, createdAt])
 }
