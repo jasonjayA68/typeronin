@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
       tags: true,
       frequency: true,
       isActive: true,
+      definition: true,
       category: { select: { slug: true } },
     },
   });
@@ -62,12 +63,17 @@ export async function GET(request: NextRequest) {
       word.frequency === null ? "" : String(word.frequency),
       word.category.slug,
       String(word.isActive),
+      // Appended last so an older importer that reads only the first columns is
+      // unaffected, and the round-trip carries the meaning.
+      word.definition ?? "",
     ]
       .map(escape)
       .join(",")
   );
 
-  const csv = ["text,difficulty,lang,tags,frequency,category,active", ...rows].join("\r\n");
+  const csv = ["text,difficulty,lang,tags,frequency,category,active,definition", ...rows].join(
+    "\r\n"
+  );
   const stamp = new Date().toISOString().slice(0, 10);
 
   return new Response(csv, {

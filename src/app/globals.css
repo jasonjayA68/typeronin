@@ -359,6 +359,173 @@
     background-clip: text;
     color: transparent;
   }
+
+  /* The rank-up celebration. Every animation here is switched off wholesale by
+     the reduced-motion block below, so nothing here needs its own guard. */
+  @keyframes katana-slash {
+    0% {
+      transform: translateX(-130%) rotate(-16deg);
+      opacity: 0;
+    }
+    35% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(130%) rotate(-16deg);
+      opacity: 0;
+    }
+  }
+  @keyframes rank-rise {
+    0% {
+      transform: scale(0.72);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @keyframes rank-halo {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.07);
+    }
+  }
+
+  /* A single bright blade sweeping across the card, once. */
+  .katana-slash {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 60%;
+    pointer-events: none;
+    background: linear-gradient(
+      100deg,
+      transparent 0%,
+      color-mix(in oklab, white 85%, var(--color-sakura)) 50%,
+      transparent 100%
+    );
+    filter: blur(1px);
+    animation: katana-slash 720ms cubic-bezier(0.5, 0, 0.2, 1) 140ms both;
+  }
+  .rank-rise {
+    animation: rank-rise 640ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .rank-halo {
+    animation: rank-halo 2600ms ease-in-out infinite;
+  }
+
+  /* SCROLL answer feedback: a katana cut on the chosen answer. A thin, bright
+     blade sweeps diagonally across it — one blade for a correct pick, a crossing
+     pair with a shake and a red flash for a wrong one. The cut lands ON the mark
+     the eye is already on, not somewhere off to the side. */
+  @keyframes blade-sweep {
+    0% {
+      transform: translateX(-55%) rotate(-32deg) scaleX(0.25);
+      opacity: 0;
+    }
+    30%,
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(55%) rotate(-32deg) scaleX(1);
+      opacity: 0;
+    }
+  }
+  /* The wrong-answer X: two red strokes that draw out from the centre and HOLD
+     as a cross, so the mark that says "wrong" stays on screen, not a slash that
+     is gone before it registers. */
+  @keyframes x-cut {
+    0% {
+      opacity: 0;
+      transform: rotate(var(--x-rot)) scaleX(0);
+    }
+    55% {
+      opacity: 1;
+      transform: rotate(var(--x-rot)) scaleX(1.06);
+    }
+    100% {
+      opacity: 0.92;
+      transform: rotate(var(--x-rot)) scaleX(1);
+    }
+  }
+  @keyframes cut-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-4px);
+    }
+    40% {
+      transform: translateX(4px);
+    }
+    60% {
+      transform: translateX(-3px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+  @keyframes impact-flash {
+    0% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  .blade {
+    position: absolute;
+    top: 50%;
+    left: -25%;
+    height: 2px;
+    width: 150%;
+    transform-origin: center;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent 0%, #fff 44%, #fff 56%, transparent 100%);
+    box-shadow: 0 0 7px 1.5px color-mix(in oklab, var(--color-sakura) 70%, white);
+    animation: blade-sweep 340ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .x-cut {
+    position: absolute;
+    top: calc(50% - 1px);
+    left: 6%;
+    height: 2.5px;
+    width: 88%;
+    border-radius: 2px;
+    transform-origin: center;
+    pointer-events: none;
+    background: var(--color-destructive);
+    box-shadow: 0 0 6px 1px color-mix(in oklab, var(--color-destructive) 80%, white);
+  }
+  .x-cut-1 {
+    --x-rot: -34deg;
+    animation: x-cut 300ms cubic-bezier(0.2, 0, 0, 1) both;
+  }
+  .x-cut-2 {
+    --x-rot: 34deg;
+    animation: x-cut 300ms cubic-bezier(0.2, 0, 0, 1) 90ms both;
+  }
+  .cut-shake {
+    animation: cut-shake 320ms ease-in-out both;
+  }
+  .impact-flash {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: color-mix(in oklab, var(--color-destructive) 55%, transparent);
+    animation: impact-flash 420ms ease-out both;
+  }
 }
 
 /* Honour the user's motion preference across every animation we ship. */

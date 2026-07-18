@@ -79,7 +79,12 @@ export default function RootLayout({
       className={`${inter.variable} ${cinzel.variable} ${jetbrainsMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col">
+      {/* Browser extensions (Grammarly, password managers) inject attributes
+          onto <body> before React hydrates — data-gr-*, data-new-gr-*, and the
+          like. Those are the client's, not ours, and would otherwise trip a
+          hydration mismatch. suppressHydrationWarning covers this element's own
+          attributes only, so a real mismatch in the tree still surfaces. */}
+      <body className="flex min-h-full flex-col" suppressHydrationWarning>
         <AppProviders>
           {children}
           <Toaster position="bottom-right" />

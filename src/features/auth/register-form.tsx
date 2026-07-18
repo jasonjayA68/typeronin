@@ -63,11 +63,11 @@ function ConfirmationSent({ email }: { email: string }) {
         the dojo will know you.
       </p>
       <p className="mt-6 text-sm text-muted-foreground">
-        The dojo needs no account to train —{" "}
-        <Link href="/dojo" className="text-sakura underline-offset-4 hover:underline">
-          take your stance now
-        </Link>
-        .
+        Once you have confirmed,{" "}
+        <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
+          sign in
+        </Link>{" "}
+        and take your stance.
       </p>
     </div>
   );

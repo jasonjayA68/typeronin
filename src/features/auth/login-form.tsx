@@ -37,7 +37,15 @@ export function LoginForm({ configured }: { configured: boolean }) {
 
   async function onSubmit(values: LoginValues) {
     setError(null);
-    const result = await signIn(values);
+    // The browser's own timezone — the one signal the server cannot read from a
+    // header. Resolved defensively; an old browser that lacks it just sends none.
+    let timezone: string | undefined;
+    try {
+      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      timezone = undefined;
+    }
+    const result = await signIn(values, timezone);
 
     if (result.status === "error") {
       setError(result.message);

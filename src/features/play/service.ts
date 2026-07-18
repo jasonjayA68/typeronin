@@ -52,9 +52,44 @@ export type DailyPlayState = {
 };
 
 /** Midnight UTC today — the window a day's games are counted within. */
-function startOfUtcDay(): Date {
+export function startOfUtcDay(): Date {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+}
+
+/**
+ * Games played today and when the last one was — across BOTH modes.
+ *
+ * The daily limit is a limit on earning, and both KATA and SCROLL earn, so both
+ * count against it and against the cooldown. Keeping this in one place means the
+ * two save paths and the dojo display can never disagree about how many games a
+ * day has held.
+ */
+export async function gamesPlayedToday(
+  profileId: string
+): Promise<{ playedToday: number; lastPlayedMs: number | null }> {
+  const since = startOfUtcDay();
+  const [typingCount, scrollCount, lastTyping, lastScroll] = await Promise.all([
+    prisma.typingSession.count({ where: { profileId, playedAt: { gte: since } } }),
+    prisma.scrollSession.count({ where: { profileId, playedAt: { gte: since } } }),
+    prisma.typingSession.findFirst({
+      where: { profileId },
+      orderBy: { playedAt: "desc" },
+      select: { playedAt: true },
+    }),
+    prisma.scrollSession.findFirst({
+      where: { profileId },
+      orderBy: { playedAt: "desc" },
+      select: { playedAt: true },
+    }),
+  ]);
+
+  const lastMs = Math.max(
+    lastTyping?.playedAt.getTime() ?? 0,
+    lastScroll?.playedAt.getTime() ?? 0
+  );
+
+  return { playedToday: typingCount + scrollCount, lastPlayedMs: lastMs > 0 ? lastMs : null };
 }
 
 /**
@@ -75,22 +110,14 @@ export async function getDailyPlayState(
   const rules = limits ?? (await getPlayLimits());
 
   try {
-    const [playedToday, last] = await Promise.all([
-      prisma.typingSession.count({
-        where: { profileId, playedAt: { gte: startOfUtcDay() } },
-      }),
-      prisma.typingSession.findFirst({
-        where: { profileId },
-        orderBy: { playedAt: "desc" },
-        select: { playedAt: true },
-      }),
-    ]);
+    // Both games count toward the one daily cap — see gamesPlayedToday.
+    const { playedToday, lastPlayedMs } = await gamesPlayedToday(profileId);
 
     return {
       playedToday,
       remaining: gamesRemaining(playedToday, rules),
       limitReached: isLimitReached(playedToday, rules),
-      cooldownLeft: cooldownLeftSeconds(last?.playedAt.getTime() ?? null, Date.now(), rules),
+      cooldownLeft: cooldownLeftSeconds(lastPlayedMs, Date.now(), rules),
       limits: rules,
     };
   } catch (error) {

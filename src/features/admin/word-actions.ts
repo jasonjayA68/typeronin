@@ -31,6 +31,14 @@ const wordFields = {
   lang: z.string().trim().min(2, "Use a language tag such as en.").max(8).default("en"),
   tags: z.array(z.string().trim().min(1).max(32)).max(12, "Twelve tags is plenty.").default([]),
   frequency: z.number().int().min(0).max(10_000_000).nullable().default(null),
+  /** The meaning. Blank stores null; a word without one is not a SCROLL question. */
+  definition: z
+    .string()
+    .trim()
+    .max(300, "A definition that long is a paragraph, not a clue.")
+    .transform((v) => v || null)
+    .nullable()
+    .default(null),
 };
 
 const wordSchema = z.object({ ...wordFields, categoryId: z.uuid("Choose a category.") });
@@ -253,7 +261,11 @@ export async function importWordsCsv(csv: string, categoryId: string): Promise<W
   const seen = new Set<string>();
 
   for (const line of lines) {
-    const [text, difficulty, lang, tags, frequency] = splitCsvLine(line);
+    // Definition is the last column, appended after category/active so an older
+    // CSV without it still imports unchanged.
+    const cells = splitCsvLine(line);
+    const [text, difficulty, lang, tags, frequency] = cells;
+    const definition = cells[7];
 
     const row = importRowSchema.safeParse({
       text,
@@ -261,6 +273,7 @@ export async function importWordsCsv(csv: string, categoryId: string): Promise<W
       lang: lang ? lang.toLowerCase() : undefined,
       tags: tags ? tags.split("|").map((tag) => tag.trim()).filter(Boolean) : undefined,
       frequency: frequency ? Number(frequency) : null,
+      definition: definition ?? undefined,
     });
     if (!row.success) continue;
 

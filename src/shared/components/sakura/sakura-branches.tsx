@@ -1,26 +1,19 @@
-"use client";
-
-import { useEffect, useRef } from "react";
-
 /**
  * Sakura branches reaching in from the two upper corners.
  *
  * The companion to the petal field: the petals are born along these branches
- * (see branch-sources.ts), so the blossom now falls FROM something rather than
- * out of an empty sky.
+ * (see branch-sources.ts), so the blossom falls FROM something rather than out
+ * of an empty sky.
  *
- * Drawn as static SVG, not on the animated canvas — a branch does not move, so
- * redrawing it 60 times a second would be pure waste. The only thing that moves
- * is a few pixels of parallax on the two depth layers, applied as a compositor
- * transform on pointer, and skipped entirely under reduced-motion or a coarse
- * pointer. So it costs one paint at load and a cheap transform thereafter.
- *
- * It sits behind the petals (-z-20 to their -z-10) and is deliberately faint —
- * the same register as the kanji watermark on the page headers. A background is
- * atmosphere; the moment it competes with the content it has failed.
+ * A SINGLE, faint, static layer — no depth-doubling (which read as a branch and
+ * its shadow) and no parallax (which pulled the eye while you were trying to
+ * read). It sits behind the petals (-z-20 to their -z-10) and is drawn very
+ * lightly, fainter than the kanji watermark on the page headers: a background is
+ * atmosphere, and the moment it competes with the content it has failed, so this
+ * one is barely there.
  */
 
-/** A five-petalled blossom, small. `s` scales the whole thing. */
+/** A five-petalled blossom, small and pale. `s` scales the whole thing. */
 function Blossom({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   const petals = [0, 1, 2, 3, 4].map((i) => {
     const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
@@ -29,25 +22,21 @@ function Blossom({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       {petals.map((p, i) => (
-        <circle key={i} cx={p.cx} cy={p.cy} r={2.3 * s} className="fill-blossom" opacity={0.55} />
+        <circle key={i} cx={p.cx} cy={p.cy} r={2.3 * s} className="fill-blossom" opacity={0.28} />
       ))}
-      <circle cx={0} cy={0} r={1.5 * s} className="fill-sakura" opacity={0.6} />
+      <circle cx={0} cy={0} r={1.5 * s} className="fill-sakura" opacity={0.32} />
     </g>
   );
 }
 
-/**
- * One corner's branch, in a 260×220 box anchored at the top-left. The right side
- * is the same drawing mirrored, so the two corners are a matched pair without a
- * second set of paths to keep in step.
- */
+/** One corner's branch, in a 260×220 box anchored at the top-left. */
 function BranchArt() {
   return (
     <>
-      {/* Limbs — the trunk tapers as it travels, drawn as segments of falling
-          stroke width; the offshoots are thinner again. */}
+      {/* Limbs — the trunk tapers as it travels; the offshoots are thinner. Kept
+          very faint so text near a corner stays perfectly legible over it. */}
       <g
-        className="text-foreground/15 dark:text-foreground/[0.12]"
+        className="text-foreground/[0.06] dark:text-foreground/[0.08]"
         stroke="currentColor"
         fill="none"
         strokeLinecap="round"
@@ -80,12 +69,13 @@ function BranchArt() {
   );
 }
 
-/** One corner, positioned and (for the right) mirrored. */
+/** One corner, positioned and (for the right) mirrored. Smaller than before so
+    the branches stay in the corners and out of the content column. */
 function Corner({ side }: { side: "left" | "right" }) {
   return (
     <svg
       viewBox="0 0 260 220"
-      className={`absolute top-0 h-auto w-[clamp(210px,34vw,440px)] ${
+      className={`absolute top-0 h-auto w-[clamp(170px,26vw,360px)] ${
         side === "left" ? "left-0" : "right-0 -scale-x-100"
       }`}
       preserveAspectRatio="xMinYMin meet"
@@ -96,64 +86,10 @@ function Corner({ side }: { side: "left" | "right" }) {
 }
 
 export function SakuraBranches() {
-  const farRef = useRef<HTMLDivElement>(null);
-  const nearRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const far = farRef.current;
-    const near = nearRef.current;
-    if (!far || !near) return;
-
-    // A branch that swims when you scroll a form is a distraction, not depth.
-    // Parallax is desktop-pointer only, and off under reduced motion.
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const fine = window.matchMedia("(pointer: fine)");
-    if (reduced.matches || !fine.matches) return;
-
-    let frame = 0;
-    let nx = 0;
-    let ny = 0;
-
-    const apply = () => {
-      frame = 0;
-      // Near moves more than far — the whole trick of parallax. Small numbers:
-      // this is a suggestion of depth, not a diorama.
-      far.style.transform = `translate3d(${nx * 6}px, ${ny * 5}px, 0)`;
-      near.style.transform = `translate3d(${nx * 15}px, ${ny * 12}px, 0)`;
-    };
-
-    const onMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse") return;
-      nx = event.clientX / window.innerWidth - 0.5;
-      ny = event.clientY / window.innerHeight - 0.5;
-      if (!frame) frame = requestAnimationFrame(apply);
-    };
-
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      if (frame) cancelAnimationFrame(frame);
-    };
-  }, []);
-
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-20 overflow-hidden">
-      {/*
-        Two layers for depth. The far one is fainter and nudged down a little so
-        its limbs peek out from behind the near one — a set-back second branch.
-        The offset uses the `translate` property (Tailwind's translate-y), which
-        is independent of the `transform` the parallax writes, so the two never
-        fight over one property. Mirroring the right side lives on the SVG itself
-        (-scale-x-100), also isolated, for the same reason.
-      */}
-      <div ref={farRef} className="absolute inset-0 translate-y-3 opacity-55 will-change-transform">
-        <Corner side="left" />
-        <Corner side="right" />
-      </div>
-      <div ref={nearRef} className="absolute inset-0 will-change-transform">
-        <Corner side="left" />
-        <Corner side="right" />
-      </div>
+      <Corner side="left" />
+      <Corner side="right" />
     </div>
   );
 }

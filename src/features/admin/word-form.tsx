@@ -42,6 +42,7 @@ export function WordCreate({ categories }: { categories: Category[] }) {
             lang: formData.get("lang"),
             tags: tags ? tags.split("|").map((tag) => tag.trim()).filter(Boolean) : [],
             frequency: frequency ? Number(frequency) : null,
+            definition: formData.get("definition"),
           });
 
           if (!result.ok) {
@@ -103,6 +104,17 @@ export function WordCreate({ categories }: { categories: Category[] }) {
         />
       </div>
 
+      <div className="space-y-2 sm:col-span-2">
+        <Label htmlFor="word-definition">Meaning</Label>
+        <Input
+          id="word-definition"
+          name="definition"
+          maxLength={300}
+          autoComplete="off"
+          placeholder="The clue shown in SCROLL. Leave blank for a typing-only word."
+        />
+      </div>
+
       <div className="sm:col-span-2 lg:col-span-3">
         <Button type="submit" size="sm" disabled={pending}>
           {pending ? "Adding" : "Add word"}
@@ -135,9 +147,13 @@ export function WordImport({ categories }: { categories: Category[] }) {
       }}
     >
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Columns: <code className="text-foreground">text,difficulty,lang,tags,frequency</code>. A
-        header row is optional. Tags are separated by a pipe, not a comma, since the comma already
-        separates the columns. Rows that are already in the category are skipped.
+        Columns:{" "}
+        <code className="text-foreground">text,difficulty,lang,tags,frequency,category,active,definition</code>
+        . A header row is optional, and only <code className="text-foreground">text</code>,{" "}
+        <code className="text-foreground">difficulty</code> and the trailing{" "}
+        <code className="text-foreground">definition</code> matter here — an exported file feeds
+        straight back. A word with a definition becomes a SCROLL question. Tags use a pipe, not a
+        comma. Rows already in the category are skipped.
       </p>
 
       <div className="space-y-2">

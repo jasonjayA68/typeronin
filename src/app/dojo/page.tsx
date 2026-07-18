@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { AdSlot } from "@/features/ads/ad-slot";
+import { honorToCash } from "@/features/economy/config";
+import { getEconomyConfig } from "@/features/economy/service";
 import { LIMIT_REACHED_MESSAGE } from "@/features/play/limits";
-import { getDailyPlayState } from "@/features/play/service";
-import { KataTrainer } from "@/features/typing/kata-trainer";
+import { getDailyPlayState, getPlayLimits } from "@/features/play/service";
+import { getKataPassages } from "@/features/passages/queries";
+import { DojoModes } from "@/features/dojo/dojo-modes";
+import { GameInfoPanel } from "@/features/typing/game-info-panel";
 import { getUser } from "@/lib/supabase/server";
 import { Container } from "@/shared/components/layout/container";
 import { PageHeader } from "@/shared/components/layout/page-header";
@@ -19,10 +24,18 @@ export const metadata: Metadata = {
 };
 
 export default async function DojoPage() {
-  // The limit applies to accounts, which are who earn. A guest sees the dojo as
-  // before — the count query only runs for a signed-in player.
+  // Training requires an account. The dojo is where Honor is earned, and Honor is
+  // an account's — there is no guest play. Authorization lives here, next to the
+  // page, not in the proxy, which can only guess from a cookie.
   const user = await getUser();
-  const playState = user ? await getDailyPlayState(user.id) : null;
+  if (!user) redirect("/login");
+
+  const [playState, economy, limits, passages] = await Promise.all([
+    getDailyPlayState(user.id),
+    getEconomyConfig(),
+    getPlayLimits(),
+    getKataPassages(),
+  ]);
 
   return (
     <>
@@ -55,14 +68,18 @@ export default async function DojoPage() {
               </div>
             </div>
           ) : (
-            <KataTrainer
-              playState={
-                playState
-                  ? { remaining: playState.remaining, cooldownLeft: playState.cooldownLeft }
-                  : null
-              }
+            <DojoModes
+              passages={passages}
+              playState={{ remaining: playState.remaining, cooldownLeft: playState.cooldownLeft }}
             />
           )}
+          <GameInfoPanel
+            className="mt-10"
+            minWithdrawalHonor={economy.minWithdrawalHonor}
+            minPayoutCash={honorToCash(economy.minWithdrawalHonor, economy)}
+            maxGamesPerDay={limits.maxGamesPerDay}
+          />
+
           <AdSlot placement="game-result" className="mt-10" />
         </Container>
       </main>

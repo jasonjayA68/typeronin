@@ -127,7 +127,7 @@ export default async function BlogPage(props: PageProps<"/blog">) {
             <div className="rounded-lg border border-dashed border-border px-6 py-20 text-center">
               <p className="font-heading text-lg tracking-wide">Nothing written yet</p>
               <p className="mx-auto mt-2 max-w-sm text-pretty text-muted-foreground">
-                The first note is still being drafted. In the meantime, the dojo is open.
+                The first note is still being drafted. In the meantime, the dojo awaits.
               </p>
               <Button asChild variant="dojo" size="sm" className="mt-6">
                 <Link href="/dojo">Train instead</Link>

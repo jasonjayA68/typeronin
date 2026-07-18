@@ -106,3 +106,21 @@ export function rankProgress(honor: number): number {
   const span = next.honor - held.honor;
   return span <= 0 ? 1 : (honor - held.honor) / span;
 }
+
+/** Which tier a rank is, 1-based, out of {@link RANKS}.length. */
+export function rankTier(rank: Rank): number {
+  return RANKS.findIndex((r) => r.slug === rank.slug) + 1;
+}
+
+/**
+ * The rank just reached, if a balance crossing from `before` to `after` earned a
+ * promotion — otherwise null.
+ *
+ * Only ever upward: it compares tiers, so a balance that somehow fell (a refund,
+ * a correction) never fires a celebration for going down.
+ */
+export function rankUpBetween(before: number, after: number): Rank | null {
+  const from = rankForHonor(before);
+  const to = rankForHonor(after);
+  return rankTier(to) > rankTier(from) ? to : null;
+}

@@ -70,6 +70,13 @@ export const ADMIN_NAV: AdminSection[] = [
         permission: "users:write",
         status: "built",
       },
+      {
+        slug: "devices",
+        label: "Devices",
+        href: "/admin/devices",
+        permission: "users:write",
+        status: "built",
+      },
     ],
   },
   {
@@ -113,8 +120,7 @@ export const ADMIN_NAV: AdminSection[] = [
         label: "Passages",
         href: "/admin/passages",
         permission: "words:write",
-        status: "planned",
-        note: "Passages are still hardcoded in the engine and have no table yet.",
+        status: "built",
       },
       {
         slug: "modes",
@@ -182,6 +188,13 @@ export const ADMIN_NAV: AdminSection[] = [
   {
     title: "House",
     modules: [
+      {
+        slug: "social",
+        label: "Social media",
+        href: "/admin/social",
+        permission: "settings:write",
+        status: "built",
+      },
       {
         slug: "settings",
         label: "Settings",

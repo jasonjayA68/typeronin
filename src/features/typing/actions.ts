@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { RANKS, rankTier, rankUpBetween } from "@/features/gamification/ranks";
 import {
   LIMIT_REACHED_MESSAGE,
   applyHonorMultiplier,
@@ -37,10 +38,25 @@ const resultSchema = z.object({
   ma: z.number().int().min(0).max(100).nullable().default(null),
 });
 
+/** The promotion a run earned, if it crossed a rank boundary. */
+export type RankUp = {
+  name: string;
+  kanji: string;
+  creed: string;
+  /** 1-based tier, and how many there are, for "4 of 9". */
+  tier: number;
+  total: number;
+};
+
 export type SaveResult =
-  | { status: "saved"; honor: number; sessionId: string; remaining: number | null }
-  /** Played without an account. Not an error — the dojo is open. */
-  | { status: "guest" }
+  | {
+      status: "saved";
+      honor: number;
+      sessionId: string;
+      remaining: number | null;
+      /** Present only when this run promoted the player. */
+      rankUp: RankUp | null;
+    }
   /** The day's games are used up. Carries the exact notice to show. */
   | { status: "limit"; message: string }
   /** Played again too soon; wait this many seconds. */
@@ -63,8 +79,10 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
   const parsed = resultSchema.safeParse(input);
   if (!parsed.success) return { status: "error", message: "That result did not make sense." };
 
+  // Training requires an account — the dojo is gated, so this only guards a
+  // direct call to a public endpoint.
   const user = await getUser();
-  if (!user) return { status: "guest" };
+  if (!user) return { status: "error", message: "Sign in to record your run." };
 
   const r = parsed.data;
 
@@ -103,17 +121,31 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
      * daily limit counts inside its transaction.
      */
     const outcome = await prisma.$transaction(async (tx) => {
-      const playedToday = await tx.typingSession.count({
-        where: { profileId: profile.id, playedAt: { gte: startOfUtcDay() } },
-      });
+      // The daily cap and cooldown span BOTH games — a KATA run and a SCROLL
+      // round both count, so the two cannot be alternated to double a day.
+      const since = startOfUtcDay();
+      const [typingToday, scrollToday, lastTyping, lastScroll] = await Promise.all([
+        tx.typingSession.count({ where: { profileId: profile.id, playedAt: { gte: since } } }),
+        tx.scrollSession.count({ where: { profileId: profile.id, playedAt: { gte: since } } }),
+        tx.typingSession.findFirst({
+          where: { profileId: profile.id },
+          orderBy: { playedAt: "desc" },
+          select: { playedAt: true },
+        }),
+        tx.scrollSession.findFirst({
+          where: { profileId: profile.id },
+          orderBy: { playedAt: "desc" },
+          select: { playedAt: true },
+        }),
+      ]);
+      const playedToday = typingToday + scrollToday;
       if (isLimitReached(playedToday, limits)) return { kind: "limit" as const };
 
-      const last = await tx.typingSession.findFirst({
-        where: { profileId: profile.id },
-        orderBy: { playedAt: "desc" },
-        select: { playedAt: true },
-      });
-      const cooldown = cooldownLeftSeconds(last?.playedAt.getTime() ?? null, Date.now(), limits);
+      const lastMs = Math.max(
+        lastTyping?.playedAt.getTime() ?? 0,
+        lastScroll?.playedAt.getTime() ?? 0
+      );
+      const cooldown = cooldownLeftSeconds(lastMs > 0 ? lastMs : null, Date.now(), limits);
       if (cooldown > 0) return { kind: "cooldown" as const, secondsLeft: cooldown };
 
       const session = await tx.typingSession.create({
@@ -140,7 +172,7 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
         select: { id: true },
       });
 
-      await tx.profile.update({
+      const updated = await tx.profile.update({
         where: { id: profile.id },
         data: {
           honor: { increment: honor },
@@ -149,12 +181,27 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
           // record that they trained today.
           lastPlayedOn: new Date(),
         },
+        // The new total, so the rank crossing is read from the balance the write
+        // produced rather than a separately-read one that a concurrent run could
+        // have moved underneath us.
+        select: { honor: true },
       });
+
+      const promoted = rankUpBetween(updated.honor - honor, updated.honor);
 
       return {
         kind: "saved" as const,
         sessionId: session.id,
         remaining: gamesRemaining(playedToday + 1, limits),
+        rankUp: promoted
+          ? {
+              name: promoted.name,
+              kanji: promoted.kanji,
+              creed: promoted.creed,
+              tier: rankTier(promoted),
+              total: RANKS.length,
+            }
+          : null,
       };
     });
 
@@ -165,7 +212,13 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
 
     revalidatePath("/dashboard");
     revalidatePath("/dojo");
-    return { status: "saved", honor, sessionId: outcome.sessionId, remaining: outcome.remaining };
+    return {
+      status: "saved",
+      honor,
+      sessionId: outcome.sessionId,
+      remaining: outcome.remaining,
+      rankUp: outcome.rankUp,
+    };
   } catch (error) {
     console.error("saveSession failed", error);
     return { status: "error", message: "Your run could not be recorded." };

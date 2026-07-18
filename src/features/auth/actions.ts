@@ -10,6 +10,7 @@ import {
   registerSchema,
   resetSchema,
 } from "@/features/auth/schemas";
+import { recordLogin, recordLogout } from "@/features/auth/tracking";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,7 +23,7 @@ export type AuthResult =
 const NOT_CONFIGURED: AuthResult = {
   status: "error",
   message:
-    "Accounts are not connected yet — Supabase keys are missing from this deployment. The dojo needs no account.",
+    "Accounts are not connected yet — Supabase keys are missing from this deployment. Training will open once they are set.",
 };
 
 /**
@@ -47,7 +48,11 @@ function readable(message: string): string {
   return message;
 }
 
-export async function signIn(values: unknown): Promise<AuthResult> {
+export async function signIn(
+  values: unknown,
+  /** The browser's timezone — the one thing no request header carries. */
+  timezone?: string
+): Promise<AuthResult> {
   if (!isSupabaseConfigured) return NOT_CONFIGURED;
 
   // Never trust the client's validation — it is a convenience, not a control.
@@ -57,12 +62,18 @@ export async function signIn(values: unknown): Promise<AuthResult> {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
 
   if (error) return { status: "error", message: readable(error.message) };
+
+  // Record the sign-in from the request. Best-effort and non-blocking — a login
+  // is not undone by its own bookkeeping (see features/auth/tracking.ts).
+  if (data.user) {
+    await recordLogin(data.user, typeof timezone === "string" ? timezone : undefined);
+  }
 
   // The header renders the student's name from the session, so the cached
   // shell has to be dropped or it will keep showing "Sign in".
@@ -171,6 +182,12 @@ export async function updatePassword(values: unknown): Promise<AuthResult> {
 export async function signOut() {
   if (isSupabaseConfigured) {
     const supabase = await createClient();
+    // Stamp the logout while the session still resolves a user.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) await recordLogout(user.id);
+
     await supabase.auth.signOut();
   }
   revalidatePath("/", "layout");

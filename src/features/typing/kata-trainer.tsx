@@ -6,12 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { rankForHonor } from "@/features/gamification/ranks";
-import {
-  DISCIPLINES,
-  passagesFor,
-  type Discipline,
-  type Passage,
-} from "@/features/typing/passages";
+import { DISCIPLINES, passagesFor } from "@/features/typing/passages";
+import { LevelUpModal } from "@/features/gamification/level-up-modal";
 import { saveSession, type SaveResult } from "@/features/typing/actions";
 import { useKata, type CharState } from "@/features/typing/use-kata";
 import { usePetals } from "@/shared/components/sakura/petal-context";
@@ -145,12 +141,26 @@ function Stat({
 /** Today's standing against the daily limit, or null for a guest / no limit. */
 export type TrainerPlayState = { remaining: number | null; cooldownLeft: number } | null;
 
-export function KataTrainer({ playState = null }: { playState?: TrainerPlayState }) {
-  const [discipline, setDiscipline] = useState<Discipline>("kata");
+/** The shape the game needs; the admin's Passage table narrowed to it. */
+export type GamePassage = { id: string; title: string; text: string };
+
+export function KataTrainer({
+  passages,
+  playState = null,
+}: {
+  passages: GamePassage[];
+  playState?: TrainerPlayState;
+}) {
+  // KATA is one discipline now: the typing game. The choice of game — KATA or
+  // SCROLL — is the toggle above this, so there is no sub-mode to pick here.
   const [passageIndex, setPassageIndex] = useState(0);
 
-  const pool = useMemo(() => passagesFor(discipline), [discipline]);
-  const passage: Passage = pool[passageIndex % pool.length];
+  // The admin's passages, or the built-in set if the table came back empty.
+  const pool = useMemo<GamePassage[]>(
+    () => (passages.length ? passages : passagesFor("kata")),
+    [passages]
+  );
+  const passage = pool[passageIndex % pool.length];
 
   const { index, states, status, stats, refusals, handleKey, reset } = useKata(passage.text);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -159,6 +169,8 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
   // Games left today, kept in state so it falls as runs are saved. Null means no
   // limit (guest, or the feature is off).
   const [remaining, setRemaining] = useState<number | null>(playState?.remaining ?? null);
+  // A rank-up celebration is shown once per promotion, until dismissed.
+  const [rankDismissed, setRankDismissed] = useState(false);
   const { gust } = usePetals();
 
   const focus = useCallback(() => inputRef.current?.focus(), []);
@@ -193,6 +205,8 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
       ...counts,
     }).then((result) => {
       setSaved(result);
+      // A fresh result gets a fresh chance to celebrate.
+      setRankDismissed(false);
       // Keep the remaining counter honest with what the server actually did.
       if (result.status === "saved") setRemaining(result.remaining);
       else if (result.status === "limit") setRemaining(0);
@@ -203,12 +217,6 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
     // Only the completed run matters here; stats/words are settled by then.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runKey]);
-
-  const pickDiscipline = (next: Discipline) => {
-    setDiscipline(next);
-    setPassageIndex(0);
-    setSaved(null);
-  };
 
   const nextPassage = () => {
     setPassageIndex((n) => (n + 1) % pool.length);
@@ -223,41 +231,17 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
 
   return (
     <div className="space-y-6">
-      {/* Discipline selector */}
-      <div className="flex flex-wrap items-center gap-2">
-        {(Object.keys(DISCIPLINES) as Discipline[]).map((key) => {
-          const active = key === discipline;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => pickDiscipline(key)}
-              aria-pressed={active}
-              className={cn(
-                "rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                active
-                  ? "border-sakura/50 bg-sakura/10 text-sakura"
-                  : "border-border/60 text-muted-foreground hover:border-border hover:text-foreground"
-              )}
-            >
-              <span className="font-heading tracking-wide">{DISCIPLINES[key].name}</span>
-              <span className="ml-2 text-xs opacity-60">{DISCIPLINES[key].kanji}</span>
-            </button>
-          );
-        })}
-        <div className="ml-auto flex items-center gap-3">
-          {remaining !== null ? (
-            <span className="text-xs whitespace-nowrap" aria-live="polite">
-              <span className="tabular text-sakura">{remaining}</span>{" "}
-              <span className="text-muted-foreground">
-                {remaining === 1 ? "game left" : "games left"} today
-              </span>
+      {/* Discipline blurb + games remaining */}
+      <div className="flex flex-wrap items-center gap-3">
+        <p className="text-xs text-muted-foreground">{DISCIPLINES.kata.blurb}</p>
+        {remaining !== null ? (
+          <span className="ml-auto text-xs whitespace-nowrap" aria-live="polite">
+            <span className="tabular text-sakura">{remaining}</span>{" "}
+            <span className="text-muted-foreground">
+              {remaining === 1 ? "game left" : "games left"} today
             </span>
-          ) : null}
-          <p className="hidden text-xs text-muted-foreground sm:block">
-            {DISCIPLINES[discipline].blurb}
-          </p>
-        </div>
+          </span>
+        ) : null}
       </div>
 
       {/* Live instrument panel */}
@@ -368,14 +352,6 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
                     </Link>
                     .
                   </>
-                ) : saved?.status === "guest" ? (
-                  <>
-                    Played as a guest, so this cut is not kept.{" "}
-                    <Link href="/register" className="text-sakura underline-offset-4 hover:underline">
-                      Enter the dojo
-                    </Link>{" "}
-                    to accrue Honor.
-                  </>
                 ) : saved?.status === "limit" ? (
                   saved.message
                 ) : saved?.status === "cooldown" ? (
@@ -416,6 +392,15 @@ export function KataTrainer({ playState = null }: { playState?: TrainerPlayState
             </div>
           </div>
         </div>
+      ) : null}
+
+      {saved?.status === "saved" && saved.rankUp ? (
+        <LevelUpModal
+          rankUp={saved.rankUp}
+          honor={saved.honor}
+          open={!rankDismissed}
+          onClose={() => setRankDismissed(true)}
+        />
       ) : null}
     </div>
   );

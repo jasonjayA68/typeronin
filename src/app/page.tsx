@@ -8,6 +8,7 @@ import { InkDivider } from "@/shared/components/ink-divider";
 import { Container } from "@/shared/components/layout/container";
 import { SiteFooter } from "@/shared/components/layout/site-footer";
 import { SiteHeader } from "@/shared/components/layout/site-header";
+import { getUser } from "@/lib/supabase/server";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
@@ -62,11 +63,17 @@ const scrolls = [
   },
   {
     q: "Do I need an account?",
-    a: "No. The dojo is open and you may train this minute without one. An account only exists so your Honor accrues, your rhythm can be compared against your past self, and your rank is remembered between visits.",
+    a: "Yes — a free one. The dojo trains for keeps: your Honor accrues, your rhythm is measured against your own past, your rank is remembered, and the Honor you earn converts to real rewards. None of that is possible for someone the dojo cannot recognise, so training begins with an account. It takes a moment to make.",
   },
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  // The dojo requires an account, so the primary call sends a signed-out visitor
+  // to create one, and a signed-in one straight to training.
+  const user = await getUser();
+  const playHref = user ? "/dojo" : "/register";
+  const playLabel = user ? "Take your stance" : "Enter the Dojo";
+
   return (
     <>
       <SiteHeader />
@@ -94,14 +101,15 @@ export default function Home() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg">
-              A typing dojo with one rule: no corrections. Every stroke is final, your rhythm is
-              measured beside your speed, and rank is earned one clean cut at a time.
+              A typing dojo with one rule: no corrections. Every stroke is final and your rhythm is
+              measured beside your speed — and every clean cut earns Honor you can climb the ranks
+              with, and convert into real rewards.
             </p>
 
             <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild variant="dojo" size="xl">
-                <Link href="/dojo">
-                  Take your stance
+                <Link href={playHref}>
+                  {playLabel}
                   <ArrowRightIcon aria-hidden="true" />
                 </Link>
               </Button>
@@ -110,8 +118,8 @@ export default function Home() {
               </Button>
             </div>
 
-            <p className="mt-4 text-xs text-muted-foreground">
-              No account needed to begin.
+            <p className="mt-5 font-heading text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">
+              Train<span className="text-sakura"> · </span>Master<span className="text-sakura"> · </span>Earn
             </p>
 
             <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
@@ -273,10 +281,10 @@ export default function Home() {
             </div>
 
             <div className="mt-14 text-center">
-              <p className="text-muted-foreground">The dojo is open. The only cost is attention.</p>
+              <p className="text-muted-foreground">A rank is a few clean cuts away. The only cost is attention.</p>
               <Button asChild variant="dojo" size="xl" className="mt-6">
-                <Link href="/dojo">
-                  Take your stance
+                <Link href={playHref}>
+                  {playLabel}
                   <ArrowRightIcon aria-hidden="true" />
                 </Link>
               </Button>

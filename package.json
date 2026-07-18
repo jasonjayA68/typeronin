@@ -10,7 +10,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:seed:blog": "tsx prisma/seed-blog.ts"
+    "db:seed:blog": "tsx prisma/seed-blog.ts",
+    "db:seed:vocab": "tsx prisma/seed-vocab.ts",
+    "db:seed:passages": "tsx prisma/seed-passages.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

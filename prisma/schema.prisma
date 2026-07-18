@@ -74,6 +74,17 @@ model Profile {
   countryCode String? @db.Char(2)
   bio         String?
 
+  /// Where and how they came and went. Location is best-effort from request
+  /// headers and may be absent (localhost, a proxy that strips geo); timezone is
+  /// the browser's own, sent at login. `registrationSource` is the auth provider
+  /// they signed up through. None of these gate anything — they are for the
+  /// account view and, with the login log, for spotting abuse.
+  timezone           String?
+  region             String?
+  registrationSource String?
+  lastLoginAt        DateTime?
+  lastLogoutAt       DateTime?
+
   /// Earned currency; the only thing that moves rank.
   honor Int @default(0)
   /// Spendable energy.
@@ -111,6 +122,9 @@ model Profile {
 
   withdrawals         Withdrawal[] @relation("WithdrawalOwner")
   withdrawalsResolved Withdrawal[] @relation("WithdrawalResolver")
+  loginEvents         LoginEvent[]
+  devices             DeviceAccount[]
+  scrollSessions      ScrollSession[]
 
   @@index([honor])
   @@index([countryCode])
@@ -130,9 +144,10 @@ model Category {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  words     Word[]
-  sessions  TypingSession[]
-  gameModes GameModeCategory[]
+  words          Word[]
+  sessions       TypingSession[]
+  scrollSessions ScrollSession[]
+  gameModes      GameModeCategory[]
 }
 
 model Word {
@@ -152,6 +167,12 @@ model Word {
   /// Corpus frequency rank, lower being commoner. Lets difficulty be tuned from
   /// evidence rather than by eye, and drives weighted random selection.
   frequency Int?
+
+  /// The word's meaning. Optional because KATA — the typing game — needs only the
+  /// text; a word earns its place in SCROLL, the vocabulary game, by having one.
+  /// So "a word with a definition" is exactly "a SCROLL question", with no second
+  /// table to keep in step.
+  definition String?
 
   categoryId String   @db.Uuid
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -173,8 +194,8 @@ model Word {
 model TypingSession {
   id String @id @default(uuid()) @db.Uuid
 
-  /// Null for guests. The game is playable without an account, so history is
-  /// simply not kept for them.
+  /// Nullable for historical rows and defence in depth; training now requires an
+  /// account (the dojo is gated), so new runs always carry a profile.
   profileId String?  @db.Uuid
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
@@ -997,4 +1018,148 @@ model Withdrawal {
   @@index([status, createdAt])
   /// The daily-limit count: this user's requests since midnight.
   @@index([profileId, createdAt])
+}
+
+// ---------------------------------------------------------------- security
+
+/// One sign-in, kept for the account's own "recent activity" and for spotting
+/// abuse — the same row a fraud check reads and a device panel shows.
+///
+/// The IP is recorded for that second purpose only and is never shown to the
+/// account holder; the device, browser and country are theirs to see. Location
+/// is best-effort from request headers and is frequently null, which is fine —
+/// an absent field is honest where a guessed one would not be.
+model LoginEvent {
+  id String @id @default(uuid()) @db.Uuid
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  /// Fraud monitoring only. Not surfaced to the user.
+  ip String?
+
+  browser String?
+  os      String?
+  /// "Desktop" | "Mobile" | "Tablet", best-effort from the user agent.
+  device  String?
+
+  country String? @db.Char(2)
+  region  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+}
+
+// ---------------------------------------------------------------- devices
+
+/// A browser we have seen, identified by a long-lived cookie and a coarse
+/// fingerprint.
+///
+/// The point of this table is one question: has more than one account signed in
+/// here? A device with several accounts is not proof of abuse — a family shares
+/// a laptop, a library shares a machine — so this FLAGS rather than blocks, and
+/// an admin can mark a device `trusted` to say a legitimate share was reviewed.
+/// The fingerprint (a hash of user agent, language and timezone) is a weak second
+/// signal for the case where someone clears the cookie to start again; it is
+/// coarse on purpose, because precise fingerprinting is a surveillance tool and
+/// this is a fairness one.
+model Device {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// The persistent cookie value. The primary identity of the device.
+  cookieId String @unique
+
+  /// Hash of user-agent + accept-language + timezone. A weak evasion signal.
+  fingerprint String?
+
+  /// Admin override: a share that has been reviewed and accepted.
+  trusted Boolean @default(false)
+  /// Set the moment a second account signed in here, unless trusted.
+  flaggedAt DateTime?
+
+  /// Last IP seen, for a fraud review. One signal among several, never the only
+  /// one — shared networks make IP alone a false accuser.
+  lastIp String?
+
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
+
+  accounts DeviceAccount[]
+
+  @@index([fingerprint])
+  @@index([flaggedAt])
+}
+
+/// Which accounts have signed in on which device.
+model DeviceAccount {
+  deviceId String @db.Uuid
+  device   Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  firstSeenAt DateTime @default(now())
+
+  @@id([deviceId, profileId])
+  @@index([profileId])
+}
+
+// ---------------------------------------------------------------- scroll play
+
+/// One finished SCROLL round — the vocabulary game.
+///
+/// Its own table because SCROLL is not typing: there is no speed here, only how
+/// many meanings were matched and how long the run of correct answers went. It
+/// earns Honor the same as a KATA run does, so rank, the wallet and the daily
+/// limit all see it — the limit counts rounds across both games so the two
+/// cannot be used to double a day's earning.
+model ScrollSession {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Nullable for parity with TypingSession; training requires an account now, so
+  /// new rounds always carry a profile.
+  profileId String?  @db.Uuid
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  difficulty Difficulty
+  categoryId String?   @db.Uuid
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  questionCount Int
+  correctCount  Int
+  wrongCount    Int
+  /// Longest unbroken run of correct answers.
+  maxCombo      Int @default(0)
+
+  honorEarned Int @default(0)
+  xpEarned    Int @default(0)
+
+  playedAt DateTime @default(now())
+
+  @@index([profileId, playedAt])
+}
+
+// ---------------------------------------------------------------- passages
+
+/// A KATA typing passage, as data.
+///
+/// The prose was hardcoded in the engine; this is the "admin never edits code"
+/// table for it. A passage is a title and a body typed clean, filed under a
+/// difficulty, and switched on or off. `sort` orders the rotation; the engine
+/// draws only active ones and falls back to its built-in set if the table is
+/// empty, so the game is never left with nothing to type.
+model Passage {
+  id    String @id @default(uuid()) @db.Uuid
+  title String
+  text  String
+
+  difficulty Difficulty @default(MEDIUM)
+  isActive   Boolean    @default(true)
+  sort       Int        @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sort])
 }

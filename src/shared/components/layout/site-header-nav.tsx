@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOutIcon, MenuIcon, ShieldCheckIcon } from "lucide-react";
+import { GaugeIcon, LogOutIcon, MenuIcon, ShieldCheckIcon, WalletIcon } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
@@ -61,6 +61,18 @@ function StudentMenu({ student }: { student: Student }) {
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{student.email}</p>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/dashboard">
+            <GaugeIcon aria-hidden="true" />
+            Your Standing
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/withdrawals">
+            <WalletIcon aria-hidden="true" />
+            Honor Wallet
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/dojo">The Dojo</Link>
         </DropdownMenuItem>
@@ -161,6 +173,16 @@ export function SiteHeaderNav({ student }: { student: Student | null }) {
                       <Link href={item.href}>{item.label}</Link>
                     </Button>
                   ))}
+                  {student ? (
+                    <>
+                      <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
+                        <Link href="/dashboard">Your Standing</Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
+                        <Link href="/withdrawals">Honor Wallet</Link>
+                      </Button>
+                    </>
+                  ) : null}
                   {student ? null : (
                     <Button asChild variant="ghost" className="justify-start sm:hidden">
                       <Link href="/login">Sign in</Link>
