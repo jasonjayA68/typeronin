@@ -16,24 +16,9 @@ import { PrismaClient } from "../../generated/prisma/client";
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    // TEMPORARY diagnostic — remove once the deploy is green. Prints which of
-    // the expected variables the build environment can actually see, by NAME and
-    // presence only (never a value), so the log says whether DATABASE_URL is
-    // absent (a scope/name/project problem in Vercel) or present-but-empty.
-    const seen = [
-      "DATABASE_URL",
-      "DIRECT_URL",
-      "NEXT_PUBLIC_SUPABASE_URL",
-      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-      "SUPABASE_SECRET_KEY",
-      "VERCEL",
-      "VERCEL_ENV",
-    ]
-      .map((k) => `${k}=${process.env[k] ? "present" : "MISSING"}`)
-      .join(", ");
     throw new Error(
       "DATABASE_URL is not set. Copy .env.example to .env.local and add your " +
-        `Supabase connection strings.\n[env diagnostic] ${seen}`
+        "Supabase connection strings."
     );
   }
 
