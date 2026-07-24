@@ -106,6 +106,7 @@ model Profile {
   achievements  ProfileAchievement[]
   notifications Notification[]
   rewardClaims  RewardClaim[]
+  missionClaims MissionClaim[]
   /// Referrals where this profile did the referring.
   referralsMade Referral[]           @relation("Referrer")
   /// At most one: the referral that brought this profile in.
@@ -279,6 +280,27 @@ model ProfileAchievement {
   /// The composite key is the idempotency guard: an achievement cannot unlock twice.
   @@id([profileId, achievementId])
   @@index([profileId, unlockedAt])
+}
+
+/// A mission paid out. Missions themselves are defined in code (see
+/// features/missions/catalog.ts) and their progress is derived from session
+/// history, so nothing is stored until one is completed. This row is that
+/// completion: the composite key is the idempotency guard, exactly as
+/// ProfileAchievement is for trials — a mission cannot pay twice.
+model MissionClaim {
+  profileId  String @db.Uuid
+  /// The mission's stable key from the code catalog.
+  missionKey String
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  honor Int @default(0)
+  xp    Int @default(0)
+
+  claimedAt DateTime @default(now())
+
+  @@id([profileId, missionKey])
+  @@index([profileId, claimedAt])
 }
 
 model RewardClaim {

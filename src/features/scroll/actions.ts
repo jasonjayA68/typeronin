@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { grantProgressRewards, type ProgressReward } from "@/features/gamification/progress";
 import { RANKS, rankTier, rankUpBetween } from "@/features/gamification/ranks";
 import {
   LIMIT_REACHED_MESSAGE,
@@ -38,6 +39,8 @@ export type ScrollSaveResult =
       total: number;
       remaining: number | null;
       rankUp: RankUp | null;
+      /** Extra Honor from any Bushido trial or Mission this round completed. */
+      bonus: ProgressReward | null;
     }
   | { status: "limit"; message: string }
   | { status: "cooldown"; secondsLeft: number }
@@ -149,8 +152,16 @@ export async function saveScrollSession(input: unknown): Promise<ScrollSaveResul
       return { status: "cooldown", secondsLeft: outcome.secondsLeft };
     }
 
+    // Pay any Bushido trial or Mission this round just completed — idempotent, and
+    // kept apart from the round's own Honor so a failure cannot undo it.
+    const bonus = await grantProgressRewards(profile.id);
+
     revalidatePath("/dashboard");
     revalidatePath("/dojo");
+    if (bonus.unlocked.length > 0) {
+      revalidatePath("/achievements");
+      revalidatePath("/missions");
+    }
     return {
       status: "saved",
       honor,
@@ -158,6 +169,7 @@ export async function saveScrollSession(input: unknown): Promise<ScrollSaveResul
       total: r.questionCount,
       remaining: outcome.remaining,
       rankUp: outcome.rankUp,
+      bonus: bonus.unlocked.length > 0 ? bonus : null,
     };
   } catch (error) {
     console.error("saveScrollSession failed", error);

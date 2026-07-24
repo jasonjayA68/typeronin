@@ -1,6 +1,13 @@
 "use client";
 
-import { GaugeIcon, LogOutIcon, MenuIcon, ShieldCheckIcon, WalletIcon } from "lucide-react";
+import {
+  GaugeIcon,
+  LifeBuoyIcon,
+  LogOutIcon,
+  MenuIcon,
+  ShieldCheckIcon,
+  WalletIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
@@ -79,6 +86,14 @@ function StudentMenu({ student }: { student: Student }) {
         <DropdownMenuItem asChild>
           <Link href="/leaderboard">Hall of Legends</Link>
         </DropdownMenuItem>
+        {/* There is no support inbox behind this — it points at the social
+            channels the house actually answers on. */}
+        <DropdownMenuItem asChild>
+          <Link href="/contact">
+            <LifeBuoyIcon aria-hidden="true" />
+            Get help
+          </Link>
+        </DropdownMenuItem>
         {student.role === "admin" ? (
           <DropdownMenuItem asChild>
             <Link href="/admin">
@@ -106,18 +121,47 @@ function StudentMenu({ student }: { student: Student }) {
   );
 }
 
-// Anchors are absolute ("/#ranks") so the nav still resolves from interior
-// pages, not only from home.
-const navigation = [
-  { href: "/dojo", label: "The Dojo" },
-  { href: "/#the-way", label: "The Way" },
-  { href: "/#ranks", label: "Ranks" },
-  { href: "/leaderboard", label: "Hall of Legends" },
-  { href: "/blog", label: "Blog" },
-] as const;
+/**
+ * A content pillar, as the nav needs it.
+ *
+ * Typed structurally rather than importing NavCategory from features/blog/
+ * queries, which lives behind `server-only` — nothing here needs the server
+ * module, and the shapes are checked against each other where they meet, in
+ * SiteHeader.
+ */
+type NavCategory = { slug: string; name: string };
 
-export function SiteHeaderNav({ student }: { student: Student | null }) {
+/**
+ * The header carries the dojo and the content pillars, and nothing else.
+ *
+ * What used to sit here — The Way, Ranks, Hall of Legends, Blog — was either a
+ * jump to a section of the home page the visitor is usually already on, or a
+ * destination the footer already lists. A nav that repeats the page beneath it
+ * is decoration. The pillars are the one thing a reader cannot reach in a click
+ * from anywhere else, so they are what the row is spent on.
+ *
+ * Categories come from the database (see getNavCategories) rather than being
+ * written here, because they are rows an admin edits.
+ */
+function buildNavigation(categories: readonly NavCategory[]) {
+  return [
+    { href: "/dojo", label: "The Dojo" },
+    ...categories.map((category) => ({
+      href: `/blog/category/${category.slug}`,
+      label: category.name,
+    })),
+  ];
+}
+
+export function SiteHeaderNav({
+  student,
+  categories,
+}: {
+  student: Student | null;
+  categories: readonly NavCategory[];
+}) {
   const [open, setOpen] = useState(false);
+  const navigation = buildNavigation(categories);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AdSlot } from "@/features/ads/ad-slot";
 import { FeaturedPostCard, PostCard } from "@/features/blog/post-card";
 import { cardSelect, PUBLIC_POSTS } from "@/features/blog/queries";
 import { prisma } from "@/lib/prisma";
@@ -134,6 +135,10 @@ export default async function BlogPage(props: PageProps<"/blog">) {
               </Button>
             </div>
           )}
+
+          {/* Below the grid, above the pager: the natural pause in an index
+              page. Nothing renders until the placement is switched on. */}
+          {posts.length ? <AdSlot placement="blog-index" className="mt-16" /> : null}
 
           {pages > 1 ? (
             <nav aria-label="Pagination" className="mt-16 flex items-center justify-between gap-4">

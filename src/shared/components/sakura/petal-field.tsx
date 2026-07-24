@@ -37,18 +37,21 @@ type Petal = {
   alpha: number;
   /** Parallax depth, 0 (far) to 1 (near). Drives size, speed and cursor pull. */
   depth: number;
+  /** Which of the three petal tones this one wears (index into `tones`). */
+  tone: number;
 };
 
-const MAX_PETALS = 44;
+// Kept low: the petals are Layer 5, felt not watched. A quiet drift, not a storm.
+const MAX_PETALS = 30;
 
 /** A five-lobed blossom would be too busy at 8px; one lobe reads better. */
-function drawPetal(ctx: CanvasRenderingContext2D, petal: Petal, hue: string) {
+function drawPetal(ctx: CanvasRenderingContext2D, petal: Petal, tones: string[]) {
   const { size } = petal;
   ctx.save();
   ctx.translate(petal.x, petal.y);
   ctx.rotate(petal.rotation);
   ctx.globalAlpha = petal.alpha;
-  ctx.fillStyle = hue;
+  ctx.fillStyle = tones[petal.tone] ?? tones[0];
 
   // A single petal: two arcs meeting at a soft point, with a notched tip.
   ctx.beginPath();
@@ -88,8 +91,12 @@ function makePetal(width: number, height: number, seeded: boolean): Petal {
     phase: Math.random() * Math.PI * 2,
     spin: (Math.random() - 0.5) * 1.2,
     rotation: Math.random() * Math.PI * 2,
-    alpha: 0.25 + depth * 0.45,
+    // 40–70% opacity per the spec: present enough to read, faint enough to stay
+    // beneath the interface. The paler tones lean more transparent.
+    alpha: 0.4 + depth * 0.3,
     depth,
+    // Weighted toward the mid pink; the palest tone is the rarest, like real fall.
+    tone: [0, 0, 1, 1, 2][(Math.random() * 5) | 0],
   };
 }
 
@@ -150,13 +157,14 @@ export function PetalField() {
       }
     };
 
-    // The blossom colour comes from the theme, so night petals are not white.
-    let hue = "rgba(244, 170, 198, 1)";
-    const readHue = () => {
-      const value = getComputedStyle(document.documentElement)
-        .getPropertyValue("--blossom")
-        .trim();
-      if (value) hue = value;
+    // The three petal tones come from the theme tokens, so night petals glow the
+    // right pink rather than white. Petals store a tone INDEX, so a theme swap
+    // just refills this array and every petal recolours for free.
+    let tones = ["#f29dba", "#f7bfd1", "#ffd9e7"];
+    const readTones = () => {
+      const s = getComputedStyle(document.documentElement);
+      const next = ["--tree-b1", "--tree-b2", "--tree-b3"].map((v) => s.getPropertyValue(v).trim());
+      if (next.every(Boolean)) tones = next;
     };
 
     const step = (now: number) => {
@@ -167,14 +175,16 @@ export function PetalField() {
 
       ctx.clearRect(0, 0, width, height);
 
-      const active = Math.round(MAX_PETALS * densityRef.current);
+      // Fewer petals on a small screen — a phone should not be cluttered.
+      const mobileFactor = width < 640 ? 0.45 : 1;
+      const active = Math.round(MAX_PETALS * densityRef.current * mobileFactor);
 
       for (let i = 0; i < petals.length; i++) {
         const petal = petals[i];
 
         // Fade petals beyond the current density out rather than popping them.
         const wanted = i < active;
-        const target = wanted ? 0.25 + petal.depth * 0.45 : 0;
+        const target = wanted ? 0.4 + petal.depth * 0.3 : 0;
         petal.alpha += (target - petal.alpha) * Math.min(1, dt * 3);
         if (petal.alpha < 0.01 && !wanted) continue;
 
@@ -206,7 +216,7 @@ export function PetalField() {
           petal.x = -20;
         }
 
-        drawPetal(ctx, petal, hue);
+        drawPetal(ctx, petal, tones);
       }
 
       frame = requestAnimationFrame(step);
@@ -239,7 +249,7 @@ export function PetalField() {
       }
     };
 
-    readHue();
+    readTones();
     resize();
     start();
 
@@ -250,7 +260,7 @@ export function PetalField() {
     reduced.addEventListener("change", onReducedChange);
 
     // The theme toggle swaps --blossom underneath us.
-    const themeObserver = new MutationObserver(readHue);
+    const themeObserver = new MutationObserver(readTones);
     themeObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],

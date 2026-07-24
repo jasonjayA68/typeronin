@@ -6,6 +6,7 @@ import { z } from "zod";
 import { audit } from "@/features/admin/audit";
 import { requirePermission } from "@/features/admin/guard";
 import { prisma } from "@/lib/prisma";
+import { isAdminKeyConfigured, supabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * Role grants and revocations.
@@ -100,5 +101,147 @@ export async function revokeRole(profileId: string, roleSlug: string): Promise<U
   } catch (error) {
     console.error("revokeRole failed", error);
     return { ok: false, message: "That role could not be revoked." };
+  }
+}
+
+/** Editable profile fields. Honor, roles and sessions are owned elsewhere. */
+const updateSchema = z.object({
+  displayName: z.string().trim().min(1, "A name is required.").max(60, "That name is too long."),
+  handle: z
+    .string()
+    .trim()
+    .min(2, "A handle needs at least two characters.")
+    .max(30, "That handle is too long.")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Handles use letters, numbers, hyphens and underscores only."),
+});
+
+export type UpdateUserInput = z.infer<typeof updateSchema>;
+
+/**
+ * Edit a student's display name and handle.
+ *
+ * The handle is public and unique, so a change is checked against the rest of the
+ * table first — the database enforces it too, but a friendly refusal beats a
+ * unique-constraint error surfacing as "something went wrong".
+ */
+export async function updateUser(
+  profileId: string,
+  input: unknown
+): Promise<UserActionResult> {
+  const { user } = await requirePermission("users:write");
+
+  const id = z.uuid().safeParse(profileId);
+  if (!id.success) return { ok: false, message: "Unknown student." };
+
+  const parsed = updateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "That change did not make sense." };
+  }
+
+  try {
+    const existing = await prisma.profile.findUnique({
+      where: { id: id.data },
+      select: { handle: true },
+    });
+    if (!existing) return { ok: false, message: "Unknown student." };
+
+    if (parsed.data.handle !== existing.handle) {
+      const taken = await prisma.profile.findUnique({
+        where: { handle: parsed.data.handle },
+        select: { id: true },
+      });
+      if (taken && taken.id !== id.data) {
+        return { ok: false, message: "That handle is already taken." };
+      }
+    }
+
+    await prisma.profile.update({
+      where: { id: id.data },
+      data: { displayName: parsed.data.displayName, handle: parsed.data.handle },
+    });
+
+    await audit({
+      actorId: user.id,
+      action: "user.updated",
+      entity: "Profile",
+      entityId: id.data,
+      meta: { displayName: parsed.data.displayName, handle: parsed.data.handle },
+    });
+
+    revalidatePath("/admin/users");
+    return { ok: true };
+  } catch (error) {
+    console.error("updateUser failed", error);
+    return { ok: false, message: "That student could not be updated." };
+  }
+}
+
+/**
+ * Delete a student's account outright — for clearing test/dummy accounts.
+ *
+ * Two things must go: the Profile (which cascades every session, claim, trial and
+ * withdrawal it owns, and nulls the authorship of anything it wrote) and the
+ * Supabase auth user behind it — otherwise the account could log back in and
+ * `ensureProfile` would quietly recreate a blank profile. The auth user is
+ * removed with the service-role admin API when configured, and by a direct delete
+ * on `auth.users` otherwise. That step is best-effort: if it fails the app data is
+ * already gone, and the orphaned login is logged rather than left to fail the
+ * whole action.
+ *
+ * Guards that survive a direct POST: you cannot delete yourself, and an account
+ * still holding the admin role must be demoted first — a deliberate speed bump
+ * against nuking a colleague.
+ */
+export async function deleteUser(profileId: string): Promise<UserActionResult> {
+  const { user } = await requirePermission("users:write");
+
+  const id = z.uuid().safeParse(profileId);
+  if (!id.success) return { ok: false, message: "Unknown student." };
+
+  if (id.data === user.id) {
+    return { ok: false, message: "You cannot delete your own account from here." };
+  }
+
+  try {
+    const profile = await prisma.profile.findUnique({
+      where: { id: id.data },
+      select: {
+        handle: true,
+        displayName: true,
+        roles: { select: { role: { select: { slug: true } } } },
+      },
+    });
+    if (!profile) return { ok: false, message: "Unknown student." };
+
+    if (profile.roles.some((r) => r.role.slug === "admin")) {
+      return { ok: false, message: "Revoke this student's admin role before deleting the account." };
+    }
+
+    await prisma.profile.delete({ where: { id: id.data } });
+
+    // Remove the login itself so the account cannot come back. Best-effort.
+    try {
+      if (isAdminKeyConfigured) {
+        await supabaseAdmin().auth.admin.deleteUser(id.data);
+      } else {
+        await prisma.$executeRaw`delete from auth.users where id = ${id.data}::uuid`;
+      }
+    } catch (authError) {
+      console.error("deleteUser: profile removed but auth user delete failed", authError);
+    }
+
+    await audit({
+      actorId: user.id,
+      action: "user.deleted",
+      entity: "Profile",
+      entityId: id.data,
+      meta: { handle: profile.handle, displayName: profile.displayName },
+    });
+
+    revalidatePath("/admin/users");
+    return { ok: true };
+  } catch (error) {
+    console.error("deleteUser failed", error);
+    return { ok: false, message: "That account could not be deleted." };
   }
 }

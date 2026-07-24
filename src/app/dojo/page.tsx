@@ -3,13 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AdSlot } from "@/features/ads/ad-slot";
-import { honorToCash } from "@/features/economy/config";
-import { getEconomyConfig } from "@/features/economy/service";
 import { LIMIT_REACHED_MESSAGE } from "@/features/play/limits";
-import { getDailyPlayState, getPlayLimits } from "@/features/play/service";
+import { getDailyPlayState } from "@/features/play/service";
 import { getKataPassages } from "@/features/passages/queries";
 import { DojoModes } from "@/features/dojo/dojo-modes";
-import { GameInfoPanel } from "@/features/typing/game-info-panel";
 import { getUser } from "@/lib/supabase/server";
 import { Container } from "@/shared/components/layout/container";
 import { PageHeader } from "@/shared/components/layout/page-header";
@@ -30,10 +27,11 @@ export default async function DojoPage() {
   const user = await getUser();
   if (!user) redirect("/login");
 
-  const [playState, economy, limits, passages] = await Promise.all([
+  // The economy and the play limits used to be read here too, for the house-code
+  // notice that sat under the trainer. That notice is gone, and so are its two
+  // queries — getDailyPlayState reads the limits it needs on its own.
+  const [playState, passages] = await Promise.all([
     getDailyPlayState(user.id),
-    getEconomyConfig(),
-    getPlayLimits(),
     getKataPassages(),
   ]);
 
@@ -73,13 +71,6 @@ export default async function DojoPage() {
               playState={{ remaining: playState.remaining, cooldownLeft: playState.cooldownLeft }}
             />
           )}
-          <GameInfoPanel
-            className="mt-10"
-            minWithdrawalHonor={economy.minWithdrawalHonor}
-            minPayoutCash={honorToCash(economy.minWithdrawalHonor, economy)}
-            maxGamesPerDay={limits.maxGamesPerDay}
-          />
-
           <AdSlot placement="game-result" className="mt-10" />
         </Container>
       </main>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { SOCIAL_INFO, activeSocials } from "@/features/social/config";
-import { getSocialLinks } from "@/features/social/service";
+import { SocialLinks } from "@/features/social/social-links";
 import { Container } from "@/shared/components/layout/container";
 import { InkDivider } from "@/shared/components/ink-divider";
 import { Logo } from "@/shared/components/logo";
@@ -27,6 +26,7 @@ const footerSections = [
     links: [
       { href: "/#the-way", label: "The Way" },
       { href: "/#scrolls", label: "Questions" },
+      { href: "/contact", label: "Contact" },
       { href: "/privacy", label: "Privacy" },
       { href: "/terms", label: "Terms" },
     ],
@@ -34,11 +34,6 @@ const footerSections = [
 ] as const;
 
 export async function SiteFooter() {
-  // Rendered from the admin-set links; empty until an operator adds them, so the
-  // row simply does not appear on a fresh install. The reader falls back to
-  // empty on any failure — the footer never blocks a page.
-  const socials = activeSocials(await getSocialLinks());
-
   return (
     <footer className="mt-auto border-t border-border/60 bg-card/30">
       <Container>
@@ -54,26 +49,21 @@ export async function SiteFooter() {
               The path of mastery is walked one keystroke at a time.
             </p>
 
-            {socials.length ? (
-              <ul className="flex flex-wrap gap-2 pt-1">
-                {socials.map(({ platform, url }) => (
-                  <li key={platform}>
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={SOCIAL_INFO[platform].label}
-                      title={SOCIAL_INFO[platform].label}
-                      className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-sakura/40 hover:text-sakura"
-                    >
-                      <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4 fill-current">
-                        <path d={SOCIAL_INFO[platform].icon} />
-                      </svg>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+            {/* Labelled, because these are the way to reach the house rather
+                than a decorative row — an unnamed strip of glyphs reads as
+                branding and nobody clicks it to ask a question. The heading
+                stays even when no network is linked: /contact always carries the
+                written addresses, so the invitation is never empty. Only the
+                glyph row itself comes and goes with the admin's settings. */}
+            <div className="space-y-2.5 pt-1">
+              <h2 className="font-heading text-xs font-semibold tracking-[0.18em] text-foreground uppercase">
+                Talk to us
+              </h2>
+              <p className="max-w-xs text-sm text-muted-foreground">
+                The house answers on social. <Link href="/contact" className="underline decoration-sakura/40 underline-offset-4 transition-colors hover:text-foreground hover:decoration-sakura">Every way to reach us</Link>.
+              </p>
+              <SocialLinks />
+            </div>
           </div>
 
           {footerSections.map((section) => (

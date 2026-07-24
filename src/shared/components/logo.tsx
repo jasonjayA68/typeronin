@@ -25,13 +25,24 @@ export function Logo({
       )}
       aria-label="TypeRonin — home"
     >
+      {/* The mark has a light-background and a dark-background cut; CSS shows the
+          one that matches the active theme (the .dark class on <html>), so no
+          flash and no client JS. Both are tiny, so loading both is cheap. */}
       <Image
-        src="/brand/typeronin-emblem.png"
+        src="/brand/typeronin-emblem-light.png"
         alt=""
         width={256}
         height={256}
         priority
-        className="size-9 shrink-0 rounded-lg object-cover ring-1 ring-border/50 transition-opacity duration-300 group-hover:opacity-90"
+        className="size-9 shrink-0 rounded-lg object-cover ring-1 ring-border/50 transition-opacity duration-300 group-hover:opacity-90 dark:hidden"
+      />
+      <Image
+        src="/brand/typeronin-emblem-dark.png"
+        alt=""
+        width={256}
+        height={256}
+        priority
+        className="hidden size-9 shrink-0 rounded-lg object-cover ring-1 ring-border/50 transition-opacity duration-300 group-hover:opacity-90 dark:block"
       />
       {showWordmark ? (
         // Below sm the mark stands alone: the lockup's tracking makes it too

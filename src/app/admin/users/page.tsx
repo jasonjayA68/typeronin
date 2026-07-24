@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { holds, requirePermission } from "@/features/admin/guard";
 import { grantRole, revokeRole } from "@/features/admin/user-actions";
+import { UserRowActions } from "@/features/admin/user-row-actions";
 import { when } from "@/features/profile/dashboard-panels";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
@@ -122,9 +123,14 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                   Joined
                 </th>
                 {canWrite ? (
-                  <th scope="col" className="px-4 py-3 text-right font-medium">
-                    Admin
-                  </th>
+                  <>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">
+                      Admin
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium">
+                      Manage
+                    </th>
+                  </>
                 ) : null}
               </tr>
             </thead>
@@ -203,6 +209,17 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                             {isAdmin ? "Revoke" : "Grant"}
                           </Button>
                         </form>
+                      </td>
+                    ) : null}
+                    {canWrite ? (
+                      <td className="px-4 py-4 text-right">
+                        <UserRowActions
+                          profileId={student.id}
+                          displayName={student.displayName}
+                          handle={student.handle}
+                          isSelf={isSelf}
+                          isAdmin={isAdmin}
+                        />
                       </td>
                     ) : null}
                   </tr>

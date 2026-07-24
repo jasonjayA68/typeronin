@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { SocialLinks } from "@/features/social/social-links";
 import { InkDivider } from "@/shared/components/ink-divider";
 import { Container } from "@/shared/components/layout/container";
 import { PageHeader } from "@/shared/components/layout/page-header";
@@ -231,16 +232,25 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
     id: "contact",
     title: "Contact",
     body: (
-      <p>
-        Questions about this notice, or about your data, go to{" "}
-        <a
-          href="mailto:privacy@typeronin.com"
-          className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
-        >
-          privacy@typeronin.com
-        </a>
-        .
-      </p>
+      <>
+        <p>
+          Questions about this notice, or about your data, go to{" "}
+          <a
+            href="mailto:privacy@typeronin.com"
+            className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
+          >
+            privacy@typeronin.com
+          </a>
+          . Write rather than message for anything about your data: a request that has to be
+          acted on and evidenced needs a channel that keeps a record, which a social inbox is
+          not.
+        </p>
+        {/* An async server component nested in this static array — it reads the
+            admin-set links at render. Anything else general is answered faster
+            here than by mail, so the door is worth showing. */}
+        <p>For anything else, the house answers on social:</p>
+        <SocialLinks variant="named" />
+      </>
     ),
   },
 ];

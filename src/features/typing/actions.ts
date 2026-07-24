@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { grantProgressRewards, type ProgressReward } from "@/features/gamification/progress";
 import { RANKS, rankTier, rankUpBetween } from "@/features/gamification/ranks";
 import {
   LIMIT_REACHED_MESSAGE,
@@ -56,6 +57,8 @@ export type SaveResult =
       remaining: number | null;
       /** Present only when this run promoted the player. */
       rankUp: RankUp | null;
+      /** Extra Honor from any Bushido trial or Mission this run completed. */
+      bonus: ProgressReward | null;
     }
   /** The day's games are used up. Carries the exact notice to show. */
   | { status: "limit"; message: string }
@@ -210,14 +213,24 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
       return { status: "cooldown", secondsLeft: outcome.secondsLeft };
     }
 
+    // The run's own Honor is banked. Now pay any Bushido trial or Mission this run
+    // just completed — a separate, idempotent step so a failure here can never
+    // cost the player the run they already earned.
+    const bonus = await grantProgressRewards(profile.id);
+
     revalidatePath("/dashboard");
     revalidatePath("/dojo");
+    if (bonus.unlocked.length > 0) {
+      revalidatePath("/achievements");
+      revalidatePath("/missions");
+    }
     return {
       status: "saved",
       honor,
       sessionId: outcome.sessionId,
       remaining: outcome.remaining,
       rankUp: outcome.rankUp,
+      bonus: bonus.unlocked.length > 0 ? bonus : null,
     };
   } catch (error) {
     console.error("saveSession failed", error);

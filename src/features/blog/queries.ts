@@ -46,6 +46,57 @@ export const cardSelect = {
 
 export type PostCard = Prisma.BlogPostGetPayload<{ select: typeof cardSelect }>;
 
+/* ------------------------------------------------------------- navigation */
+
+export type NavCategory = { slug: string; name: string };
+
+/**
+ * The content pillars, as the header renders them.
+ *
+ * The fallback, and the answer whenever the database cannot give a better one.
+ * These are the three the seed creates; an unseeded clone and an unreachable
+ * database therefore both get a working nav rather than an empty one.
+ */
+const FALLBACK_NAV_CATEGORIES: readonly NavCategory[] = [
+  { slug: "freelancing", name: "Freelancing" },
+  { slug: "work-from-home", name: "Work From Home" },
+  { slug: "make-money-online", name: "Make Money Online" },
+];
+
+/**
+ * How many pillars the header will carry. The nav is a row of links, not a
+ * directory — past this it wraps and stops being navigation. Anything further
+ * down `sort` lives on /blog, which lists them all.
+ */
+const NAV_CATEGORY_LIMIT = 4;
+
+/**
+ * The categories the site header links to.
+ *
+ * Read from the database rather than written into the component, because a
+ * category is a row an admin edits: renaming one, or switching it off, must not
+ * leave a link in the header pointing at a page that 404s.
+ *
+ * Resilient in the same way the economy and play-limit readers are — this runs
+ * in the header, on every page, so a database blip must degrade the nav rather
+ * than take the site down with it. An empty result falls back too: a fresh
+ * clone that has not been seeded gets the pillars rather than a bare header.
+ */
+export async function getNavCategories(): Promise<readonly NavCategory[]> {
+  try {
+    const rows = await prisma.blogCategory.findMany({
+      where: { isActive: true },
+      orderBy: [{ sort: "asc" }, { name: "asc" }],
+      take: NAV_CATEGORY_LIMIT,
+      select: { slug: true, name: true },
+    });
+    return rows.length > 0 ? rows : FALLBACK_NAV_CATEGORIES;
+  } catch (error) {
+    console.error("getNavCategories failed; using the built-in pillars", error);
+    return FALLBACK_NAV_CATEGORIES;
+  }
+}
+
 /**
  * A post's body, ready to render.
  *

@@ -43,7 +43,7 @@ export function PageHeader({
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             {eyebrow ? (
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
+              <p className="font-inter text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
                 {eyebrow}
               </p>
             ) : null}
@@ -51,7 +51,7 @@ export function PageHeader({
               {title}
             </h1>
             {lede ? (
-              <p className="mt-4 text-pretty text-muted-foreground sm:text-lg">{lede}</p>
+              <p className="font-inter mt-4 text-pretty text-muted-foreground sm:text-lg">{lede}</p>
             ) : null}
           </div>
           {actions ? <div className="flex shrink-0 items-center gap-3">{actions}</div> : null}

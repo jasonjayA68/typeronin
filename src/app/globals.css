@@ -123,6 +123,20 @@
   --gold: #c9a227;
   --brand-steel: #4a3d46;
 
+  /* Signature sakura-tree illustration (see sakura-tree.tsx). Bark is a muted
+     taupe (bark2 a lighter contour); b1–b3 are the blossom/petal tones, palest
+     last. Low opacity for the wood, full opacity for foreground blossom/petals. */
+  --tree-bark: #b49ba7;
+  --tree-bark2: #c8b2bc;
+  --tree-b1: #f69abb;
+  --tree-b2: #f8b7cf;
+  --tree-b3: #ffe3ed;
+  /* How strongly the canopy reads. A token rather than a constant in the
+     component because the two themes need different answers: on warm white the
+     blossom is a tint against a near-tone, on plum it is a bright pink against
+     near-black and the same value shouts. See --tree-canopy in the dark block. */
+  --tree-canopy: 0.55;
+
   --background: #fdf8fa;
   --foreground: #33242d;
   --card: #ffffff;
@@ -180,6 +194,17 @@
   --petal: #3a2732;
   --gold: #e0c07a;
   --brand-steel: #d8ccd3;
+
+  /* Signature sakura-tree illustration — the same tones lifted for the plum sky. */
+  --tree-bark: #665661;
+  --tree-bark2: #7a6874;
+  --tree-b1: #f49cbd;
+  --tree-b2: #f6b8d0;
+  --tree-b3: #ffd9e7;
+  /* Well below the light value. Pink on near-black is a far higher contrast
+     than pink on warm white, so the canopy that reads as a soft ceiling by day
+     reads as confetti over the copy by night unless it is held back. */
+  --tree-canopy: 0.3;
 
   --background: #171015;
   --foreground: #ece0e6;
@@ -254,6 +279,13 @@
 }
 
 @layer utilities {
+  /* Inter, on its own — for sub-heads and descriptions the client wants set in a
+     clean Latin sans rather than the Yu Gothic body face. --font-inter is the
+     same webfont already loaded as the Latin fallback in --font-sans. */
+  .font-inter {
+    font-family: var(--font-inter), system-ui, sans-serif;
+  }
+
   /* Washi paper grain. Layered under content, never over it. */
   .paper-texture {
     position: relative;
@@ -423,39 +455,187 @@
     animation: rank-halo 2600ms ease-in-out infinite;
   }
 
-  /* SCROLL answer feedback: a katana cut on the chosen answer. A thin, bright
-     blade sweeps diagonally across it — one blade for a correct pick, a crossing
-     pair with a shake and a red flash for a wrong one. The cut lands ON the mark
-     the eye is already on, not somewhere off to the side. */
-  @keyframes blade-sweep {
+  /* SCROLL answer feedback: a katana cut on the chosen answer.
+     ------------------------------------------------------------------
+     What makes this read as a sword rather than a swipe is the ORDER of
+     events, and that each part moves at its own speed:
+
+       1. the blade whips through in under a fifth of a second — a cut is
+          not a wipe, and anything slow enough to watch travel reads as a
+          highlighter;
+       2. a spark fires where the edge bites;
+       3. the card recoils along the cut, then settles;
+       4. the scar is left behind and fades in its own time.
+
+     The blade itself is a LENS, not a bar: clip-path tapers it to points at
+     both ends, so it has the shape of a moving edge instead of a rectangle.
+     That is why the glow is a drop-shadow rather than a box-shadow — a box
+     shadow traces the element's box and would put a rectangular halo around
+     a tapered blade, giving the whole trick away.
+
+     One clean cut for a right answer. Two crossing cuts, harder, for a
+     wrong one — and there the scar HOLDS as an X, because the mark that
+     says "wrong" has to still be there when the eye arrives. Tone comes
+     from the wrapper (.cut-clean / .cut-wrong), so a single set of rules
+     draws both. */
+  .cut-clean {
+    --cut-rot: -32deg;
+    /* Carries real blossom, not a tint of it. At 92% white the blade was very
+       nearly the colour of the card it was cutting and simply vanished in the
+       light theme — only the white core survives being that pale, and a core
+       with nothing around it is a scratch. */
+    --cut-edge: color-mix(in oklab, white 55%, var(--color-sakura));
+    --cut-glow: color-mix(in oklab, var(--color-sakura) 70%, white);
+    --cut-scar: color-mix(in oklab, white 45%, var(--color-sakura));
+  }
+  .cut-wrong {
+    --cut-rot: -34deg;
+    --cut-edge: color-mix(in oklab, white 62%, var(--color-destructive));
+    --cut-glow: color-mix(in oklab, var(--color-destructive) 80%, white);
+    --cut-scar: var(--color-destructive);
+  }
+  /* The second cut of the pair: opposite angle, a beat later — two strokes
+     landing at once is one X-shaped stamp, not two cuts. */
+  .cut-cross {
+    --cut-rot: 34deg;
+    --cut-delay: 105ms;
+  }
+
+  @keyframes cut-whip {
     0% {
-      transform: translateX(-55%) rotate(-32deg) scaleX(0.25);
       opacity: 0;
+      transform: rotate(var(--cut-rot)) translateX(-92%) scaleX(0.4);
     }
-    30%,
-    70% {
+    14% {
+      opacity: 1;
+    }
+    72% {
       opacity: 1;
     }
     100% {
-      transform: translateX(55%) rotate(-32deg) scaleX(1);
       opacity: 0;
+      transform: rotate(var(--cut-rot)) translateX(92%) scaleX(1.22);
     }
   }
-  /* The wrong-answer X: two red strokes that draw out from the centre and HOLD
-     as a cross, so the mark that says "wrong" stays on screen, not a slash that
-     is gone before it registers. */
-  @keyframes x-cut {
+  /* The edge, mid-swing. Travels along its OWN axis (rotate before translate),
+     which is what a slash does — a bar sliding sideways is a wipe. */
+  .cut-blade {
+    position: absolute;
+    top: calc(50% - 5px);
+    left: -25%;
+    height: 10px;
+    width: 150%;
+    transform-origin: center;
+    pointer-events: none;
+    clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 100%);
+    /* A narrow white core with the tone falling away fast on either side. A
+       wide, even gradient is a light smear; an edge is bright in one place. */
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--cut-edge) 43%,
+      #fff 50%,
+      var(--cut-edge) 57%,
+      transparent 100%
+    );
+    filter: drop-shadow(0 0 4px var(--cut-glow));
+    animation: cut-whip 175ms cubic-bezier(0.16, 0.72, 0.24, 1) var(--cut-delay, 0ms) both;
+  }
+
+  /* Where the edge bites. Short and bright: a spark that outlives the blade
+     stops being a spark. */
+  @keyframes cut-spark {
     0% {
       opacity: 0;
-      transform: rotate(var(--x-rot)) scaleX(0);
+      transform: rotate(var(--cut-rot)) scale(0.3);
+    }
+    30% {
+      opacity: 1;
+      transform: rotate(var(--cut-rot)) scale(1.15);
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(var(--cut-rot)) scale(1.6);
+    }
+  }
+  .cut-spark {
+    position: absolute;
+    top: calc(50% - 7px);
+    left: calc(50% - 7px);
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, #fff 0%, var(--cut-glow) 42%, transparent 72%);
+    /* Offset to the moment the edge crosses the middle — half of the whip's
+       175ms. Fired on the blade's own delay it lit up before the blade had
+       arrived, which reads as the card flashing and then being cut. */
+    animation: cut-spark 240ms ease-out calc(var(--cut-delay, 0ms) + 78ms) both;
+  }
+
+  /* What the cut leaves. Drawn out from the centre as the blade clears. */
+  .cut-scar {
+    position: absolute;
+    top: calc(50% - 1px);
+    left: 6%;
+    height: 2px;
+    width: 88%;
+    border-radius: 2px;
+    transform-origin: center;
+    pointer-events: none;
+    background: var(--cut-scar);
+    box-shadow: 0 0 4px 0.5px var(--cut-glow);
+  }
+  @keyframes cut-scar-fade {
+    0% {
+      opacity: 0;
+      transform: rotate(var(--cut-rot)) scaleX(0.35);
+    }
+    25% {
+      opacity: 0.95;
+      transform: rotate(var(--cut-rot)) scaleX(1);
+    }
+    100% {
+      opacity: 0;
+      transform: rotate(var(--cut-rot)) scaleX(1);
+    }
+  }
+  @keyframes cut-scar-hold {
+    0% {
+      opacity: 0;
+      transform: rotate(var(--cut-rot)) scaleX(0);
     }
     55% {
       opacity: 1;
-      transform: rotate(var(--x-rot)) scaleX(1.06);
+      transform: rotate(var(--cut-rot)) scaleX(1.06);
     }
     100% {
       opacity: 0.92;
-      transform: rotate(var(--x-rot)) scaleX(1);
+      transform: rotate(var(--cut-rot)) scaleX(1);
+    }
+  }
+  .cut-scar-fade {
+    animation: cut-scar-fade 520ms cubic-bezier(0.2, 0, 0, 1) 90ms both;
+  }
+  .cut-scar-hold {
+    animation: cut-scar-hold 300ms cubic-bezier(0.2, 0, 0, 1) var(--cut-delay, 0ms) both;
+  }
+
+  /* The card's answer to being hit. A clean cut nudges it along the blade and
+     lets it settle; a wrong one is knocked about. Both are on the button, so
+     the whole mark moves — a cut the target ignores does not land. */
+  @keyframes cut-recoil {
+    0% {
+      transform: translate(0, 0);
+    }
+    24% {
+      transform: translate(3px, -3px);
+    }
+    58% {
+      transform: translate(-2px, 2px);
+    }
+    100% {
+      transform: translate(0, 0);
     }
   }
   @keyframes cut-shake {
@@ -463,18 +643,24 @@
     100% {
       transform: translateX(0);
     }
-    20% {
-      transform: translateX(-4px);
+    18% {
+      transform: translateX(-5px);
     }
-    40% {
-      transform: translateX(4px);
+    38% {
+      transform: translateX(5px);
     }
-    60% {
+    58% {
       transform: translateX(-3px);
     }
-    80% {
+    78% {
       transform: translateX(2px);
     }
+  }
+  .cut-recoil {
+    animation: cut-recoil 300ms cubic-bezier(0.2, 0, 0, 1) 70ms both;
+  }
+  .cut-shake {
+    animation: cut-shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) 60ms both;
   }
   @keyframes impact-flash {
     0% {
@@ -484,47 +670,15 @@
       opacity: 0;
     }
   }
-  .blade {
-    position: absolute;
-    top: 50%;
-    left: -25%;
-    height: 2px;
-    width: 150%;
-    transform-origin: center;
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent 0%, #fff 44%, #fff 56%, transparent 100%);
-    box-shadow: 0 0 7px 1.5px color-mix(in oklab, var(--color-sakura) 70%, white);
-    animation: blade-sweep 340ms cubic-bezier(0.2, 0, 0, 1) both;
-  }
-  .x-cut {
-    position: absolute;
-    top: calc(50% - 1px);
-    left: 6%;
-    height: 2.5px;
-    width: 88%;
-    border-radius: 2px;
-    transform-origin: center;
-    pointer-events: none;
-    background: var(--color-destructive);
-    box-shadow: 0 0 6px 1px color-mix(in oklab, var(--color-destructive) 80%, white);
-  }
-  .x-cut-1 {
-    --x-rot: -34deg;
-    animation: x-cut 300ms cubic-bezier(0.2, 0, 0, 1) both;
-  }
-  .x-cut-2 {
-    --x-rot: 34deg;
-    animation: x-cut 300ms cubic-bezier(0.2, 0, 0, 1) 90ms both;
-  }
-  .cut-shake {
-    animation: cut-shake 320ms ease-in-out both;
-  }
   .impact-flash {
     position: absolute;
     inset: 0;
     pointer-events: none;
     background: color-mix(in oklab, var(--color-destructive) 55%, transparent);
-    animation: impact-flash 420ms ease-out both;
+    /* Held until the first edge bites. At zero it washed the card red before
+       anything had touched it — the flash IS the impact, so it cannot precede
+       one. */
+    animation: impact-flash 420ms ease-out 78ms both;
   }
 }
 

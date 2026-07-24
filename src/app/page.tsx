@@ -1,4 +1,4 @@
-import { ArrowRightIcon, GaugeIcon, ScrollTextIcon, SwordIcon } from "lucide-react";
+import { ArrowRightIcon, GaugeIcon, PlusIcon, ScrollTextIcon, SwordIcon } from "lucide-react";
 import Link from "next/link";
 
 import { AdSlot } from "@/features/ads/ad-slot";
@@ -266,11 +266,17 @@ export default async function Home() {
                     <h3 className="font-heading text-base font-medium tracking-wide text-foreground">
                       {scroll.q}
                     </h3>
+                    {/* An icon rather than a "+" character. Centring a glyph in
+                        a circle centres its LINE BOX, and the ink of a plus sits
+                        on the font's math axis rather than the middle of that
+                        box — so it lands a shade off, by an amount that changes
+                        with whatever font resolves. The icon is drawn on its own
+                        centred grid and has no such opinion. */}
                     <span
                       aria-hidden="true"
                       className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform duration-200 group-open:rotate-45"
                     >
-                      +
+                      <PlusIcon className="size-3.5" />
                     </span>
                   </summary>
                   <p className="mt-3 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">

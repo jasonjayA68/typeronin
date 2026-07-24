@@ -20,12 +20,20 @@ export default function NotFound() {
 
       <div className="flex w-full max-w-xl flex-col items-center text-center">
         <Image
-          src="/brand/typeronin-emblem.png"
+          src="/brand/typeronin-emblem-light.png"
           alt="TypeRonin"
           width={256}
           height={256}
           priority
-          className="size-24 rounded-2xl ring-1 ring-border/50 sm:size-28"
+          className="size-24 rounded-2xl ring-1 ring-border/50 sm:size-28 dark:hidden"
+        />
+        <Image
+          src="/brand/typeronin-emblem-dark.png"
+          alt="TypeRonin"
+          width={256}
+          height={256}
+          priority
+          className="hidden size-24 rounded-2xl ring-1 ring-border/50 sm:size-28 dark:block"
         />
 
         <p className="mt-8 font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">

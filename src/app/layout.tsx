@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cinzel, Inter, JetBrains_Mono } from "next/font/google";
 
+import { SITE_URL } from "@/lib/site-url";
 import { Toaster } from "@/shared/components/ui/sonner";
 import { AppProviders } from "@/shared/providers/app-providers";
 
@@ -40,6 +41,10 @@ const DESCRIPTION =
   "deliberate practice, honest measurement, and rank earned one keystroke at a time.";
 
 export const metadata: Metadata = {
+  // Without this, every relative Open Graph and canonical URL is resolved
+  // against localhost — Next warns once at build and then guesses, so the
+  // failure ships as share cards pointing at a developer's machine.
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "TypeRonin — Master Your Keyboard Like a Samurai Masters the Sword",
     template: "%s · TypeRonin",

@@ -23,12 +23,20 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         <div className="max-w-sm">
           <Image
-            src="/brand/typeronin-logo.png"
+            src="/brand/typeronin-logo-light.png"
             alt="TypeRonin — Type fast. Earn honors."
             width={512}
             height={512}
             priority
-            className="w-44 rounded-2xl ring-1 ring-border/50"
+            className="w-44 rounded-2xl ring-1 ring-border/50 dark:hidden"
+          />
+          <Image
+            src="/brand/typeronin-logo-dark.png"
+            alt="TypeRonin — Type fast. Earn honors."
+            width={512}
+            height={512}
+            priority
+            className="hidden w-44 rounded-2xl ring-1 ring-border/50 dark:block"
           />
           <blockquote className="mt-8">
             <p className="font-heading text-2xl leading-snug tracking-wide text-balance">

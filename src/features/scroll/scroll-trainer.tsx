@@ -4,6 +4,7 @@ import { ArrowRightIcon, RotateCcwIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { celebrateBonus } from "@/features/gamification/celebrate-bonus";
 import { LevelUpModal } from "@/features/gamification/level-up-modal";
 import { loadScrollRound, saveScrollSession, type ScrollSaveResult } from "@/features/scroll/actions";
 import type { TrainerPlayState } from "@/features/typing/kata-trainer";
@@ -15,10 +16,15 @@ import { Button } from "@/shared/components/ui/button";
  * SCROLL — the vocabulary game.
  *
  * A definition is shown; the player picks the word it belongs to from a handful
- * of choices. A correct pick lands one blade, a wrong one lands two and a red
- * flash — the heavier cut for the heavier moment — and reveals the answer. The
- * run of correct answers is the combo, and the whole round's Honor is settled by
- * the server, which recomputes it from the counts rather than trusting them.
+ * of choices, and the answer is revealed with a sword cut on the card they
+ * struck: one clean stroke for a right answer, two crossing ones and a red flash
+ * for a wrong one — the heavier cut for the heavier moment. Each stroke is a
+ * blade, a spark where it bites, and the scar it leaves; the clean scar fades,
+ * the wrong one holds as an X so the verdict is still there a second later. The
+ * timing is what sells it and it lives in globals.css (.cut-*).
+ *
+ * The run of correct answers is the combo, and the whole round's Honor is settled
+ * by the server, which recomputes it from the counts rather than trusting them.
  */
 
 type Question = { wordId: string; definition: string; answer: string; choices: string[] };
@@ -94,8 +100,11 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
     }).then((result) => {
       setSaved(result);
       setRankDismissed(false);
-      if (result.status === "saved") setRemaining(result.remaining);
-      else if (result.status === "limit") setRemaining(0);
+      if (result.status === "saved") {
+        setRemaining(result.remaining);
+        // Extra Honor from any Bushido trial or Mission this round completed.
+        if (result.bonus) celebrateBonus(result.bonus.unlocked);
+      } else if (result.status === "limit") setRemaining(0);
       gust(correct >= wrong ? 1 : 0.5);
     });
     // Only the transition into "finished" matters; the counts are settled by then.
@@ -258,6 +267,9 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                 "relative overflow-hidden rounded-xl border px-4 py-3.5 text-left font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 !revealed && "border-border/60 hover:border-sakura/50 hover:bg-sakura/5",
                 revealed && isAnswer && "border-success/60 bg-success/10 text-success",
+                // The card answers the cut: a nudge for a clean one, a knock for
+                // a wrong one. Only ever on the card that was actually struck.
+                revealed && isPicked && isAnswer && "cut-recoil",
                 revealed &&
                   isPicked &&
                   !isAnswer &&
@@ -267,17 +279,35 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             >
               {choice}
               {isPicked && slash ? (
-                <span key={slash.key} aria-hidden="true">
+                /* The cut. Each stroke is a blade, a spark where it bites, and
+                   the scar it leaves — see the .cut-* rules in globals.css. The
+                   wrapper carries the tone, so the same three parts draw both
+                   the clean cut and the wrong one. */
+                <span
+                  key={slash.key}
+                  aria-hidden="true"
+                  className={slash.wrong ? "cut-wrong" : "cut-clean"}
+                >
                   {slash.wrong ? (
                     <>
-                      {/* A crossing X that holds — the clear "wrong" mark. */}
-                      <span className="x-cut x-cut-1" />
-                      <span className="x-cut x-cut-2" />
+                      {/* Two strokes, the second a beat later, crossing into an
+                          X that holds once the blades have gone. */}
+                      <span className="cut-blade" />
+                      <span className="cut-spark" />
+                      <span className="cut-scar cut-scar-hold" />
+                      <span className="cut-cross">
+                        <span className="cut-blade" />
+                        <span className="cut-spark" />
+                        <span className="cut-scar cut-scar-hold" />
+                      </span>
                       <span className="impact-flash" />
                     </>
                   ) : (
-                    /* A single clean cut for a correct pick. */
-                    <span className="blade" />
+                    <>
+                      <span className="cut-blade" />
+                      <span className="cut-spark" />
+                      <span className="cut-scar cut-scar-fade" />
+                    </>
                   )}
                 </span>
               ) : null}

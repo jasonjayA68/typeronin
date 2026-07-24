@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdSlot } from "@/features/ads/ad-slot";
 import { PostCard } from "@/features/blog/post-card";
 import { cardSelect, formatPostDate, loadBody, PUBLIC_POSTS } from "@/features/blog/queries";
 import { PostBody } from "@/features/blog/renderer";
@@ -226,6 +227,14 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
                 </>
               ) : null}
             </div>
+
+            {/* The end of the read, which is where an article may carry an
+                advert: below the whole piece, after the tags, clearly outside
+                the prose. Not woven into the body — an advert that interrupts a
+                sentence earns a click by mistake, and mistaken clicks are what
+                gets an AdSense account closed. Renders nothing at all until an
+                operator switches the placement on. */}
+            <AdSlot placement="in-content" className="mt-14" />
           </Container>
         </article>
 

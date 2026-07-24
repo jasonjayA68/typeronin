@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { SocialLinks } from "@/features/social/social-links";
 import { InkDivider } from "@/shared/components/ink-divider";
 import { Container } from "@/shared/components/layout/container";
 import { PageHeader } from "@/shared/components/layout/page-header";
@@ -238,16 +239,23 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
     id: "contact",
     title: "Contact",
     body: (
-      <p>
-        Questions about these terms go to{" "}
-        <a
-          href="mailto:legal@typeronin.com"
-          className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
-        >
-          legal@typeronin.com
-        </a>
-        .
-      </p>
+      <>
+        <p>
+          Questions about these terms, and any formal notice, go to{" "}
+          <a
+            href="mailto:legal@typeronin.com"
+            className="text-foreground underline decoration-gold/50 underline-offset-4 transition-colors hover:decoration-gold"
+          >
+            legal@typeronin.com
+          </a>
+          . A notice under these terms has to be in writing — a social message does not count as
+          one, for either of us.
+        </p>
+        {/* An async server component nested in this static array — it reads the
+            admin-set links at render. */}
+        <p>Everything else is answered faster on social:</p>
+        <SocialLinks variant="named" />
+      </>
     ),
   },
 ];

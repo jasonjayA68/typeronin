@@ -5,7 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import { PetalProvider } from "@/shared/components/sakura/petal-context";
 import { PetalField } from "@/shared/components/sakura/petal-field";
-import { SakuraBranches } from "@/shared/components/sakura/sakura-branches";
+import { SakuraTree } from "@/shared/components/sakura/sakura-tree";
 import { ThemeProvider } from "@/shared/components/theme-provider";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 
@@ -39,9 +39,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
       >
         <PetalProvider>
           {/* Fixed and behind everything, so it costs one paint for the whole
-              app rather than one per route. The branches sit behind the petals
-              (-z-20 to -z-10) and the petals are born along them. */}
-          <SakuraBranches />
+              app rather than one per route. The tree sits behind the petals
+              (-z-20 to -z-10) and the petals are born from its canopy. */}
+          <SakuraTree />
           <PetalField />
           <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
         </PetalProvider>

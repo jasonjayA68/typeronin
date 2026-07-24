@@ -1,0 +1,27 @@
+import { toast } from "sonner";
+
+/**
+ * Announce the extra Honor a run just earned from Bushido trials and Missions.
+ *
+ * Called from the trainers with a save result's `bonus.unlocked`. The rank-up is
+ * its own modal (see LevelUpModal) — this is the quieter, more frequent reward,
+ * so it is a toast: one per trial or mission the run completed, naming it and the
+ * Honor it paid. The Honor is already banked server-side; this only tells the
+ * player it happened.
+ *
+ * The parameter is typed structurally rather than importing ProgressReward, which
+ * lives behind `server-only` — nothing here needs the server module.
+ */
+export type UnlockedToast = {
+  kind: "trial" | "mission";
+  title: string;
+  honor: number;
+};
+
+export function celebrateBonus(unlocked: readonly UnlockedToast[]): void {
+  for (const u of unlocked) {
+    toast.success(u.kind === "trial" ? `Bushido trial earned: ${u.title}` : `Mission complete: ${u.title}`, {
+      description: `+${u.honor.toLocaleString("en-US")} Honor`,
+    });
+  }
+}

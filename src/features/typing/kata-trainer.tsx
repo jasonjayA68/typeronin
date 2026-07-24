@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { celebrateBonus } from "@/features/gamification/celebrate-bonus";
 import { rankForHonor } from "@/features/gamification/ranks";
 import { DISCIPLINES, passagesFor } from "@/features/typing/passages";
 import { LevelUpModal } from "@/features/gamification/level-up-modal";
@@ -208,8 +209,12 @@ export function KataTrainer({
       // A fresh result gets a fresh chance to celebrate.
       setRankDismissed(false);
       // Keep the remaining counter honest with what the server actually did.
-      if (result.status === "saved") setRemaining(result.remaining);
-      else if (result.status === "limit") setRemaining(0);
+      if (result.status === "saved") {
+        setRemaining(result.remaining);
+        // Any Bushido trial or Mission this run completed pays extra Honor —
+        // announce each one.
+        if (result.bonus) celebrateBonus(result.bonus.unlocked);
+      } else if (result.status === "limit") setRemaining(0);
     });
 
     // A finished cut is worth a gust of blossom.
