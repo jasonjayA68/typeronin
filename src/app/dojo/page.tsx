@@ -3,6 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AdSlot } from "@/features/ads/ad-slot";
+import { PostCard } from "@/features/blog/post-card";
+import { cardSelect, PUBLIC_POSTS } from "@/features/blog/queries";
+import { prisma } from "@/lib/prisma";
 import { LIMIT_REACHED_MESSAGE } from "@/features/play/limits";
 import { getDailyPlayState } from "@/features/play/service";
 import { getKataPassages } from "@/features/passages/queries";
@@ -30,9 +33,23 @@ export default async function DojoPage() {
   // The economy and the play limits used to be read here too, for the house-code
   // notice that sat under the trainer. That notice is gone, and so are its two
   // queries — getDailyPlayState reads the limits it needs on its own.
-  const [playState, passages] = await Promise.all([
+  const [playState, passages, reading] = await Promise.all([
     getDailyPlayState(user.id),
     getKataPassages(),
+    // Newest three, and never a draft — PUBLIC_POSTS is the one definition of
+    // what a reader may see.
+    prisma.blogPost
+      .findMany({
+        where: PUBLIC_POSTS,
+        orderBy: { publishedAt: "desc" },
+        take: 3,
+        select: cardSelect,
+      })
+      .catch((error) => {
+        // The dojo is the product; a reading list is not worth a 500.
+        console.error("dojo: could not load the reading strip", error);
+        return [];
+      }),
   ]);
 
   return (
@@ -73,6 +90,35 @@ export default async function DojoPage() {
           )}
           <AdSlot placement="game-result" className="mt-10" />
         </Container>
+
+        {/* Something to read when the day's training is done.
+            Two jobs. It sends a player who has finished into the writing, which
+            is where the site earns rather than merely runs. And it gives this
+            page real content: the dojo is a trainer and a couple of buttons, and
+            a page that thin carrying an advert is exactly what AdSense objects
+            to. The posts are the answer to both. */}
+        {reading.length ? (
+          <section className="border-t border-border/60 bg-card/30">
+            <Container className="py-12 sm:py-16">
+              <div className="flex flex-wrap items-baseline justify-between gap-3">
+                <h2 className="font-heading text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                  From the scrolls
+                </h2>
+                <Link
+                  href="/blog"
+                  className="text-sm text-muted-foreground underline decoration-sakura/40 underline-offset-4 transition-colors hover:text-foreground hover:decoration-sakura"
+                >
+                  All writing
+                </Link>
+              </div>
+              <div className="mt-8 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                {reading.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </Container>
+          </section>
+        ) : null}
       </main>
       <SiteFooter />
     </>

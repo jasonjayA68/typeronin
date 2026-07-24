@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import type {
   DocBlock,
@@ -278,18 +278,85 @@ function Blocks({
   );
 }
 
+/**
+ * How many paragraphs must still follow an insertion point for it to be used.
+ *
+ * Without this, a five-paragraph post puts an advert after its third paragraph —
+ * two paragraphs from the end, immediately above the one that already sits below
+ * the article — and the reader meets two adverts with a sentence between them.
+ * An in-article advert is only in-article if there is article left after it.
+ */
+const MIN_PARAGRAPHS_AFTER_INSERT = 3;
+
+/**
+ * The article body, optionally interleaved.
+ *
+ * `inserts` is keyed by top-level paragraph number, 1-based: `{ 3: <AdSlot …> }`
+ * drops its node in after the third paragraph. Only TOP-LEVEL paragraphs count —
+ * one inside a blockquote or a list item is part of that structure, and cutting
+ * into it would put an advert inside a quotation.
+ *
+ * The interleaving happens here rather than inside Blocks because Blocks is
+ * recursive: a counter threaded through it would keep counting as it descended,
+ * and the position would depend on how the author happened to nest things.
+ *
+ * The nodes are passed in already built. They are typically async server
+ * components (AdSlot is one), which React resolves on render — this file stays
+ * free of any knowledge of advertising.
+ */
 export function PostBody({
   document,
   media = {},
   className,
+  inserts,
 }: {
   document: PostDocument;
   media?: MediaLookup;
   className?: string;
+  inserts?: Record<number, ReactNode>;
 }) {
+  const positions = inserts ? Object.keys(inserts).map(Number) : [];
+
+  if (positions.length === 0) {
+    return (
+      <div className={className}>
+        <Blocks nodes={document.content} media={media} keyBase="d" />
+      </div>
+    );
+  }
+
+  const totalParagraphs = document.content.reduce(
+    (n, node) => (node.type === "paragraph" ? n + 1 : n),
+    0
+  );
+  const usable = new Set(
+    positions.filter((at) => totalParagraphs - at >= MIN_PARAGRAPHS_AFTER_INSERT)
+  );
+
+  // Cut the block list into runs, each ending where an insert goes.
+  const segments: { nodes: DocBlock[]; insertAfter: number | null }[] = [];
+  let run: DocBlock[] = [];
+  let seen = 0;
+
+  for (const node of document.content) {
+    run.push(node);
+    if (node.type !== "paragraph") continue;
+    seen++;
+    if (usable.has(seen)) {
+      segments.push({ nodes: run, insertAfter: seen });
+      run = [];
+    }
+  }
+  if (run.length > 0) segments.push({ nodes: run, insertAfter: null });
+
   return (
     <div className={className}>
-      <Blocks nodes={document.content} media={media} keyBase="d" />
+      {segments.map((segment, i) => (
+        <Fragment key={`seg${i}`}>
+          <Blocks nodes={segment.nodes} media={media} keyBase={`d${i}`} />
+          {segment.insertAfter !== null ? inserts![segment.insertAfter] : null}
+        </Fragment>
+      ))}
     </div>
   );
 }

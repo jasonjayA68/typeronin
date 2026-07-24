@@ -195,7 +195,19 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
               ) : null}
 
               {body ? (
-                <PostBody document={body.document} media={body.media} className="text-[0.975rem]" />
+                <PostBody
+                  document={body.document}
+                  media={body.media}
+                  className="text-[0.975rem]"
+                  // The two in-article positions the placements were seeded for.
+                  // Each renders nothing until an operator switches it on, and
+                  // the renderer drops either one that would land too near the
+                  // end of a short post — see MIN_PARAGRAPHS_AFTER_INSERT.
+                  inserts={{
+                    3: <AdSlot placement="after-paragraph-3" className="my-10" />,
+                    7: <AdSlot placement="after-paragraph-7" className="my-10" />,
+                  }}
+                />
               ) : (
                 /**
                  * The body did not parse — see loadBody. The article still has a
