@@ -56,14 +56,41 @@ npm run lint       # eslint
 ```
 src/
   app/                    routes (App Router)
-    (auth)/               login + register, share a split "gate" layout
-    dojo/                 the trainer
-  features/
-    typing/               the engine: passages, use-kata, kata-trainer
-    gamification/         the nine ranks
-    auth/                 form schemas + forms
-  shared/components/      brand mark, layout furniture, shadcn ui primitives
+    (auth)/               login, register, forgot, reset — a shared "gate" layout
+    dojo/                 the trainer, gated on an account
+    admin/                the Magistrate — twenty-one modules behind permissions
+    blog/                 public posts, categories, tags
+  features/               one directory per domain, the unit of organisation
+    typing/               KATA: passages, use-kata, kata-trainer, save action
+    scroll/               SCROLL: the vocabulary game, its scoring and choices
+    dojo/                 the switch between the two disciplines
+    gamification/         ranks, player stats, Bushido trials, reward granting
+    missions/             the standing orders, defined in code
+    play/                 daily limits: games per day, cooldown, multiplier
+    economy/              the Honor-to-cash rate and the money maths
+    withdrawals/          payouts: the escrow model and its state machine
+    profile/              handles, dashboards, public profiles, activity
+    auth/                 forms, schemas, roles, permissions, login tracking
+    security/             device cookie, fingerprint, session panel
+    admin/                the panel: nav, guard, audit, per-module actions
+    blog/                 the CMS: document tree, editor, renderer, queries
+    media/                the library, and the only writer to the storage bucket
+    passages/             the KATA corpus as data
+    ads/                  placements and units, resolved by slug
+    social/               links the site footer renders
+  shared/components/      brand mark, layout furniture, sakura, shadcn primitives
+  lib/                    prisma client, supabase clients, slug, cn
+  proxy.ts                session refresh + device cookie (NOT authorization)
 ```
+
+A domain directory follows one shape. The **pure** module (`config.ts`, `limits.ts`, `model.ts`,
+`scoring.ts`) holds the rules and imports neither the database nor `server-only`, so the form, the
+server action, the admin editor and the test all read one definition. `service.ts` and `queries.ts`
+carry `import "server-only"` and do the reading. `actions.ts` holds the Server Actions, and each one
+re-checks authorization for itself.
+
+`features/{dashboard,inventory,leaderboard,rewards,settings}` and `src/{repositories,server,
+services}` are empty placeholders from the initial scaffold. They are directories, not plans.
 
 ## Accounts and roles
 
@@ -77,17 +104,40 @@ the symptom is random logouts rather than an error. It must also live in `src/`,
 
 ### Who is an admin
 
-The role is read from Supabase **`app_metadata`**, never `user_metadata`:
+Authority lives in **our own tables** — a `ProfileRole` row pointing at a `Role`, which carries a
+set of named `Permission`s like `blog:publish` or `payouts:write`. That is the normal path, and it
+is the one an admin can grant from the panel without a deploy.
 
-- `user_metadata` is writable by the account holder — any signed-in student can call
-  `supabase.auth.updateUser({ data: { role: "admin" } })`. A role kept there is a
-  privilege-escalation hole, not a permission. The student's *name* lives there precisely because
-  nothing is gated on it.
-- `app_metadata` can only be written with the service key or by SQL.
+Supabase **`app_metadata.role === "admin"`** is kept as a second path, deliberately: **break glass**.
+If the tables were the only route, one bad grant could lock every admin out of the very panel that
+fixes grants. Neither path is forgeable by an account holder — the first needs server-side database
+access, the second needs the service key.
 
-Anything unrecognised resolves to `student`. Roles fail closed.
+`user_metadata` grants nothing, ever. It is writable by the account holder, so any signed-in student
+could call `supabase.auth.updateUser({ data: { role: "admin" } })` and set it themselves. A role
+kept there is a privilege-escalation hole, not a permission. The student's *name* lives there
+precisely because nothing is gated on it.
 
-To grant yourself admin, run this in the Supabase dashboard → SQL Editor:
+Anything unrecognised resolves to `student`. Authorization fails **closed**: a permission that
+cannot be confirmed is not granted.
+
+#### Granting the first admin
+
+Roles are rows, so there is no chicken-and-egg panel to sign into first. Register the account
+normally, confirm its email, seed the database, then:
+
+```bash
+npx prisma db seed                                    # creates the roles and permissions
+npx tsx scripts/grant-admin.ts you@example.com        # grants admin
+npx tsx scripts/grant-admin.ts you@example.com --revoke
+```
+
+The script grants a role to an **existing** account and deliberately cannot create one — minting
+credentials from a script is how you end up with logins nobody remembers making. It takes effect on
+the next request: the role is read per request, so signing out and back in is not required.
+
+The SQL below writes the break-glass flag instead. Reach for it when the role tables are unreachable
+or a bad grant has locked everyone out — not to make an ordinary admin:
 
 ```sql
 update auth.users
@@ -95,32 +145,61 @@ set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"ad
 where email = 'you@example.com';
 ```
 
-It takes effect on the next request — no need to sign out. `getUser()` fetches the user from the
-auth server rather than trusting the cookie, so it sees the new role immediately.
-
-To check a role in code:
+#### Checking authority in code
 
 ```ts
 import { getStudent, requireAdmin } from "@/lib/supabase/server";
+import { requirePermission, holds } from "@/features/admin/guard";
 
 const student = await getStudent();   // null | { name, email, role }
-student?.role === "admin";
 
-await requireAdmin();  // in a page: redirects anonymous -> /login, students -> 404
+await requireAdmin();                 // page guard: anonymous -> /login, student -> 404
+
+const ctx = await requirePermission("payouts:write");  // the gate for a module or an action
+holds(ctx, "blog:publish");                            // a second capability, same context
 ```
 
 Guards belong in the page, next to what they protect — not in the proxy, which can only make an
-optimistic guess from a cookie. `/admin` ("The Magistrate") exists to prove the boundary holds:
-signed out it redirects to `/login`, and a signed-in student gets a 404 rather than a locked door
-to rattle.
+optimistic guess from a cookie. And a page guard protects only the page: **Server Actions are public
+HTTP endpoints**, so every mutation calls `requirePermission` for itself rather than trusting the
+screen it was invoked from.
+
+`/admin` ("The Magistrate") exists to prove the boundary holds: signed out it redirects to `/login`,
+and a signed-in student gets a 404 rather than a locked door to rattle.
 
 ## State of things
 
-The **dojo is fully working** — type a passage and it scores you live. The surrounding pages
-(Hall of Legends, Missions, Bushido Trials) render **hardcoded demo data**: there is no database
-yet (`prisma/schema.prisma` has no models) and **accounts are not wired to an identity provider**,
-so `/login` and `/register` validate but cannot sign anyone in. Both auth pages say so on their
-face rather than faking a success state.
+The dojo is gated and **training is for keeps**. Accounts are wired to Supabase, the database is
+real (`prisma/schema.prisma`, migrated), and a profile is minted lazily on the first authenticated
+request. There are two disciplines and both earn Honor: **KATA**, the typing game, and **SCROLL**,
+where a meaning is matched to its word. They answer to one shared daily limit, so the two cannot be
+alternated to double a day.
+
+What works end to end:
+
+- **Play.** A finished run is scored on the client and **re-scored on the server** from the raw
+  counts — Honor is never a number the browser reports. Daily cap, cooldown and the Honor
+  multiplier are admin knobs read from the `Setting` table.
+- **Progression.** Rank is resolved from Honor and a crossing lights the promotion modal.
+  **Bushido Trials** and **Missions** are derived from real session history, not stored progress,
+  and are paid once — the composite primary keys on `ProfileAchievement` and `MissionClaim` are the
+  idempotency guard, not application code.
+- **Payouts.** Honor converts to cash at an admin-set rate and leaves the balance into escrow the
+  moment a withdrawal is requested. Every balance move is a conditional, atomic update; every status
+  change is guarded on the states it is legal from. See `features/withdrawals/actions.ts`.
+- **The Magistrate.** `/admin` carries twenty-one modules behind a database-backed role and
+  permission system, with Supabase `app_metadata` kept as break glass. Blog CMS, media library,
+  word and passage corpora, ad placements, devices, and the audit log are all live.
+
+What is still demo or absent:
+
+- **Hall of Legends** (`/leaderboard`) renders **hardcoded standings**. It is the last page that
+  does. `LeaderboardSeason` and `LeaderboardEntry` exist to hold a computed cache, but nothing
+  writes them yet — the rankings are derivable from `TypingSession` today, and the cache is there
+  for when ranking every session on every page view stops being viable.
+- **Scheduled posts do not publish themselves.** A post can be set `SCHEDULED` with a date, and
+  `@@index([status, scheduledFor])` is waiting for the job that flips it. There is no such job, so
+  a scheduled post stays scheduled until someone publishes it by hand.
 
 `/privacy` and `/terms` are honest drafts and carry a visible note that they need review by
 counsel before launch.
