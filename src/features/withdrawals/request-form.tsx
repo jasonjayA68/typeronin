@@ -40,15 +40,38 @@ const field =
 
 const BLANK = { method: "GCASH" as PayoutMethodValue, accountName: "", accountRef: "", details: "", amount: "" };
 
+/** A saved payout method the form can open pre-filled from. */
+export type SavedDefault = {
+  method: PayoutMethodValue;
+  accountName: string;
+  accountRef: string;
+  details: string;
+};
+
+/** The form's opening values — the saved default's destination, amount blank. */
+function initialValues(saved: SavedDefault | null): typeof BLANK {
+  if (!saved) return BLANK;
+  return {
+    method: saved.method,
+    accountName: saved.accountName,
+    accountRef: saved.accountRef,
+    details: saved.details,
+    amount: "",
+  };
+}
+
 export function RequestWithdrawalButton({
   balance,
   config,
+  saved = null,
 }: {
   balance: number;
   config: EconomyConfig;
+  /** The user's default saved payout method, to pre-fill the destination. */
+  saved?: SavedDefault | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [values, setValues] = useState(BLANK);
+  const [values, setValues] = useState(() => initialValues(saved));
   const [pending, startTransition] = useTransition();
 
   const info = PAYOUT_METHOD_INFO[values.method];
@@ -74,7 +97,7 @@ export function RequestWithdrawalButton({
         return;
       }
       toast.success("Withdrawal requested");
-      setValues(BLANK);
+      setValues(initialValues(saved));
       setOpen(false);
     });
 
@@ -83,7 +106,7 @@ export function RequestWithdrawalButton({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) setValues(BLANK);
+        if (next) setValues(initialValues(saved));
       }}
     >
       <DialogTrigger asChild>
@@ -101,6 +124,12 @@ export function RequestWithdrawalButton({
         </DialogHeader>
 
         <div className="space-y-4">
+          {saved ? (
+            <p className="rounded-lg border border-sakura/30 bg-sakura/5 px-3 py-2 text-xs text-muted-foreground">
+              Pre-filled from your default payout method. Edit anything below if you need to.
+            </p>
+          ) : null}
+
           <div className="space-y-2">
             <Label htmlFor="wd-method">Method</Label>
             <select

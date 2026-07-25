@@ -81,6 +81,18 @@ export default async function DashboardPage() {
       ? "Unlimited"
       : `${playState.remaining} / ${playState.limits.maxGamesPerDay}`;
 
+  // The default saved payout method pre-fills the withdrawal form. listPayoutMethods
+  // already orders isDefault first, so the head is the default when there is one.
+  const defaultMethod = payoutMethods.find((m) => m.isDefault) ?? null;
+  const savedDefault = defaultMethod
+    ? {
+        method: defaultMethod.method as PayoutMethodValue,
+        accountName: defaultMethod.accountName,
+        accountRef: defaultMethod.accountRef,
+        details: defaultMethod.details ?? "",
+      }
+    : null;
+
   const date = (value: Date) =>
     value.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
@@ -204,7 +216,11 @@ export default async function DashboardPage() {
                 )}
               </div>
               <div className="shrink-0">
-                <RequestWithdrawalButton balance={profile.honor} config={economy} />
+                <RequestWithdrawalButton
+                  balance={profile.honor}
+                  config={economy}
+                  saved={savedDefault}
+                />
               </div>
             </div>
 
