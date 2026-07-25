@@ -1,8 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import type { SessionSummary } from "@/features/profile/queries";
 
 /** A titled surface. Every dashboard block is one of these, so they align. */
 export function Panel({
@@ -87,36 +85,3 @@ export function when(date: Date): string {
   return "just now";
 }
 
-export function BattleRow({ session }: { session: SessionSummary }) {
-  return (
-    <li className="flex items-center justify-between gap-3 border-b border-border/60 py-2.5 last:border-0">
-      <div className="min-w-0">
-        <p className="truncate text-sm text-foreground">
-          {session.categoryName ?? "Free practice"}
-          <span className="ml-2 text-xs text-muted-foreground capitalize">
-            {session.mode.toLowerCase()}
-          </span>
-        </p>
-        <p className="text-xs text-muted-foreground">{when(session.playedAt)}</p>
-      </div>
-      <div className="flex shrink-0 items-center gap-4 text-right">
-        <span className="tabular text-sm text-foreground">{session.wpm} wpm</span>
-        <span className="tabular hidden text-sm text-muted-foreground sm:inline">
-          {session.accuracy}%
-        </span>
-        <span className="tabular text-sm text-sakura">+{session.honorEarned}</span>
-      </div>
-    </li>
-  );
-}
-
-export function PanelLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-    >
-      {children}
-    </Link>
-  );
-}

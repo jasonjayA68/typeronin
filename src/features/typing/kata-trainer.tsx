@@ -305,7 +305,7 @@ export function KataTrainer({
       </div>
 
       {/* The house rule, and the nudge when it is tested. */}
-      <div className="flex min-h-6 items-center justify-between gap-4">
+      <div className="flex min-h-6 items-center gap-4">
         <p
           aria-live="polite"
           className={cn(
@@ -314,13 +314,9 @@ export function KataTrainer({
           )}
         >
           {refusals > 0
-            ? "A cut once made cannot be unmade. Finish the passage."
-            : "One cut. Backspace is disabled — strike deliberately."}
+            ? "Backspace is off — keep going and finish the phrase."
+            : "Type carefully — backspace is disabled, so each key counts."}
         </p>
-        <Button variant="ghost" size="sm" onClick={again}>
-          <RotateCcwIcon aria-hidden="true" />
-          Reset
-        </Button>
       </div>
 
       {/* Result */}

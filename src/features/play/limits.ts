@@ -25,8 +25,17 @@ export type PlayLimits = {
   honorMultiplierPercent: number;
 };
 
+/**
+ * The product rule: a player gets this many games a day, resetting every day.
+ * Both games count — one Typing Phrases run and one Find the Word round each
+ * spend one credit — so the two cannot be alternated to double a day's earning.
+ * An admin can still change the number from the panel; this is the default the
+ * platform ships with.
+ */
+export const DAILY_GAME_LIMIT = 50;
+
 export const DEFAULT_PLAY_LIMITS: PlayLimits = {
-  maxGamesPerDay: 0,
+  maxGamesPerDay: DAILY_GAME_LIMIT,
   cooldownSeconds: 0,
   honorMultiplierPercent: 100,
 };

@@ -13,21 +13,26 @@ import {
 /**
  * The daily-limit rules. Two things matter most and neither is obvious by eye:
  * the difference between "no limit" (null) and "limit reached" (zero), and that
- * the defaults are genuinely inert so this feature ships without changing play.
+ * the shipped default now caps play at 50 games a day (the product rule).
  */
 
-const off = DEFAULT_PLAY_LIMITS;
+// An explicit "no limit" config, for the null-vs-zero cases. Distinct from the
+// default, which now carries the 50/day cap.
+const off: PlayLimits = { maxGamesPerDay: 0, cooldownSeconds: 0, honorMultiplierPercent: 100 };
 const capped: PlayLimits = { maxGamesPerDay: 5, cooldownSeconds: 30, honorMultiplierPercent: 100 };
 
-describe("defaults are inert", () => {
-  it("impose no limit, no cooldown, no multiplier change", () => {
-    expect(gamesRemaining(999, off)).toBeNull();
-    expect(isLimitReached(999, off)).toBe(false);
-    expect(cooldownLeftSeconds(Date.now(), Date.now(), off)).toBe(0);
-    expect(applyHonorMultiplier(123, off)).toBe(123);
+describe("the shipped default", () => {
+  it("caps play at 50 games a day, with no cooldown or multiplier change", () => {
+    expect(DEFAULT_PLAY_LIMITS.maxGamesPerDay).toBe(50);
+    expect(gamesRemaining(0, DEFAULT_PLAY_LIMITS)).toBe(50);
+    expect(gamesRemaining(50, DEFAULT_PLAY_LIMITS)).toBe(0);
+    expect(isLimitReached(50, DEFAULT_PLAY_LIMITS)).toBe(true);
+    expect(isLimitReached(49, DEFAULT_PLAY_LIMITS)).toBe(false);
+    expect(cooldownLeftSeconds(Date.now(), Date.now(), DEFAULT_PLAY_LIMITS)).toBe(0);
+    expect(applyHonorMultiplier(123, DEFAULT_PLAY_LIMITS)).toBe(123);
   });
 
-  it("are themselves valid", () => {
+  it("is itself valid", () => {
     expect(parsePlayLimits(DEFAULT_PLAY_LIMITS)).toEqual(DEFAULT_PLAY_LIMITS);
   });
 });
