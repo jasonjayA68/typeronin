@@ -18,7 +18,7 @@ export default async function PlayLimitsPage() {
   return (
     <AdminPage
       title="Daily limits"
-      description="How much a player may earn in a day, how quickly, and at what rate. Left at their defaults these do nothing — a cap of zero is no cap — so the dojo plays exactly as it did until you set a real value."
+      description="How much a player may earn in a day, how quickly, and at what rate. Left at their defaults these do nothing — a cap of zero is no cap — so the games play exactly as before until you set a real value."
     >
       <Panel title="Games, cooldown & multiplier">
         <PlayLimitsEditor initial={limits} />

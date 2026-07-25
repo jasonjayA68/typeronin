@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { requirePermission } from "@/features/admin/guard";
-import { getCastleOverview } from "@/features/admin/queries";
+import { getAdminOverview } from "@/features/admin/queries";
 import {
   AdminPage,
   EmptyState,
@@ -14,17 +14,17 @@ import {
 import { when } from "@/features/profile/dashboard-panels";
 
 export const metadata: Metadata = {
-  title: "Castle",
+  title: "Overview",
   robots: { index: false, follow: false },
 };
 
-export default async function CastlePage() {
+export default async function OverviewPage() {
   await requirePermission("analytics:read");
-  const o = await getCastleOverview();
+  const o = await getAdminOverview();
 
   return (
     <AdminPage
-      title="The Castle"
+      title="Overview"
       description="Every figure is computed from the tables that own it. Nothing here is a stored counter, and nothing is estimated."
     >
       {/* Top-level figures are the only stats that carry a surface. */}
@@ -32,7 +32,7 @@ export default async function CastlePage() {
         <Stat
           framed
           accent
-          label="Students"
+          label="Users"
           value={o.students.toLocaleString()}
           hint={`${o.newStudents} joined in 30 days`}
         />
@@ -47,7 +47,7 @@ export default async function CastlePage() {
       </PanelGrid>
 
       <PanelGrid cols={2}>
-        <Panel title="Top students" action={<PanelLink href="/admin/users">All students</PanelLink>}>
+        <Panel title="Top users" action={<PanelLink href="/admin/users">All users</PanelLink>}>
           {o.topPlayers.length ? (
             <ol className="space-y-3">
               {o.topPlayers.map((p, i) => (
@@ -70,7 +70,7 @@ export default async function CastlePage() {
               ))}
             </ol>
           ) : (
-            <EmptyState title="No students yet">
+            <EmptyState title="No users yet">
               The hall fills as people train.
             </EmptyState>
           )}

@@ -15,7 +15,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Prisma } from "../../../../generated/prisma/client";
 
 export const metadata: Metadata = {
-  title: "Students",
+  title: "Users",
   robots: { index: false, follow: false },
 };
 
@@ -27,6 +27,8 @@ async function getStudents() {
       id: true,
       handle: true,
       displayName: true,
+      bio: true,
+      countryCode: true,
       honor: true,
       createdAt: true,
       status: true,
@@ -82,9 +84,9 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold sm:text-3xl">Students</h1>
+        <h1 className="text-2xl font-semibold sm:text-3xl">Users</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The fifty students holding the most Honor. Roles decide what a student may reach in this
+          The fifty users holding the most Honor. Roles decide what a user may reach in this
           panel; everything else here is read from the tables that own it.
         </p>
       </div>
@@ -100,18 +102,18 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
 
       {students.length === 0 ? (
         <p className="glass-panel rounded-2xl py-12 text-center text-sm text-muted-foreground">
-          No students yet.
+          No users yet.
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
           <table className="w-full min-w-3xl border-collapse text-sm">
             <caption className="sr-only">
-              Students ordered by Honor, with their roles, sessions played and the date they joined.
+              Users ordered by Honor, with their roles, sessions played and the date they joined.
             </caption>
             <thead>
               <tr className="border-b border-border bg-muted/40 text-xs tracking-[0.14em] text-muted-foreground uppercase">
                 <th scope="col" className="px-4 py-3 text-left font-medium">
-                  Student
+                  User
                 </th>
                 <th scope="col" className="px-4 py-3 text-left font-medium">
                   Email
@@ -181,7 +183,7 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                           ))}
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">Student</span>
+                        <span className="text-muted-foreground">User</span>
                       )}
                     </td>
                     <td className="px-4 py-4">
@@ -249,6 +251,9 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                             profileId={student.id}
                             displayName={student.displayName}
                             handle={student.handle}
+                            bio={student.bio ?? ""}
+                            countryCode={student.countryCode ?? ""}
+                            email={student.email ?? ""}
                             isSelf={isSelf}
                             isAdmin={isAdmin}
                           />

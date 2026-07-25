@@ -570,7 +570,7 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
             title="No modes"
             action={<PanelLink href="/admin/modes?edit=new">Create the first one</PanelLink>}
           >
-            The seed ships a practice and a timed mode. Without a row here the dojo has nothing to
+            The seed ships a practice and a timed mode. Without a row here the games have nothing to
             offer.
           </EmptyState>
         )}

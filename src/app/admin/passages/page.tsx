@@ -78,7 +78,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
   return (
     <AdminPage
       title="Passages"
-      description="The KATA prose the typing engine draws from. Each passage is a title and a body typed clean; the dojo draws only the active ones, in the order below."
+      description="The typing passages the game draws from. Each passage is a title and a body typed clean; only the active ones are used, in the order below."
     >
       {notice === "refused" ? (
         <p
@@ -100,7 +100,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
         <Stat
           label="In rotation"
           value={String(activeCount)}
-          hint={activeCount === 0 ? "Dojo falls back to the built-in set" : "Drawn in the dojo"}
+          hint={activeCount === 0 ? "Falls back to the built-in set" : "Used in the game"}
           framed
         />
       </PanelGrid>
@@ -108,7 +108,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
       <Panel title="Passages">
         {passages.length ? (
           <DataTable>
-            <caption className="sr-only">Passages, in the order the dojo draws them.</caption>
+            <caption className="sr-only">Passages, in the order the game draws them.</caption>
             <thead>
               <Tr>
                 <Th numeric>Order</Th>
@@ -172,7 +172,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
           </DataTable>
         ) : (
           <EmptyState title="No passages yet">
-            The dojo is running on the built-in set. Add a passage below to take over the rotation.
+            The game is running on the built-in set. Add a passage below to take over the rotation.
           </EmptyState>
         )}
       </Panel>

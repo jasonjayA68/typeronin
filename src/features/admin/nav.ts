@@ -32,7 +32,7 @@ export const ADMIN_NAV: AdminSection[] = [
     modules: [
       {
         slug: "dashboard",
-        label: "Castle",
+        label: "Overview",
         href: "/admin",
         permission: "analytics:read",
         status: "built",
@@ -58,7 +58,7 @@ export const ADMIN_NAV: AdminSection[] = [
     modules: [
       {
         slug: "users",
-        label: "Students",
+        label: "Users",
         href: "/admin/users",
         permission: "users:read",
         status: "built",
@@ -186,7 +186,7 @@ export const ADMIN_NAV: AdminSection[] = [
     ],
   },
   {
-    title: "House",
+    title: "General",
     modules: [
       {
         slug: "social",

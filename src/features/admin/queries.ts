@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Castle Dashboard figures.
+ * Admin overview figures.
  *
  * Every number is computed from the tables that own it. Nothing is a stored
  * counter that can drift from the thing it counts, and nothing here is invented:
@@ -18,7 +18,7 @@ function daysAgo(n: number): Date {
   return d;
 }
 
-export async function getCastleOverview() {
+export async function getAdminOverview() {
   const since7 = daysAgo(7);
   const since30 = daysAgo(30);
 
@@ -111,7 +111,7 @@ export async function getCastleOverview() {
   };
 }
 
-export type CastleOverview = Awaited<ReturnType<typeof getCastleOverview>>;
+export type AdminOverview = Awaited<ReturnType<typeof getAdminOverview>>;
 
 /** Placements and whatever is booked against them. */
 export async function getAdPlacements() {

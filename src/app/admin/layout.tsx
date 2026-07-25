@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Admin
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Administration of the dojo.{" "}
+              Manage the platform.{" "}
               <Link href="/" className="underline-offset-4 hover:text-foreground hover:underline">
                 Return to the site
               </Link>

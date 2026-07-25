@@ -31,12 +31,18 @@ export function UserRowActions({
   profileId,
   displayName,
   handle,
+  bio,
+  countryCode,
+  email,
   isSelf,
   isAdmin,
 }: {
   profileId: string;
   displayName: string;
   handle: string;
+  bio: string;
+  countryCode: string;
+  email: string;
   isSelf: boolean;
   isAdmin: boolean;
 }) {
@@ -44,6 +50,9 @@ export function UserRowActions({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [name, setName] = useState(displayName);
   const [tag, setTag] = useState(handle);
+  const [about, setAbout] = useState(bio);
+  const [country, setCountry] = useState(countryCode);
+  const [mail, setMail] = useState(email);
   const [pending, startTransition] = useTransition();
 
   // Self-delete is refused by the action; admins must be demoted first. Say so
@@ -56,9 +65,15 @@ export function UserRowActions({
 
   function submitEdit() {
     startTransition(async () => {
-      const result = await updateUser(profileId, { displayName: name.trim(), handle: tag.trim() });
+      const result = await updateUser(profileId, {
+        displayName: name.trim(),
+        handle: tag.trim(),
+        bio: about.trim(),
+        countryCode: country.trim(),
+        email: mail.trim(),
+      });
       if (result.ok) {
-        toast.success("Student updated.");
+        toast.success("User updated.");
         setEditOpen(false);
       } else {
         toast.error(result.message);
@@ -90,9 +105,10 @@ export function UserRowActions({
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit student</DialogTitle>
+            <DialogTitle>Edit user</DialogTitle>
             <DialogDescription>
-              Change the display name and handle. Roles and Honor are managed elsewhere.
+              Update this user&apos;s details. Roles, Honor, and account status are managed
+              elsewhere. Changing the email sets it immediately (no confirmation needed).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -105,15 +121,53 @@ export function UserRowActions({
                 maxLength={60}
               />
             </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-1.5">
+                <Label htmlFor={`handle-${profileId}`}>Username</Label>
+                <Input
+                  id={`handle-${profileId}`}
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  maxLength={30}
+                  autoCapitalize="off"
+                  spellCheck={false}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`country-${profileId}`}>Country</Label>
+                <Input
+                  id={`country-${profileId}`}
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value.toUpperCase())}
+                  maxLength={2}
+                  placeholder="PH"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
-              <Label htmlFor={`handle-${profileId}`}>Handle</Label>
+              <Label htmlFor={`email-${profileId}`}>Email</Label>
               <Input
-                id={`handle-${profileId}`}
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                maxLength={30}
+                id={`email-${profileId}`}
+                type="email"
+                inputMode="email"
+                value={mail}
+                onChange={(e) => setMail(e.target.value)}
                 autoCapitalize="off"
                 spellCheck={false}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`bio-${profileId}`}>Bio</Label>
+              <textarea
+                id={`bio-${profileId}`}
+                value={about}
+                onChange={(e) => setAbout(e.target.value)}
+                maxLength={300}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+                placeholder="Optional."
               />
             </div>
           </div>
