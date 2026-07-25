@@ -126,9 +126,46 @@ model Profile {
   loginEvents         LoginEvent[]
   devices             DeviceAccount[]
   scrollSessions      ScrollSession[]
+  payoutMethods       SavedPayoutMethod[]
 
   @@index([honor])
   @@index([countryCode])
+}
+
+/// A payout destination the user has saved to reuse — a GCash/Maya number, a
+/// bank account, and an optional QR image to scan at payout time.
+///
+/// Distinct from `Withdrawal`, which snapshots the destination on each request
+/// so history is immutable. This is the reusable address book: the user fills it
+/// once, marks a default, and a new withdrawal is prefilled from it. The QR image
+/// lives in the media bucket; `qrUrl` is its public URL, mirroring how avatars
+/// are stored.
+model SavedPayoutMethod {
+  id String @id @default(uuid()) @db.Uuid
+
+  profileId String  @db.Uuid
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  method PayoutMethod
+
+  /// The destination as the user gave it — the same three facts a withdrawal
+  /// captures: the holder, the number/email/IBAN, and anything extra.
+  accountName String
+  accountRef  String
+  details     String?
+
+  /// Public URL of the payout QR image, if one was uploaded. Null for methods
+  /// saved without a QR (a PayPal email needs none).
+  qrUrl String?
+
+  /// The one prefilled by default on the withdrawal form. At most one per user is
+  /// true; the server clears the others when a new default is set.
+  isDefault Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId, isDefault])
 }
 
 // ---------------------------------------------------------------- game content

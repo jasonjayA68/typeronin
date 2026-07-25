@@ -20,6 +20,8 @@ import {
   type WithdrawalStatusValue,
 } from "@/features/withdrawals/model";
 import { getWalletTotals, listUserWithdrawals } from "@/features/withdrawals/queries";
+import { listPayoutMethods } from "@/features/withdrawals/payout-methods-queries";
+import { PayoutMethodsPanel } from "@/features/withdrawals/payout-methods-panel";
 import { RequestWithdrawalButton } from "@/features/withdrawals/request-form";
 import { getUser } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -59,11 +61,12 @@ export default async function DashboardPage() {
   const next = nextRank(profile.honor);
   const progress = Math.round(rankProgress(profile.honor) * 100);
 
-  const [economy, walletTotals, withdrawals, playState] = await Promise.all([
+  const [economy, walletTotals, withdrawals, playState, payoutMethods] = await Promise.all([
     getEconomyConfig(),
     getWalletTotals(profile.id),
     listUserWithdrawals(profile.id),
     getDailyPlayState(profile.id),
+    listPayoutMethods(profile.id),
   ]);
 
   const canWithdraw = profile.honor >= economy.minWithdrawalHonor;
@@ -274,6 +277,15 @@ export default async function DashboardPage() {
                 </p>
               )}
             </div>
+          </Panel>
+
+          {/* Saved payout methods — reusable destinations with optional QR codes */}
+          <Panel title="Payout Methods" className="mt-4">
+            <p className="mb-4 text-sm text-muted-foreground">
+              Save where you want to be paid — GCash, Maya, or a bank — with an optional QR code,
+              so withdrawals are one tap next time.
+            </p>
+            <PayoutMethodsPanel methods={payoutMethods} />
           </Panel>
 
           {/* Rank progress */}
