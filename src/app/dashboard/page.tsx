@@ -303,8 +303,13 @@ export default async function DashboardPage() {
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <Panel title="Profile">
               <div className="flex items-center gap-4">
-                <span className="grid size-14 shrink-0 place-items-center rounded-full border border-sakura/40 bg-sakura/10 font-heading text-lg text-sakura">
-                  {initials(profile.displayName)}
+                <span className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full border border-sakura/40 bg-sakura/10 font-heading text-lg text-sakura">
+                  {profile.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- user-supplied host; next/image would need each allow-listed.
+                    <img src={profile.avatarUrl} alt="" className="size-full object-cover" />
+                  ) : (
+                    initials(profile.displayName)
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="truncate font-heading text-lg tracking-wide text-foreground">
@@ -320,6 +325,9 @@ export default async function DashboardPage() {
                 <dd className="tabular text-right text-foreground">{when(profile.createdAt)}</dd>
               </dl>
               <div className="mt-4 flex flex-wrap gap-2">
+                <Button asChild variant="dojo" size="sm">
+                  <Link href="/settings">Edit profile</Link>
+                </Button>
                 <Button asChild variant="outline" size="sm">
                   <Link href={`/profile/${profile.handle}`}>View public profile</Link>
                 </Button>

@@ -5,6 +5,7 @@ import {
   LifeBuoyIcon,
   LogOutIcon,
   MenuIcon,
+  SettingsIcon,
   ShieldCheckIcon,
   SwordIcon,
   TrophyIcon,
@@ -85,6 +86,12 @@ function StudentMenu({ student }: { student: Student }) {
           <Link href="/leaderboard">
             <TrophyIcon aria-hidden="true" />
             Leaderboard
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings">
+            <SettingsIcon aria-hidden="true" />
+            Settings
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
