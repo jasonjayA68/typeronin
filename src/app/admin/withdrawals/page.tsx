@@ -96,6 +96,7 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
       feeCents: true,
       reference: true,
       adminNote: true,
+      onHold: true,
       createdAt: true,
       profile: { select: { handle: true, displayName: true } },
     },
@@ -189,6 +190,11 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
                       <Td numeric>{formatCash(w.netCents)}</Td>
                       <Td>
                         <StatusDot tone={STATUS_TONE[wStatus]}>{STATUS_LABEL[wStatus]}</StatusDot>
+                        {w.onHold ? (
+                          <span className="mt-0.5 block w-fit rounded-full bg-warning/15 px-2 py-0.5 text-[0.65rem] font-semibold text-warning">
+                            On hold
+                          </span>
+                        ) : null}
                         {w.adminNote ? (
                           <span className="mt-0.5 block max-w-[10rem] truncate text-xs text-muted-foreground">
                             {w.adminNote}
@@ -199,7 +205,7 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
                         {date(w.createdAt)}
                       </Td>
                       <Td>
-                        <AdminWithdrawalActions id={w.id} status={wStatus} />
+                        <AdminWithdrawalActions id={w.id} status={wStatus} onHold={w.onHold} />
                       </Td>
                     </Tr>
                   );

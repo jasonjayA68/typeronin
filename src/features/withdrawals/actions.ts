@@ -83,6 +83,19 @@ export async function requestWithdrawal(input: unknown): Promise<RequestResult> 
   }
 
   const profile = await ensureProfile(user);
+
+  // Moderation gates: a suspended/banned account, or one whose withdrawals are
+  // frozen while abuse is investigated, cannot request a payout.
+  if (profile.status !== "ACTIVE") {
+    return { ok: false, message: "Your account cannot request withdrawals right now." };
+  }
+  if (profile.withdrawalsFrozen) {
+    return {
+      ok: false,
+      message: "Withdrawals are paused on your account while we review it. Please contact support.",
+    };
+  }
+
   const config = await getEconomyConfig();
 
   // Advisory — the authoritative balance check is the atomic debit below. This
@@ -231,10 +244,19 @@ export async function approveWithdrawal(withdrawalId: string): Promise<Withdrawa
   if (!id.success) return { ok: false, message: "Unknown withdrawal." };
 
   try {
+    // A payout held for review cannot be advanced until it is released.
+    const held = await prisma.withdrawal.findUnique({
+      where: { id: id.data },
+      select: { onHold: true },
+    });
+    if (held?.onHold) {
+      return { ok: false, message: "This payout is on hold for review. Release it first." };
+    }
+
     // No money moves on approval — the Honor is already held. A guarded update
     // is all that is needed.
     const moved = await prisma.withdrawal.updateMany({
-      where: { id: id.data, status: "PENDING" },
+      where: { id: id.data, status: "PENDING", onHold: false },
       data: { status: "APPROVED", resolvedById: user.id, resolvedAt: new Date() },
     });
     if (moved.count === 0) {
@@ -338,11 +360,20 @@ export async function markWithdrawalPaid(
   }
 
   try {
+    // A payout held for review cannot be paid until it is released.
+    const held = await prisma.withdrawal.findUnique({
+      where: { id: id.data },
+      select: { onHold: true },
+    });
+    if (held?.onHold) {
+      return { ok: false, message: "This payout is on hold for review. Release it first." };
+    }
+
     // No refund path — the Honor stays spent, because it became the cash sent.
     // Guarded so a paid row cannot be paid twice.
     const now = new Date();
     const moved = await prisma.withdrawal.updateMany({
-      where: { id: id.data, status: { in: ["PENDING", "APPROVED"] } },
+      where: { id: id.data, status: { in: ["PENDING", "APPROVED"] }, onHold: false },
       data: {
         status: "PAID",
         reference: parsed.data.reference,

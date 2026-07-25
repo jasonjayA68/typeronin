@@ -60,6 +60,16 @@ enum RewardKind {
   SESSION
 }
 
+/// An account's access level, set by moderation.
+enum AccountStatus {
+  /// Normal. Plays, earns, withdraws.
+  ACTIVE
+  /// Temporarily blocked from playing, earning and withdrawing.
+  SUSPENDED
+  /// Permanently blocked. The account and its record remain, but it is closed.
+  BANNED
+}
+
 // ---------------------------------------------------------------- identity
 
 model Profile {
@@ -98,6 +108,23 @@ model Profile {
   /// is read on every dashboard load and written at most once a day.
   streakDays   Int       @default(0)
   lastPlayedOn DateTime? @db.Date
+
+  /// Moderation state, all admin-controlled and all audit-logged when changed.
+  ///
+  ///  - status: the access level. SUSPENDED and BANNED both block play, earning
+  ///    and withdrawals; the difference is intent (temporary vs permanent).
+  ///  - isFlagged: a soft "watch this account" marker that gates nothing on its
+  ///    own — it is a signal for a human, surfaced in the admin queue.
+  ///  - withdrawalsFrozen: stop this account cashing out while abuse is looked
+  ///    into, without suspending play. Independent of status on purpose.
+  ///  - moderationNote: an internal note, never shown to the account holder.
+  status            AccountStatus @default(ACTIVE)
+  isFlagged         Boolean       @default(false)
+  withdrawalsFrozen Boolean       @default(false)
+  moderationNote    String?
+  /// Who last acted and when — the row's own trail, beside the full audit log.
+  moderatedAt   DateTime?
+  moderatedById String?   @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1059,6 +1086,10 @@ model Withdrawal {
   grossCents Int
   feeCents   Int
   netCents   Int
+
+  /// Held for manual review. A held payout cannot be approved or marked paid
+  /// until an admin releases it — the escrowed Honor stays put in the meantime.
+  onHold Boolean @default(false)
 
   /// Filled when an admin resolves it.
   reference    String?

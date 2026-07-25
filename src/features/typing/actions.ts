@@ -108,6 +108,11 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
   try {
     const profile = await ensureProfile(user);
 
+    // A suspended or banned account may not earn.
+    if (profile.status !== "ACTIVE") {
+      return { status: "error", message: "Your account is not active." };
+    }
+
     // The daily limits gate the record and scale the payout. Read once, applied
     // inside the transaction so the day's count and the write cannot diverge.
     const limits = await getPlayLimits();

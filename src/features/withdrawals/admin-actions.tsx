@@ -8,6 +8,7 @@ import {
   markWithdrawalPaid,
   rejectWithdrawal,
 } from "@/features/withdrawals/actions";
+import { setWithdrawalHold } from "@/features/admin/moderation-actions";
 import {
   canApprove,
   canMarkPaid,
@@ -38,9 +39,11 @@ import { Label } from "@/shared/components/ui/label";
 export function AdminWithdrawalActions({
   id,
   status,
+  onHold,
 }: {
   id: string;
   status: WithdrawalStatusValue;
+  onHold: boolean;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [paying, setPaying] = useState(false);
@@ -73,6 +76,13 @@ export function AdminWithdrawalActions({
       setReference("");
     });
 
+  const toggleHold = () =>
+    startTransition(async () => {
+      const result = await setWithdrawalHold({ withdrawalId: id, onHold: !onHold });
+      if (!result.ok) return void toast.error(result.message);
+      toast.success(onHold ? "Released" : "Held for review");
+    });
+
   const settled = !canApprove(status) && !canReject(status) && !canMarkPaid(status);
   if (settled) {
     return <span className="text-xs text-muted-foreground">—</span>;
@@ -80,13 +90,25 @@ export function AdminWithdrawalActions({
 
   return (
     <div className="flex justify-end gap-1">
-      {canApprove(status) ? (
+      {/* Hold blocks approve/pay until released — offered first so a suspicious
+          payout can be frozen before anything else is done to it. */}
+      <Button
+        variant="ghost"
+        size="xs"
+        onClick={toggleHold}
+        disabled={pending}
+        className={onHold ? "text-warning hover:text-warning" : undefined}
+      >
+        {onHold ? "Release" : "Hold"}
+      </Button>
+
+      {canApprove(status) && !onHold ? (
         <Button variant="ghost" size="xs" onClick={approve} disabled={pending}>
           Approve
         </Button>
       ) : null}
 
-      {canMarkPaid(status) ? (
+      {canMarkPaid(status) && !onHold ? (
         <Dialog open={paying} onOpenChange={setPaying}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="xs">

@@ -75,6 +75,12 @@ export async function saveScrollSession(input: unknown): Promise<ScrollSaveResul
 
   try {
     const profile = await ensureProfile(user);
+
+    // A suspended or banned account may not earn.
+    if (profile.status !== "ACTIVE") {
+      return { status: "error", message: "Your account is not active." };
+    }
+
     const limits = await getPlayLimits();
     const honor = applyHonorMultiplier(baseHonor, limits);
 

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { holds, requirePermission } from "@/features/admin/guard";
+import { ModerationControls, StatusBadges } from "@/features/admin/moderation-controls";
 import { grantRole, revokeRole } from "@/features/admin/user-actions";
 import { UserRowActions } from "@/features/admin/user-row-actions";
 import { when } from "@/features/profile/dashboard-panels";
@@ -28,6 +29,10 @@ async function getStudents() {
       displayName: true,
       honor: true,
       createdAt: true,
+      status: true,
+      isFlagged: true,
+      withdrawalsFrozen: true,
+      moderationNote: true,
       roles: { select: { role: { select: { slug: true, name: true } } } },
       _count: { select: { sessions: true } },
     },
@@ -70,6 +75,7 @@ async function updateAdminRole(formData: FormData) {
 export default async function StudentsPage(props: PageProps<"/admin/users">) {
   const context = await requirePermission("users:read");
   const canWrite = holds(context, "users:write");
+  const canFreeze = holds(context, "payouts:write");
 
   const [students, { notice }] = await Promise.all([getStudents(), props.searchParams]);
 
@@ -112,6 +118,9 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                 </th>
                 <th scope="col" className="px-4 py-3 text-left font-medium">
                   Roles
+                </th>
+                <th scope="col" className="px-4 py-3 text-left font-medium">
+                  Status
                 </th>
                 <th scope="col" className="px-4 py-3 text-right font-medium">
                   Honor
@@ -175,6 +184,16 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                         <span className="text-muted-foreground">Student</span>
                       )}
                     </td>
+                    <td className="px-4 py-4">
+                      <StatusBadges
+                        state={{
+                          status: student.status,
+                          isFlagged: student.isFlagged,
+                          withdrawalsFrozen: student.withdrawalsFrozen,
+                          moderationNote: student.moderationNote,
+                        }}
+                      />
+                    </td>
                     <td className="tabular px-4 py-4 text-right font-semibold">
                       {student.honor.toLocaleString("en-US")}
                     </td>
@@ -212,14 +231,28 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                       </td>
                     ) : null}
                     {canWrite ? (
-                      <td className="px-4 py-4 text-right">
-                        <UserRowActions
-                          profileId={student.id}
-                          displayName={student.displayName}
-                          handle={student.handle}
-                          isSelf={isSelf}
-                          isAdmin={isAdmin}
-                        />
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <ModerationControls
+                            profileId={student.id}
+                            displayName={student.displayName}
+                            isSelf={isSelf}
+                            canFreeze={canFreeze}
+                            state={{
+                              status: student.status,
+                              isFlagged: student.isFlagged,
+                              withdrawalsFrozen: student.withdrawalsFrozen,
+                              moderationNote: student.moderationNote,
+                            }}
+                          />
+                          <UserRowActions
+                            profileId={student.id}
+                            displayName={student.displayName}
+                            handle={student.handle}
+                            isSelf={isSelf}
+                            isAdmin={isAdmin}
+                          />
+                        </div>
                       </td>
                     ) : null}
                   </tr>
