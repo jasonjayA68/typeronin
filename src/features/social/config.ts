@@ -21,6 +21,9 @@ export const SOCIAL_PLATFORMS = [
   "x",
   "discord",
   "youtube",
+  // Support email. Stored as a bare address; rendered as a mailto: link and
+  // shown in the footer beside the social icons. See socialHref below.
+  "gmail",
 ] as const;
 
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
@@ -34,6 +37,7 @@ export const DEFAULT_SOCIAL: SocialLinks = {
   x: "",
   discord: "",
   youtube: "",
+  gmail: "",
 };
 
 /**
@@ -76,6 +80,13 @@ export const SOCIAL_INFO: Record<
     placeholder: "https://youtube.com/@yourchannel",
     icon: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z",
   },
+  gmail: {
+    label: "Email",
+    placeholder: "support@typeronin.com",
+    // A plain envelope — a generic mail glyph rather than a brand mark, so it
+    // reads as "email us" to anyone regardless of which mail app they use.
+    icon: "M1.5 8.67v8.58a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3V8.67l-8.928 5.493a3 3 0 0 1-3.144 0L1.5 8.67ZM22.5 6.908V6.75a3 3 0 0 0-3-3h-15a3 3 0 0 0-3 3v.158l9.714 5.978a1.5 1.5 0 0 0 1.572 0L22.5 6.908Z",
+  },
 };
 
 function isHttpUrl(value: string): boolean {
@@ -87,12 +98,21 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** Each field is blank or a full http(s) URL — nothing half-formed reaches the row. */
 const linkField = z
   .string()
   .trim()
   .max(300)
   .refine((v) => v === "" || isHttpUrl(v), "Enter a full https:// address, or leave it blank.");
+
+/** The support email — blank or a plain address (no mailto: prefix; we add it). */
+const emailField = z
+  .string()
+  .trim()
+  .max(200)
+  .refine((v) => v === "" || EMAIL.test(v), "Enter a valid email address, or leave it blank.");
 
 export const socialSchema = z.object({
   facebook: linkField,
@@ -101,6 +121,7 @@ export const socialSchema = z.object({
   x: linkField,
   discord: linkField,
   youtube: linkField,
+  gmail: emailField,
 });
 
 export function parseSocialLinks(input: unknown): SocialLinks | null {
@@ -108,7 +129,21 @@ export function parseSocialLinks(input: unknown): SocialLinks | null {
   return result.success ? result.data : null;
 }
 
+/**
+ * The clickable target for a platform's stored value. Everything is a URL as
+ * given, except the support email, which is a bare address turned into a
+ * mailto: link here so it opens the visitor's mail app.
+ */
+export function socialHref(platform: SocialPlatform, value: string): string {
+  return platform === "gmail" ? `mailto:${value}` : value;
+}
+
 /** The platforms that actually have a link, in display order. */
-export function activeSocials(links: SocialLinks): { platform: SocialPlatform; url: string }[] {
-  return SOCIAL_PLATFORMS.filter((p) => links[p]).map((p) => ({ platform: p, url: links[p] }));
+export function activeSocials(
+  links: SocialLinks
+): { platform: SocialPlatform; url: string }[] {
+  return SOCIAL_PLATFORMS.filter((p) => links[p]).map((p) => ({
+    platform: p,
+    url: socialHref(p, links[p]),
+  }));
 }

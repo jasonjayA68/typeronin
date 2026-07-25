@@ -48,7 +48,6 @@ export default async function ContactPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="The Scrolls"
-          kanji="連絡"
           title="Contact"
           lede="The house keeps no support desk. It answers on social, and in writing where a record is needed."
         />

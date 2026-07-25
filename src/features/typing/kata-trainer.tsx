@@ -253,7 +253,7 @@ export function KataTrainer({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="WPM" value={String(stats.wpm)} hint={`raw ${stats.rawWpm}`} />
         <Stat label="Accuracy" value={`${stats.accuracy}%`} hint={`${stats.wrong} missed`} />
-        <Stat label="Ma 間" value={String(stats.ma)} hint="rhythm evenness" accent />
+        <Stat label="Rhythm" value={String(stats.ma)} hint="rhythm evenness" accent />
         <Stat label="Time" value={`${seconds}s`} hint={passage.title} />
       </div>
 

@@ -221,8 +221,7 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
     revalidatePath("/dashboard");
     revalidatePath("/dojo");
     if (bonus.unlocked.length > 0) {
-      revalidatePath("/achievements");
-      revalidatePath("/missions");
+      revalidatePath("/train");
     }
     return {
       status: "saved",

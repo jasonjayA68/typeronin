@@ -77,7 +77,6 @@ export default async function CategoryPage(props: PageProps<"/blog/category/[slu
       <main id="main">
         <PageHeader
           eyebrow="Blog"
-          kanji={category.kanji ?? "書"}
           title={category.name}
           lede={category.intro ?? category.description ?? undefined}
         />

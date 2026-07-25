@@ -23,7 +23,7 @@ function initials(name: string) {
       .split(/\s+/)
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? "")
-      .join("") || "侍"
+      .join("") || "TR"
   );
 }
 
@@ -120,8 +120,7 @@ export default async function PublicProfilePage({
       <SiteHeader />
       <main className="flex-1">
         <PageHeader
-          eyebrow={`${held.name} · ${held.kanji}`}
-          kanji="侍"
+          eyebrow={held.name}
           title={profile.displayName}
           lede={profile.bio ?? held.creed}
           actions={<Avatar name={profile.displayName} url={profile.avatarUrl} />}
@@ -174,7 +173,7 @@ export default async function PublicProfilePage({
                   <Stat label="Best WPM" value={String(stats.best?.wpm ?? 0)} accent />
                   <Stat label="Avg WPM" value={String(stats.avgWpm)} />
                   <Stat label="Accuracy" value={`${stats.avgAccuracy}%`} />
-                  <Stat label="Ma 間" value={String(stats.avgMa)} />
+                  <Stat label="Rhythm" value={String(stats.avgMa)} />
                   <Stat label="Sessions" value={String(stats.sessions)} />
                   <Stat label="Words cut" value={stats.wordsCut.toLocaleString()} />
                 </div>

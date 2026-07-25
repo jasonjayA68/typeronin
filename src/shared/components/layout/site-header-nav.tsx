@@ -6,7 +6,8 @@ import {
   LogOutIcon,
   MenuIcon,
   ShieldCheckIcon,
-  WalletIcon,
+  SwordIcon,
+  TrophyIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
@@ -71,34 +72,32 @@ function StudentMenu({ student }: { student: Student }) {
         <DropdownMenuItem asChild>
           <Link href="/dashboard">
             <GaugeIcon aria-hidden="true" />
-            Your Standing
+            Dashboard
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/withdrawals">
-            <WalletIcon aria-hidden="true" />
-            Honor Wallet
+          <Link href="/dojo">
+            <SwordIcon aria-hidden="true" />
+            The Dojo
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/dojo">The Dojo</Link>
+          <Link href="/leaderboard">
+            <TrophyIcon aria-hidden="true" />
+            Leaderboard
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/leaderboard">Hall of Legends</Link>
-        </DropdownMenuItem>
-        {/* There is no support inbox behind this — it points at the social
-            channels the house actually answers on. */}
         <DropdownMenuItem asChild>
           <Link href="/contact">
             <LifeBuoyIcon aria-hidden="true" />
-            Get help
+            Help &amp; Contact
           </Link>
         </DropdownMenuItem>
         {student.role === "admin" ? (
           <DropdownMenuItem asChild>
             <Link href="/admin">
               <ShieldCheckIcon aria-hidden="true" />
-              The Magistrate
+              Admin
             </Link>
           </DropdownMenuItem>
         ) : null}
@@ -122,46 +121,25 @@ function StudentMenu({ student }: { student: Student }) {
 }
 
 /**
- * A content pillar, as the nav needs it.
+ * The primary navigation — five destinations, nothing more.
  *
- * Typed structurally rather than importing NavCategory from features/blog/
- * queries, which lives behind `server-only` — nothing here needs the server
- * module, and the shapes are checked against each other where they meet, in
- * SiteHeader.
+ * Deliberately fixed and plain-English. Every item is a top-level place a new
+ * visitor needs: what the product is (Home), where you play (The Dojo), how you
+ * progress (Train), what you can read (Blog), and how to reach us (Contact). No
+ * jump-links, no database-driven categories, no Japanese labels — a first-time
+ * user from any country can read the whole bar and know where to go.
  */
-type NavCategory = { slug: string; name: string };
+const NAVIGATION = [
+  { href: "/", label: "Home" },
+  { href: "/dojo", label: "The Dojo" },
+  { href: "/train", label: "Train" },
+  { href: "/blog", label: "Blog" },
+  { href: "/contact", label: "Contact" },
+] as const;
 
-/**
- * The header carries the dojo and the content pillars, and nothing else.
- *
- * What used to sit here — The Way, Ranks, Hall of Legends, Blog — was either a
- * jump to a section of the home page the visitor is usually already on, or a
- * destination the footer already lists. A nav that repeats the page beneath it
- * is decoration. The pillars are the one thing a reader cannot reach in a click
- * from anywhere else, so they are what the row is spent on.
- *
- * Categories come from the database (see getNavCategories) rather than being
- * written here, because they are rows an admin edits.
- */
-function buildNavigation(categories: readonly NavCategory[]) {
-  return [
-    { href: "/dojo", label: "The Dojo" },
-    ...categories.map((category) => ({
-      href: `/blog/category/${category.slug}`,
-      label: category.name,
-    })),
-  ];
-}
-
-export function SiteHeaderNav({
-  student,
-  categories,
-}: {
-  student: Student | null;
-  categories: readonly NavCategory[];
-}) {
+export function SiteHeaderNav({ student }: { student: Student | null }) {
   const [open, setOpen] = useState(false);
-  const navigation = buildNavigation(categories);
+  const navigation = NAVIGATION;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
@@ -218,14 +196,9 @@ export function SiteHeaderNav({
                     </Button>
                   ))}
                   {student ? (
-                    <>
-                      <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
-                        <Link href="/dashboard">Your Standing</Link>
-                      </Button>
-                      <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
-                        <Link href="/withdrawals">Honor Wallet</Link>
-                      </Button>
-                    </>
+                    <Button asChild variant="ghost" className="justify-start" onClick={() => setOpen(false)}>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </Button>
                   ) : null}
                   {student ? null : (
                     <Button asChild variant="ghost" className="justify-start sm:hidden">

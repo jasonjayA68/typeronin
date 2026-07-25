@@ -118,15 +118,6 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
               className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(70%_60%_at_50%_-20%,color-mix(in_oklab,var(--color-sakura)_16%,transparent),transparent_70%)]"
             />
             <Container className="relative py-14 sm:py-20">
-              {post.category ? (
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-1/2 right-4 -z-10 -translate-y-1/2 font-heading text-[7rem] leading-none text-foreground/[0.04] select-none sm:text-[10rem] lg:right-8"
-                >
-                  {post.category.kanji ?? "書"}
-                </span>
-              ) : null}
-
               <div className="mx-auto max-w-3xl">
                 {post.category ? (
                   <Link

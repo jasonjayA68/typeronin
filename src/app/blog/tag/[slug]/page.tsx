@@ -57,7 +57,6 @@ export default async function TagPage(props: PageProps<"/blog/tag/[slug]">) {
       <main id="main">
         <PageHeader
           eyebrow="Tagged"
-          kanji="印"
           title={tag.name}
           lede={`${posts.length} ${posts.length === 1 ? "note" : "notes"} on this.`}
           actions={

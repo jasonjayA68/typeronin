@@ -37,8 +37,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const DESCRIPTION =
-  "Discipline. Precision. Mastery. Train your typing the way a swordsman trains: " +
-  "deliberate practice, honest measurement, and rank earned one keystroke at a time.";
+  "Free typing games that build your speed and your English — and pay you in real " +
+  "rewards you can withdraw. Play, level up, and compete with players worldwide.";
 
 export const metadata: Metadata = {
   // Without this, every relative Open Graph and canonical URL is resolved
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
   // failure ships as share cards pointing at a developer's machine.
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "TypeRonin — Master Your Keyboard Like a Samurai Masters the Sword",
+    default: "TypeRonin — Type Faster. Learn English. Earn Real Rewards.",
     template: "%s · TypeRonin",
   },
   description: DESCRIPTION,
@@ -54,13 +54,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "TypeRonin",
-    title: "TypeRonin — Master Your Keyboard Like a Samurai Masters the Sword",
+    title: "TypeRonin — Type Faster. Learn English. Earn Real Rewards.",
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
     title: "TypeRonin",
-    description: "Master your keyboard like a samurai masters the sword.",
+    description: "Free typing games. Build your speed and English, and earn real rewards.",
   },
 };
 

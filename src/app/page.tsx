@@ -1,4 +1,11 @@
-import { ArrowRightIcon, GaugeIcon, PlusIcon, ScrollTextIcon, SwordIcon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  GaugeIcon,
+  GlobeIcon,
+  KeyboardIcon,
+  TrophyIcon,
+  WalletIcon,
+} from "lucide-react";
 import Link from "next/link";
 
 import { AdSlot } from "@/features/ads/ad-slot";
@@ -13,100 +20,122 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 
+/**
+ * What the platform is, in three cards. Each answers a question a new visitor
+ * asks in their first seconds: what do I do, what do I get better at, what's in
+ * it for me. Short, plain, and readable by anyone.
+ */
 const pillars = [
   {
-    icon: SwordIcon,
-    kanji: "一刀",
-    title: "One Cut, No Corrections",
+    icon: KeyboardIcon,
+    tag: "Play",
+    title: "Fast, focused typing games",
     description:
-      "Backspace is disabled. A struck character is final, and a missed one stands in red until the passage ends. You stop hammering the delete key and start choosing each stroke.",
+      "Type real phrases and match English words to their meaning. Every round is scored on speed and accuracy.",
   },
   {
     icon: GaugeIcon,
-    kanji: "間",
-    title: "Rhythm Is the Measure",
+    tag: "Learn",
+    title: "Build speed and English",
     description:
-      "Ma scores the evenness of your intervals, not your pace. A steady slow hand outscores a fast erratic one — because tempo, not haste, is what survives pressure.",
+      "Grow your typing speed and your English vocabulary at the same time — a little sharper every day.",
   },
   {
-    icon: ScrollTextIcon,
-    kanji: "名誉",
-    title: "Honor Is Earned, Not Clocked",
+    icon: WalletIcon,
+    tag: "Earn",
+    title: "Turn skill into rewards",
     description:
-      "Accuracy is weighted squarely in the Honor you earn, so a sloppy sprint can never out-earn a clean pass. Rank follows Honor. Nothing else advances you.",
+      "Clean play earns Honor. Honor raises your rank and converts into real rewards you can withdraw.",
   },
 ] as const;
 
+/** The live-feel stats in the hero. Illustrative, not a claim about any user. */
 const stats = [
   { label: "Words per minute", value: "128" },
   { label: "Accuracy", value: "98.4%" },
-  { label: "Ma 間", value: "91" },
+  { label: "Rhythm", value: "91" },
 ] as const;
 
+/** "How it works" — three steps, so the loop is obvious before anyone scrolls far. */
+const steps = [
+  {
+    n: "1",
+    title: "Play a game",
+    body: "Pick Typing Phrases or Find the Word. No setup, no downloads — start in one click.",
+  },
+  {
+    n: "2",
+    title: "Earn Honor",
+    body: "Accurate, steady play scores highest. Missions and achievements pay bonus Honor.",
+  },
+  {
+    n: "3",
+    title: "Rank up & cash out",
+    body: "Climb nine ranks and convert your Honor into real rewards you can withdraw.",
+  },
+] as const;
 
-const scrolls = [
+/** Short FAQ. Plain answers, no jargon. */
+const faqs = [
   {
-    q: "Why can I not use backspace?",
-    a: "Because correction is a crutch that hides the flaw. When every stroke is final you slow down by a fraction, you look before you cut, and the accuracy you build is real rather than repaired. Most students find their honest speed drops for a week and then passes where it was.",
+    q: "What is TypeRonin?",
+    a: "A free play-to-earn typing platform. You play quick typing games, build real English and typing skill, and earn rewards you can withdraw.",
   },
   {
-    q: "What is Ma?",
-    a: "Ma (間) is the interval between strikes. We measure how evenly spaced your keystrokes are relative to your own tempo, which makes the score independent of speed — a steady slow student can score higher than a fast erratic one. It is the difference between playing the notes and keeping the time.",
+    q: "How do I earn rewards?",
+    a: "Every accurate game earns Honor. Honor raises your rank and converts to real cash rewards. The cleaner you play, the more you earn.",
   },
   {
-    q: "Is this just another typing test?",
-    a: "A typing test measures you. A dojo trains you. The passages are prose rather than random word lists, corrections are refused, rhythm is scored beside speed, and rank is earned through accuracy over months rather than a number posted after sixty seconds.",
+    q: "Do I need to pay anything?",
+    a: "No. TypeRonin is completely free. There is no paid tier and no card required — it is funded by ads on the page.",
   },
   {
-    q: "How is Honor calculated?",
-    a: "Honor rises with the characters you cut cleanly, is multiplied by the square of your accuracy, and is nudged by your Ma. Squaring accuracy is deliberate: it means a fast, sloppy run cannot out-earn a slower clean one, no matter how many words you push through.",
+    q: "Can I play from any country?",
+    a: "Yes. The whole platform is in English and open worldwide. Compete on the global leaderboard wherever you are.",
   },
   {
-    q: "Do I need an account?",
-    a: "Yes — a free one. The dojo trains for keeps: your Honor accrues, your rhythm is measured against your own past, your rank is remembered, and the Honor you earn converts to real rewards. None of that is possible for someone the dojo cannot recognise, so training begins with an account. It takes a moment to make.",
+    q: "Why is backspace disabled?",
+    a: "It trains real accuracy. When every keystroke is final, you slow down just enough to hit the right key — and your speed climbs for keeps.",
   },
 ] as const;
 
 export default async function Home() {
-  // The dojo requires an account, so the primary call sends a signed-out visitor
-  // to create one, and a signed-in one straight to training.
   const user = await getUser();
   const playHref = user ? "/dojo" : "/register";
-  const playLabel = user ? "Take your stance" : "Enter the Dojo";
+  const playLabel = user ? "Play now" : "Start playing free";
 
   return (
     <>
       <SiteHeader />
 
       <main className="flex-1">
-        {/* ---------------- Hero ---------------- */}
+        {/* ---------------- Hero: the whole pitch, above the fold ---------------- */}
         <section className="paper-texture relative overflow-hidden">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklab,var(--color-sakura)_28%,transparent),transparent_70%)]"
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_-10%,color-mix(in_oklab,var(--color-sakura)_22%,transparent),transparent_70%)]"
           />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-background to-transparent"
           />
 
-          <Container className="py-24 text-center sm:py-32">
+          <Container className="py-16 text-center sm:py-24">
             <Badge variant="outline" className="mb-6 border-sakura/40 text-sakura">
-              道 · Discipline · Precision · Mastery
+              Play · Learn · Earn
             </Badge>
 
-            <h1 className="mx-auto max-w-4xl text-4xl leading-[1.1] font-semibold text-balance sm:text-5xl lg:text-6xl">
-              Master Your Keyboard Like a Samurai{" "}
-              <span className="text-gradient-gold">Masters the Sword</span>.
+            <h1 className="mx-auto max-w-3xl text-4xl leading-[1.1] font-semibold text-balance sm:text-5xl lg:text-6xl">
+              Type faster. Learn English.{" "}
+              <span className="text-gradient-gold">Earn real rewards.</span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg">
-              A typing dojo with one rule: no corrections. Every stroke is final and your rhythm is
-              measured beside your speed — and every clean cut earns Honor you can climb the ranks
-              with, and convert into real rewards.
+            <p className="mx-auto mt-5 max-w-xl text-base text-pretty text-muted-foreground sm:text-lg">
+              Free typing games that build your speed and your English — and pay you in rewards you
+              can withdraw. Compete with players worldwide.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild variant="dojo" size="xl">
                 <Link href={playHref}>
                   {playLabel}
@@ -114,15 +143,15 @@ export default async function Home() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="xl">
-                <Link href="#the-way">See the Way</Link>
+                <Link href="#how-it-works">See how it works</Link>
               </Button>
             </div>
 
-            <p className="mt-5 font-heading text-sm font-semibold tracking-[0.32em] text-muted-foreground uppercase">
-              Train<span className="text-sakura"> · </span>Master<span className="text-sakura"> · </span>Earn
+            <p className="mt-4 text-xs text-muted-foreground">
+              Free forever · No card required · Play in your browser
             </p>
 
-            <dl className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
+            <dl className="mx-auto mt-12 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
               {stats.map((stat) => (
                 <div key={stat.label} className="glass-panel rounded-xl px-4 py-5">
                   <dt className="text-xs tracking-wide text-muted-foreground uppercase">
@@ -137,39 +166,29 @@ export default async function Home() {
           </Container>
         </section>
 
-        <Container>
-          <InkDivider crest />
-        </Container>
-
-        {/* ---------------- The Way ---------------- */}
-        <section id="the-way" className="scroll-mt-20 py-24">
+        {/* ---------------- What is this: Play / Learn / Earn ---------------- */}
+        <section id="what" className="scroll-mt-20 py-20">
           <Container>
             <div className="mx-auto max-w-2xl text-center">
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
-                The Way
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
-                Three Pillars of the Dojo
+              <h2 className="text-3xl font-semibold text-balance sm:text-4xl">
+                One platform, three wins
               </h2>
-              <p className="mt-4 text-pretty text-muted-foreground">
-                Bushido applied to the keyboard. Discipline first, glory after.
+              <p className="mt-3 text-pretty text-muted-foreground">
+                Play a quick game, get better every day, and earn as you go.
               </p>
             </div>
 
-            <div className="mt-14 grid gap-6 md:grid-cols-3">
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
               {pillars.map((pillar) => (
-                <Card key={pillar.title} className="gold-edge relative overflow-hidden bg-card/60 backdrop-blur-sm">
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -top-2 right-3 font-heading text-5xl text-foreground/[0.05] select-none"
-                  >
-                    {pillar.kanji}
-                  </span>
+                <Card key={pillar.title} className="gold-edge bg-card/60 backdrop-blur-sm">
                   <CardHeader>
-                    <span className="mb-3 grid size-10 place-items-center rounded-lg border border-sakura/30 bg-sakura/10 text-sakura">
+                    <span className="mb-3 grid size-11 place-items-center rounded-xl border border-sakura/30 bg-sakura/10 text-sakura">
                       <pillar.icon className="size-5" aria-hidden="true" />
                     </span>
-                    <CardTitle className="font-heading tracking-wide">{pillar.title}</CardTitle>
+                    <p className="font-heading text-xs font-semibold tracking-[0.18em] text-sakura uppercase">
+                      {pillar.tag}
+                    </p>
+                    <CardTitle className="mt-1 font-heading tracking-wide">{pillar.title}</CardTitle>
                     <CardDescription className="text-pretty">{pillar.description}</CardDescription>
                   </CardHeader>
                 </Card>
@@ -178,117 +197,40 @@ export default async function Home() {
           </Container>
         </section>
 
-        <Container>
-          <AdSlot placement="between-sections" />
-        </Container>
-
-        {/* ---------------- The Nine Ranks ---------------- */}
-        <section id="ranks" className="paper-texture scroll-mt-20 border-y border-border/60 py-24">
+        {/* ---------------- How it works: three steps ---------------- */}
+        <section
+          id="how-it-works"
+          className="paper-texture scroll-mt-20 border-y border-border/60 py-20"
+        >
           <Container>
             <div className="mx-auto max-w-2xl text-center">
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
-                Progression
+              <p className="font-heading text-xs font-semibold tracking-[0.18em] text-sakura uppercase">
+                How it works
               </p>
               <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
-                Nine Ranks Stand Between You and Legend
+                From first game to first reward
               </h2>
-              <p className="mt-4 text-pretty text-muted-foreground">
-                Honor is the only currency that advances you, and Honor is weighted toward accuracy.
-                There is no way to buy the distance, and no way to sprint it.
-              </p>
             </div>
 
-            <ol className="mx-auto mt-14 max-w-3xl">
-              {RANKS.map((rank, i) => (
+            <ol className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3">
+              {steps.map((step) => (
                 <li
-                  key={rank.slug}
-                  className="relative flex gap-5 pb-8 last:pb-0"
+                  key={step.n}
+                  className="rounded-2xl border border-border/60 bg-card/60 p-6 text-center"
                 >
-                  {/* The path: a line joining each rank to the next. */}
-                  {i < RANKS.length - 1 ? (
-                    <span
-                      aria-hidden="true"
-                      className="absolute top-11 bottom-0 left-[1.4rem] w-px bg-gradient-to-b from-gold/40 to-border"
-                    />
-                  ) : null}
-
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "relative z-10 grid size-11 shrink-0 place-items-center rounded-full border font-heading text-sm",
-                      i === RANKS.length - 1
-                        ? "border-sakura/60 bg-sakura/10 text-sakura"
-                        : "border-border bg-card text-muted-foreground"
-                    )}
-                  >
-                    {rank.kanji.slice(0, 1)}
+                  <span className="mx-auto grid size-10 place-items-center rounded-full border border-sakura/40 bg-sakura/10 font-heading text-base font-semibold text-sakura">
+                    {step.n}
                   </span>
-
-                  <div className="min-w-0 flex-1 pt-1.5">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <h3 className="font-heading text-lg font-semibold tracking-wide">
-                        {rank.name}
-                      </h3>
-                      <span className="text-sm text-muted-foreground">{rank.kanji}</span>
-                      <span className="tabular ml-auto text-sm text-sakura">
-                        {rank.honor.toLocaleString()} Honor
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-pretty text-muted-foreground">{rank.creed}</p>
-                  </div>
+                  <h3 className="mt-4 font-heading text-lg font-semibold tracking-wide">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1.5 text-sm text-pretty text-muted-foreground">{step.body}</p>
                 </li>
               ))}
             </ol>
-          </Container>
-        </section>
 
-
-        {/* ---------------- Scrolls ---------------- */}
-        <section
-          id="scrolls"
-          className="paper-texture scroll-mt-20 border-t border-border/60 py-24"
-        >
-          <Container width="narrow">
-            <div className="text-center">
-              <p className="font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
-                Scrolls
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
-                Questions Put to the Master
-              </h2>
-            </div>
-
-            {/* <details> gives us accessible disclosure without shipping a byte of JS. */}
-            <div className="mt-12 divide-y divide-border/60 border-y border-border/60">
-              {scrolls.map((scroll) => (
-                <details key={scroll.q} className="group py-5">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-                    <h3 className="font-heading text-base font-medium tracking-wide text-foreground">
-                      {scroll.q}
-                    </h3>
-                    {/* An icon rather than a "+" character. Centring a glyph in
-                        a circle centres its LINE BOX, and the ink of a plus sits
-                        on the font's math axis rather than the middle of that
-                        box — so it lands a shade off, by an amount that changes
-                        with whatever font resolves. The icon is drawn on its own
-                        centred grid and has no such opinion. */}
-                    <span
-                      aria-hidden="true"
-                      className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform duration-200 group-open:rotate-45"
-                    >
-                      <PlusIcon className="size-3.5" />
-                    </span>
-                  </summary>
-                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
-                    {scroll.a}
-                  </p>
-                </details>
-              ))}
-            </div>
-
-            <div className="mt-14 text-center">
-              <p className="text-muted-foreground">A rank is a few clean cuts away. The only cost is attention.</p>
-              <Button asChild variant="dojo" size="xl" className="mt-6">
+            <div className="mt-10 text-center">
+              <Button asChild variant="dojo" size="lg">
                 <Link href={playHref}>
                   {playLabel}
                   <ArrowRightIcon aria-hidden="true" />
@@ -297,9 +239,133 @@ export default async function Home() {
             </div>
           </Container>
         </section>
+
+        <Container>
+          <AdSlot placement="between-sections" />
+        </Container>
+
+        {/* ---------------- Why stay: ranks + global play ---------------- */}
+        <section id="ranks" className="scroll-mt-20 py-20">
+          <Container>
+            <div className="mx-auto max-w-2xl text-center">
+              <h2 className="text-3xl font-semibold text-balance sm:text-4xl">
+                Climb nine ranks
+              </h2>
+              <p className="mt-3 text-pretty text-muted-foreground">
+                Every rank is earned through accurate play — never bought. Progress is yours to keep.
+              </p>
+            </div>
+
+            <ol className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+              {RANKS.map((rank, i) => (
+                <li key={rank.slug} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm font-medium",
+                      i === RANKS.length - 1
+                        ? "border-sakura/60 bg-sakura/10 text-sakura"
+                        : "border-border bg-card text-muted-foreground"
+                    )}
+                  >
+                    {rank.name}
+                  </span>
+                  {i < RANKS.length - 1 ? (
+                    <ArrowRightIcon
+                      aria-hidden="true"
+                      className="size-3.5 text-muted-foreground/40"
+                    />
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+
+            <div className="mx-auto mt-12 flex max-w-2xl items-start gap-4 rounded-2xl border border-border/60 bg-card/50 p-6">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-sakura/30 bg-sakura/10 text-sakura">
+                <GlobeIcon className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h3 className="font-heading text-lg font-semibold tracking-wide">Compete worldwide</h3>
+                <p className="mt-1 text-sm text-pretty text-muted-foreground">
+                  Everything is in English and open to every country. Climb the global leaderboard
+                  and see where you stand.
+                </p>
+                <Button asChild variant="link" size="sm" className="mt-1 h-auto p-0 text-sakura">
+                  <Link href="/leaderboard">
+                    View the leaderboard
+                    <ArrowRightIcon aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </Container>
+        </section>
+
+        {/* ---------------- FAQ ---------------- */}
+        <section id="faq" className="paper-texture scroll-mt-20 border-t border-border/60 py-20">
+          <Container width="narrow">
+            <div className="text-center">
+              <h2 className="text-3xl font-semibold text-balance sm:text-4xl">Common questions</h2>
+            </div>
+
+            {/* <details> = accessible disclosure with zero JavaScript. */}
+            <div className="mt-10 divide-y divide-border/60 border-y border-border/60">
+              {faqs.map((faq) => (
+                <details key={faq.q} className="group py-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+                    <h3 className="font-heading text-base font-medium tracking-wide text-foreground">
+                      {faq.q}
+                    </h3>
+                    <span
+                      aria-hidden="true"
+                      className="grid size-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-transform duration-200 group-open:rotate-45"
+                    >
+                      <PlusMark />
+                    </span>
+                  </summary>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-pretty text-muted-foreground">
+                    {faq.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-muted-foreground">Your first reward is a few clean games away.</p>
+              <Button asChild variant="dojo" size="xl" className="mt-5">
+                <Link href={playHref}>
+                  {playLabel}
+                  <ArrowRightIcon aria-hidden="true" />
+                </Link>
+              </Button>
+            </div>
+          </Container>
+        </section>
+
+        <Container>
+          <InkDivider />
+        </Container>
+
+        {/* Trophy row: a quiet reassurance strip, kept short. */}
+        <Container className="pb-16">
+          <div className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center">
+            <TrophyIcon aria-hidden="true" className="size-6 text-sakura" />
+            <p className="text-sm text-muted-foreground">
+              Free to play · Rewards you can withdraw · Ranked play worldwide
+            </p>
+          </div>
+        </Container>
       </main>
 
       <SiteFooter />
     </>
+  );
+}
+
+/** A geometrically-centred plus (a text "+" sits off-centre on the font's axis). */
+function PlusMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-3.5 fill-none stroke-current" strokeWidth={2} strokeLinecap="round">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }

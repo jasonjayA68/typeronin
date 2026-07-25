@@ -56,7 +56,6 @@ export default function LeaderboardPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="Discipline · Precision · Mastery"
-          kanji="殿堂"
           title="Hall of Legends"
           lede="The standing of the dojo. Ranked by Honor, which is weighted toward the clean cut — speed alone has never carried a student to the top of this table."
         />
@@ -116,7 +115,7 @@ export default function LeaderboardPage() {
                     Accuracy
                   </th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">
-                    Ma 間
+                    Rhythm
                   </th>
                   <th scope="col" className="px-4 py-3 text-right font-medium">
                     Honor

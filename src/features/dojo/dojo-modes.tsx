@@ -1,5 +1,6 @@
 "use client";
 
+import { BookOpenIcon, KeyboardIcon } from "lucide-react";
 import { useState } from "react";
 
 import { ScrollTrainer } from "@/features/scroll/scroll-trainer";
@@ -16,8 +17,8 @@ import { cn } from "@/lib/utils";
  */
 
 const MODES = [
-  { key: "kata" as const, name: "Kata", kanji: "形", blurb: "Type it clean" },
-  { key: "scroll" as const, name: "Scroll", kanji: "巻", blurb: "Match the meaning" },
+  { key: "kata" as const, name: "Typing Phrases", icon: KeyboardIcon, blurb: "Type it clean" },
+  { key: "scroll" as const, name: "Find the Word", icon: BookOpenIcon, blurb: "Match the meaning" },
 ];
 
 export function DojoModes({
@@ -48,12 +49,10 @@ export function DojoModes({
               )}
             >
               <span className="flex items-center gap-2">
-                <span
+                <m.icon
                   aria-hidden="true"
-                  className={cn("font-heading text-lg", active ? "text-sakura" : "text-muted-foreground")}
-                >
-                  {m.kanji}
-                </span>
+                  className={cn("size-5", active ? "text-sakura" : "text-muted-foreground")}
+                />
                 <span className={cn("font-heading tracking-wide", active ? "text-foreground" : "text-muted-foreground")}>
                   {m.name}
                 </span>

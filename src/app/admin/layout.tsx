@@ -25,7 +25,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <div className="border-b border-border/60 bg-card/30">
           <Container className="py-5">
             <p className="font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
-              奉行 · The Magistrate
+              Admin
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               Administration of the dojo.{" "}

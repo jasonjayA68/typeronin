@@ -51,8 +51,10 @@ export function SocialEditor({ initial }: { initial: SocialLinks }) {
             </Label>
             <Input
               id={`social-${platform}`}
-              type="url"
-              inputMode="url"
+              // Gmail holds a plain email address, not a URL — the wrong input
+              // type makes the browser reject a valid value before it can save.
+              type={platform === "gmail" ? "email" : "url"}
+              inputMode={platform === "gmail" ? "email" : "url"}
               value={links[platform]}
               disabled={pending}
               placeholder={info.placeholder}

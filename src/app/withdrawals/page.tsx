@@ -67,7 +67,6 @@ export default async function WithdrawalsPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="Honor Wallet"
-          kanji="金"
           title="Withdrawals"
           lede="Convert the Honor you have earned into cash. A request holds the Honor until it is paid or refused."
           actions={<RequestWithdrawalButton balance={profile.honor} config={config} />}

@@ -41,8 +41,14 @@ type Petal = {
   tone: number;
 };
 
-// Kept low: the petals are Layer 5, felt not watched. A quiet drift, not a storm.
-const MAX_PETALS = 30;
+// Kept low: the petals are a background whisper, felt not watched. A quiet drift,
+// not a storm — and lighter now that the tree itself is a slim accent.
+const MAX_PETALS = 16;
+
+// A gentle, constant left-to-right drift (px/sec, scaled by depth). The petals
+// fall from the branch on the far left and drift slowly across, so the motion
+// reads as a soft breeze rather than straight-down rain.
+const RIGHT_DRIFT = 16;
 
 /** A five-lobed blossom would be too busy at 8px; one lobe reads better. */
 function drawPetal(ctx: CanvasRenderingContext2D, petal: Petal, tones: string[]) {
@@ -190,7 +196,9 @@ export function PetalField() {
 
         petal.phase += dt * 0.9;
         petal.y += petal.fall * dt;
-        petal.x += Math.sin(petal.phase) * petal.sway * dt;
+        // Sway (back-and-forth) plus a steady rightward drift, so the field
+        // travels gently left-to-right as it falls.
+        petal.x += (Math.sin(petal.phase) * petal.sway + RIGHT_DRIFT * (0.4 + petal.depth)) * dt;
         petal.rotation += petal.spin * dt;
 
         // Cursor pushes petals aside — nearer petals feel it more.

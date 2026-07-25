@@ -159,8 +159,7 @@ export async function saveScrollSession(input: unknown): Promise<ScrollSaveResul
     revalidatePath("/dashboard");
     revalidatePath("/dojo");
     if (bonus.unlocked.length > 0) {
-      revalidatePath("/achievements");
-      revalidatePath("/missions");
+      revalidatePath("/train");
     }
     return {
       status: "saved",

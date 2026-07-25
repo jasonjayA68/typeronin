@@ -4,21 +4,19 @@ import { cn } from "@/lib/utils";
 import { Container } from "@/shared/components/layout/container";
 
 /**
- * The masthead every interior page opens with. Centralised so that the kanji,
- * the eyebrow and the measure of the lede stay identical across the app —
- * consistency here is most of what makes the product feel composed.
+ * The masthead every interior page opens with. Centralised so the eyebrow and
+ * the measure of the lede stay identical across the app — consistency here is
+ * most of what makes the product feel composed. Kept intentionally clean: no
+ * decorative watermark competing with the title.
  */
 export function PageHeader({
   eyebrow,
-  kanji,
   title,
   lede,
   actions,
   className,
 }: {
   eyebrow?: string;
-  /** The quiet kanji watermark set behind the title. */
-  kanji?: string;
   title: string;
   lede?: string;
   actions?: ReactNode;
@@ -31,15 +29,6 @@ export function PageHeader({
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(70%_60%_at_50%_-20%,color-mix(in_oklab,var(--color-sakura)_16%,transparent),transparent_70%)]"
       />
       <Container className="relative py-14 sm:py-20">
-        {kanji ? (
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-4 -z-10 -translate-y-1/2 font-heading text-[7rem] leading-none text-foreground/[0.04] select-none sm:text-[10rem] lg:right-8"
-          >
-            {kanji}
-          </span>
-        ) : null}
-
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             {eyebrow ? (

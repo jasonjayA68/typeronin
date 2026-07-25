@@ -262,7 +262,6 @@ export default function PrivacyPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="The Scrolls"
-          kanji="私事"
           title="Privacy"
           lede="What we record, why we record it, and how to have it removed. Your training is yours."
         />

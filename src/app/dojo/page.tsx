@@ -58,7 +58,6 @@ export default async function DojoPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="Discipline · Precision · Mastery"
-          kanji="道場"
           title="The Dojo"
           lede="Choose a discipline and take your stance. Backspace is disabled: what you strike is what stands."
         />

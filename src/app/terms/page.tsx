@@ -267,7 +267,6 @@ export default function TermsPage() {
       <main className="flex-1">
         <PageHeader
           eyebrow="The Scrolls"
-          kanji="掟"
           title="Terms"
           lede="The rules of this house. Read them before you take your stance."
         />

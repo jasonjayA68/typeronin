@@ -85,7 +85,6 @@ export default async function BlogPage(props: PageProps<"/blog">) {
       <main id="main">
         <PageHeader
           eyebrow="Blog"
-          kanji="書"
           title="Notes from the desk"
           lede="Freelancing, working from home, and earning at a keyboard. The dojo trains the hands; these are for everything after."
         />
