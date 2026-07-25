@@ -14,11 +14,12 @@
 export type EmitSource = { fx: number; fy: number };
 
 export const EMIT_SOURCES: readonly EmitSource[] = [
-  // A small cluster hugging the upper-left, where the branch and its blossoms
-  // sit. Petals catch the air here and drift rightward across the page.
-  { fx: 0.04, fy: 0.1 },
-  { fx: 0.08, fy: 0.06 },
-  { fx: 0.12, fy: 0.14 },
-  { fx: 0.16, fy: 0.09 },
-  { fx: 0.2, fy: 0.16 },
+  // A small cluster on the left, where the branch and its blossoms now sit —
+  // lowered to just below the header. Petals catch the air here and drift
+  // rightward and down across the page.
+  { fx: 0.04, fy: 0.24 },
+  { fx: 0.08, fy: 0.2 },
+  { fx: 0.12, fy: 0.28 },
+  { fx: 0.16, fy: 0.22 },
+  { fx: 0.2, fy: 0.3 },
 ];

@@ -72,27 +72,38 @@ const TRUNK_LINES: Ribbon[] = [
   [20, 1030, 34, 700, 16, 380, 40, 60, 2, 1],
 ];
 
-// ONE small branch, leaving the trunk near the top and reaching only a little way
-// in — it stays well clear of the content column.
+// Root flare at the base — the trunk splays into a few tapered roots near the
+// bottom edge, so it reads as growing out of the ground rather than cut off.
+// Each leaves the lower trunk and curves down and out to the right, thick at the
+// trunk, thinning to a tip.
+const ROOTS: Ribbon[] = [
+  [40, 900, 90, 965, 140, 995, 214, 1016, 12, 2],
+  [34, 940, 70, 985, 104, 1004, 156, 1024, 8, 2],
+  [30, 970, 44, 995, 44, 1010, 40, 1032, 6, 2],
+];
+
+// ONE small branch. It leaves the trunk BELOW the header (~y 300, well past the
+// 64px bar) and reaches only a little way in, staying clear of the content column.
 const BRANCH: Ribbon[] = [
-  [58, 150, 130, 118, 200, 108, 268, 120, 14, 8],
-  [268, 120, 320, 128, 360, 150, 396, 190, 8, 3],
+  [52, 320, 130, 288, 200, 278, 268, 290, 14, 8],
+  [268, 290, 320, 298, 360, 320, 396, 360, 8, 3],
 ];
 // A couple of short offshoots that lift the blossom off the branch.
 const TWIGS: Ribbon[] = [
-  [150, 116, 158, 88, 154, 70, 164, 50, 3.5, 1.5],
-  [300, 126, 310, 98, 306, 80, 316, 60, 3.5, 1.5],
+  [150, 286, 158, 258, 154, 240, 164, 220, 3.5, 1.5],
+  [300, 296, 310, 268, 306, 250, 316, 230, 3.5, 1.5],
 ];
 
 // Blossom clusters: [cx, cy, radius, density]. A soft touch near the trunk and
-// along the little branch — subtle, never a mass.
+// along the little branch — subtle, never a mass. Lowered with the branch so the
+// whole cluster sits below the header.
 type Pocket = readonly [number, number, number, number];
 const POCKETS: readonly Pocket[] = [
-  [70, 78, 40, 0.7],
-  [150, 96, 44, 0.75],
-  [232, 108, 46, 0.7],
-  [300, 128, 44, 0.7],
-  [372, 176, 40, 0.6],
+  [64, 248, 40, 0.7],
+  [150, 266, 44, 0.75],
+  [232, 278, 46, 0.7],
+  [300, 298, 44, 0.7],
+  [372, 346, 40, 0.6],
 ];
 
 type Dot = { cx: string; cy: string; r: string };
@@ -154,6 +165,7 @@ function buildCanopy() {
 }
 
 const TRUNK_LINE_PATHS = TRUNK_LINES.map(ribbon);
+const ROOT_PATHS = ROOTS.map(ribbon);
 const BRANCH_PATHS = BRANCH.map(ribbon);
 const TWIG_PATHS = TWIGS.map(ribbon);
 const { back: BACK, petals: PETALS, centers: CENTERS } = buildCanopy();
@@ -174,6 +186,11 @@ function TreeArt() {
       <path d={ribbon(TRUNK_EDGE)} fill="var(--tree-bark2)" opacity={0.24} />
       {TRUNK_LINE_PATHS.map((d, i) => (
         <path key={`tl${i}`} d={d} fill="var(--tree-bark2)" opacity={0.12} />
+      ))}
+
+      {/* Root flare at the base, so the trunk reads as rooted, not cut off. */}
+      {ROOT_PATHS.map((d, i) => (
+        <path key={`r${i}`} d={d} fill="var(--tree-bark)" opacity={0.15} />
       ))}
 
       {/* The one small branch and its offshoots. */}
@@ -218,13 +235,14 @@ export function SakuraTree() {
         <use href="#sakura-tree-art" />
       </svg>
 
-      {/* Mobile: just the top-left corner — the branch and its blossoms as a small
-          accent, pinned below the header. The trunk falls outside this crop. */}
+      {/* Mobile: the branch and its blossoms as a small accent, pinned just below
+          the header. The window follows the branch down to its new height; the
+          trunk falls outside this crop. */}
       <svg
         aria-hidden="true"
-        viewBox="0 40 620 320"
+        viewBox="0 210 640 340"
         preserveAspectRatio="xMinYMin slice"
-        className="pointer-events-none fixed inset-x-0 top-14 -z-20 block h-[16%] w-full sm:hidden"
+        className="pointer-events-none fixed inset-x-0 top-14 -z-20 block h-[17%] w-full sm:hidden"
       >
         <use href="#sakura-tree-art" />
       </svg>
