@@ -14,12 +14,19 @@
 export type EmitSource = { fx: number; fy: number };
 
 export const EMIT_SOURCES: readonly EmitSource[] = [
-  // A small cluster on the left, where the branch and its blossoms now sit —
-  // lowered to just below the header. Petals catch the air here and drift
-  // rightward and down across the page.
-  { fx: 0.04, fy: 0.24 },
-  { fx: 0.08, fy: 0.2 },
-  { fx: 0.12, fy: 0.28 },
-  { fx: 0.16, fy: 0.22 },
-  { fx: 0.2, fy: 0.3 },
+  // Spread along the left, under the canopy, which now sits just below the
+  // header rather than down in the middle of the hero. Petals catch the air
+  // here and drift rightward and down across the page.
+  //
+  // Raised to match the branch. These were at fy 0.2–0.3, so a petal was born
+  // a third of the way down the screen and had only the remainder to fall
+  // through — it barely got going before it was recycled. From ~0.13 it has
+  // most of the viewport to cross, which is what makes the drift read as a
+  // fall rather than a sprinkle near the top.
+  { fx: 0.03, fy: 0.14 },
+  { fx: 0.07, fy: 0.11 },
+  { fx: 0.11, fy: 0.17 },
+  { fx: 0.15, fy: 0.12 },
+  { fx: 0.19, fy: 0.19 },
+  { fx: 0.24, fy: 0.15 },
 ];

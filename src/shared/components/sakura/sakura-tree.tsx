@@ -1,11 +1,11 @@
 /**
  * The sakura accent — a slim, quiet frame on the far left.
  *
- * Deliberately minimal. It used to be one big tree arcing across the whole
- * viewport; that competed with the content. This is a single slim trunk hugging
- * the left edge, one small branch reaching a little way in near the top, and a
- * few soft blossom clusters. Nothing crosses the reading column, and it is faint
- * enough to sit beneath every surface.
+ * A single slim trunk hugging the left edge, one branch reaching in just below
+ * the header, and a full drift of blossom along it. It used to be one big tree
+ * arcing across the whole viewport, which competed with the content; the answer
+ * was to move it aside, not to strip it — so the canopy is generous and the
+ * whole thing stays faint enough to sit beneath every surface.
  *
  * Static geometry, drawn once and referenced by both viewports via <use>, so it
  * costs nothing per frame — the falling petals are the only animated layer
@@ -82,28 +82,52 @@ const ROOTS: Ribbon[] = [
   [30, 970, 44, 995, 44, 1010, 40, 1032, 6, 2],
 ];
 
-// ONE small branch. It leaves the trunk BELOW the header (~y 300, well past the
-// 64px bar) and reaches only a little way in, staying clear of the content column.
+// The branch rides just under the header.
+//
+// It used to leave the trunk at y 320, which put it and its whole canopy down
+// in the middle of the hero — across the headline on a narrow screen, and only
+// two thirds of the viewport above the bottom edge for a petal to fall through.
+// At y ~190 it clears the 64px bar with room to spare (the bar is ~70 viewBox
+// units at the scale a desktop lands on, ~75 on a phone) and hands the petals
+// most of the screen to fall down.
 const BRANCH: Ribbon[] = [
-  [52, 320, 130, 288, 200, 278, 268, 290, 14, 8],
-  [268, 290, 320, 298, 360, 320, 396, 360, 8, 3],
+  [50, 195, 130, 160, 205, 150, 275, 165, 15, 8],
+  [275, 165, 330, 175, 375, 200, 415, 245, 8, 3],
 ];
-// A couple of short offshoots that lift the blossom off the branch.
+// Offshoots that lift the blossom off the branch, and two that hang below it —
+// a canopy only ever growing upward reads as a hedge.
 const TWIGS: Ribbon[] = [
-  [150, 286, 158, 258, 154, 240, 164, 220, 3.5, 1.5],
-  [300, 296, 310, 268, 306, 250, 316, 230, 3.5, 1.5],
+  [120, 168, 126, 140, 122, 122, 132, 102, 3.5, 1.5],
+  [190, 152, 198, 124, 194, 106, 204, 88, 3.5, 1.5],
+  [255, 158, 264, 132, 260, 114, 270, 96, 3.5, 1.5],
+  [320, 172, 330, 148, 326, 130, 336, 112, 3.2, 1.4],
+  [370, 196, 380, 174, 376, 158, 386, 142, 3, 1.3],
+  [155, 158, 160, 186, 156, 202, 166, 220, 3, 1.2],
+  [290, 168, 296, 196, 292, 212, 302, 230, 3, 1.2],
 ];
 
-// Blossom clusters: [cx, cy, radius, density]. A soft touch near the trunk and
-// along the little branch — subtle, never a mass. Lowered with the branch so the
-// whole cluster sits below the header.
+// Blossom clusters: [cx, cy, radius, density].
+//
+// Twelve pockets at near-full density rather than five thin ones. The old
+// canopy was deliberately sparse — a touch of blossom, never a mass — but read
+// as a branch that had mostly finished dropping. Abundance here comes from
+// overlapping pockets: clusters that share edges merge into one drift of
+// blossom, where spaced pockets stay five separate polka dots however many
+// flowers each holds.
 type Pocket = readonly [number, number, number, number];
 const POCKETS: readonly Pocket[] = [
-  [64, 248, 40, 0.7],
-  [150, 266, 44, 0.75],
-  [232, 278, 46, 0.7],
-  [300, 298, 44, 0.7],
-  [372, 346, 40, 0.6],
+  [58, 178, 46, 0.95],
+  [102, 150, 44, 0.95],
+  [136, 120, 42, 0.9],
+  [172, 148, 46, 0.95],
+  [206, 108, 40, 0.9],
+  [240, 138, 46, 0.95],
+  [274, 104, 40, 0.85],
+  [302, 152, 44, 0.9],
+  [340, 124, 40, 0.85],
+  [362, 182, 42, 0.85],
+  [166, 216, 36, 0.8],
+  [302, 226, 36, 0.8],
 ];
 
 type Dot = { cx: string; cy: string; r: string };
@@ -232,16 +256,23 @@ export function SakuraTree() {
           tree that gives it its shape: no trunk down the left edge, no root
           flare, and a hard horizontal seam where the crop simply stopped.
 
-          `slice` already does the right thing on a tall narrow screen. The
-          viewBox is 1.6:1 and a phone is about 1:2.2, so height is what binds:
-          the art scales to fill the full height and the surplus width is
-          cropped from the right — which is exactly where there is nothing to
-          lose, the tree living against the left edge. A phone therefore sees
-          trunk, roots, branch and blossom, framed tighter than a desktop
-          rather than cut down. */}
+          The viewBox is far wider than the art so that HEIGHT always binds.
+          `slice` scales by max(W/vbW, H/vbH); whichever term wins decides which
+          axis gets cropped. At 1600×1000 that flipped with the window: a
+          viewport wider than 1.6:1 — 1600×900, 1920×1080, most laptops — made
+          width the winner and cropped the surplus off the TOP, and since
+          YMax pins the bottom, the top is exactly where the canopy lives. The
+          blossom disappeared behind the header on the very shapes of screen
+          most people use, while 1440×900 landed on a clean 0.9 and looked
+          perfect. A 4:1 box puts the flip beyond any real display, so height
+          wins everywhere: the art always fills the height exactly, the canopy
+          always sits just below the header, the roots always reach the bottom
+          edge, and the surplus width is cropped from the right — which is
+          exactly where there is nothing to lose, the tree living against the
+          left edge. */}
       <svg
         aria-hidden="true"
-        viewBox="0 0 1600 1000"
+        viewBox="0 0 4000 1000"
         preserveAspectRatio="xMinYMax slice"
         className="pointer-events-none fixed inset-0 -z-20 block h-full w-full"
       >
