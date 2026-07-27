@@ -51,23 +51,21 @@ function StrengthMeter({ password }: { password: string }) {
 /** Shown once the account exists but the inbox has the last word. */
 function ConfirmationSent({ email }: { email: string }) {
   return (
-    <div className="w-full max-w-md text-center">
+    <div className="w-full max-w-sm text-center">
       <span className="mx-auto grid size-12 place-items-center rounded-full border border-sakura/40 bg-sakura/10 text-sakura">
         <MailCheckIcon aria-hidden="true" className="size-5" />
       </span>
-      <h1 className="mt-6 font-heading text-2xl font-semibold tracking-wide text-balance">
-        The gate awaits your word
-      </h1>
+      <h1 className="mt-6 font-sans text-2xl font-semibold tracking-normal text-balance">Check your email</h1>
       <p className="mt-3 text-pretty text-muted-foreground">
-        A confirmation was sent to <span className="text-foreground">{email}</span>. Follow it and
-        the dojo will know you.
+        We sent a confirmation link to <span className="text-foreground">{email}</span>. Click it to
+        finish creating your account.
       </p>
       <p className="mt-6 text-sm text-muted-foreground">
-        Once you have confirmed,{" "}
+        Once confirmed,{" "}
         <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
           sign in
         </Link>{" "}
-        and take your stance.
+        and start playing.
       </p>
     </div>
   );
@@ -112,11 +110,11 @@ export function RegisterForm({ configured }: { configured: boolean }) {
 
   return (
     <AuthFormShell
-      title="Enter the dojo"
-      lede="Take a name, and begin at Heimin like everyone before you."
+      title="Create your account"
+      lede="It's free and takes a minute."
       footer={
         <>
-          Already training?{" "}
+          Already have an account?{" "}
           <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
             Sign in
           </Link>
@@ -131,7 +129,7 @@ export function RegisterForm({ configured }: { configured: boolean }) {
           <Input
             id="name"
             autoComplete="name"
-            placeholder="The name the hall will know"
+            placeholder="Your name"
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? "name-error" : undefined}
             className="mt-2"
@@ -146,7 +144,7 @@ export function RegisterForm({ configured }: { configured: boolean }) {
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="student@dojo.jp"
+            placeholder="you@example.com"
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? "email-error" : undefined}
             className="mt-2"
@@ -187,20 +185,20 @@ export function RegisterForm({ configured }: { configured: boolean }) {
             <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
           ) : (
             <>
-              Enter the dojo
+              Create account
               <ArrowRightIcon aria-hidden="true" />
             </>
           )}
         </Button>
 
         <p className="text-xs text-muted-foreground">
-          By entering you accept the{" "}
+          By creating an account you agree to our{" "}
           <Link href="/terms" className="text-foreground underline-offset-4 hover:underline">
             Terms
           </Link>{" "}
-          and the{" "}
+          and{" "}
           <Link href="/privacy" className="text-foreground underline-offset-4 hover:underline">
-            Privacy notice
+            Privacy Policy
           </Link>
           .
         </p>

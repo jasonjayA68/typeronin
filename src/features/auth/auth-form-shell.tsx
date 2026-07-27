@@ -20,9 +20,11 @@ export function AuthFormShell({
   footer: ReactNode;
 }) {
   return (
-    <div className="w-full max-w-md">
-      <h1 className="font-heading text-3xl font-semibold tracking-wide text-balance">{title}</h1>
-      <p className="mt-3 text-pretty text-muted-foreground">{lede}</p>
+    <div className="w-full max-w-sm">
+      {/* font-sans + tracking-normal override the global Cinzel heading rule —
+          the sign-in screen reads as a plain, modern form, not a brand masthead. */}
+      <h1 className="font-sans text-2xl font-semibold tracking-normal text-balance">{title}</h1>
+      <p className="mt-2 text-pretty text-muted-foreground">{lede}</p>
       <div className="mt-8">{children}</div>
       <div className="mt-6 text-sm text-muted-foreground">{footer}</div>
     </div>
@@ -75,10 +77,9 @@ export function NotConnectedNotice({ className }: { className?: string }) {
         className
       )}
     >
-      This deployment has no Supabase keys set, so the gate cannot answer. The dojo needs no
-      account —{" "}
+      Sign-in isn&apos;t available on this deployment yet. You can still{" "}
       <Link href="/dojo" className="text-sakura underline-offset-4 hover:underline">
-        train now
+        play now
       </Link>
       .
     </p>

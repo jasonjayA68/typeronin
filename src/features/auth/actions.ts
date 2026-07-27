@@ -40,7 +40,7 @@ function readable(message: string): string {
     return "Confirm your email first — the link is in your inbox.";
   }
   if (m.includes("user already registered") || m.includes("already been registered")) {
-    return "That email is already known to the dojo. Sign in instead.";
+    return "That email already has an account. Sign in instead.";
   }
   if (m.includes("rate limit") || m.includes("too many")) {
     return "Too many attempts. Wait a moment before trying again.";

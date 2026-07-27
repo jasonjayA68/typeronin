@@ -5,7 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = {
   title: "Enter the Dojo",
-  description: "Take a name and begin at Heimin. Every rank above it is earned.",
+  description: "Create a free account and start playing.",
 };
 
 export default function RegisterPage() {

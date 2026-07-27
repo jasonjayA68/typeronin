@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Return to the dojo and pick up where your Honor left off.",
+  description: "Sign in to your TypeRonin account.",
 };
 
 export default function LoginPage() {

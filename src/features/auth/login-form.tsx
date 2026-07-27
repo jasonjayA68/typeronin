@@ -60,13 +60,13 @@ export function LoginForm({ configured }: { configured: boolean }) {
 
   return (
     <AuthFormShell
-      title="Return to the dojo"
-      lede="Your Honor is where you left it."
+      title="Welcome back"
+      lede="Sign in to your account."
       footer={
         <>
           No account yet?{" "}
           <Link href="/register" className="text-sakura underline-offset-4 hover:underline">
-            Enter the dojo
+            Sign up
           </Link>
         </>
       }
@@ -80,7 +80,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="student@dojo.jp"
+            placeholder="you@example.com"
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? "email-error" : undefined}
             className="mt-2"
@@ -96,7 +96,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
               href="/forgot"
               className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              Forgotten?
+              Forgot password?
             </Link>
           </div>
           <PasswordInput

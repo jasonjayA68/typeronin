@@ -52,7 +52,7 @@ export function ResetForm() {
   return (
     <AuthFormShell
       title="Set a new password"
-      lede="Choose it once, deliberately. The dojo will not ask again."
+      lede="Enter a new password for your account."
       footer={
         <>
           Link expired?{" "}

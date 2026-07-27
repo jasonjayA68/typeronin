@@ -20,16 +20,14 @@ import { Label } from "@/shared/components/ui/label";
 
 function Sent({ email }: { email: string }) {
   return (
-    <div className="w-full max-w-md text-center">
+    <div className="w-full max-w-sm text-center">
       <span className="mx-auto grid size-12 place-items-center rounded-full border border-sakura/40 bg-sakura/10 text-sakura">
         <MailCheckIcon aria-hidden="true" className="size-5" />
       </span>
-      <h1 className="mt-6 font-heading text-2xl font-semibold tracking-wide text-balance">
-        Look to your inbox
-      </h1>
+      <h1 className="mt-6 font-sans text-2xl font-semibold tracking-normal text-balance">Check your email</h1>
       <p className="mt-3 text-pretty text-muted-foreground">
-        If <span className="text-foreground">{email}</span> belongs to an account, a recovery link
-        is on its way. It expires before long — use it while it is warm.
+        If <span className="text-foreground">{email}</span> has an account, we&apos;ve sent a
+        password reset link. It expires soon, so use it right away.
       </p>
       <p className="mt-6 text-sm text-muted-foreground">
         <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
@@ -68,8 +66,8 @@ export function ForgotForm({ configured }: { configured: boolean }) {
 
   return (
     <AuthFormShell
-      title="Forgotten the way back"
-      lede="Give the dojo your email and it will send you a path in."
+      title="Reset your password"
+      lede="Enter your email and we'll send you a reset link."
       footer={
         <>
           Remembered it?{" "}
@@ -88,7 +86,7 @@ export function ForgotForm({ configured }: { configured: boolean }) {
             id="email"
             type="email"
             autoComplete="email"
-            placeholder="student@dojo.jp"
+            placeholder="you@example.com"
             aria-invalid={Boolean(errors.email)}
             aria-describedby={errors.email ? "email-error" : undefined}
             className="mt-2"
