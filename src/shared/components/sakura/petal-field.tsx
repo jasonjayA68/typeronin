@@ -181,9 +181,16 @@ export function PetalField() {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Fewer petals on a small screen — a phone should not be cluttered.
-      const mobileFactor = width < 640 ? 0.45 : 1;
-      const active = Math.round(MAX_PETALS * densityRef.current * mobileFactor);
+      // A phone gets the same fall as a desktop.
+      //
+      // It used to take 45% of the count, on the reasoning that a small screen
+      // clutters easily. But the count was already low, and 45% of it left
+      // roughly seven petals spread over a whole phone screen — far enough
+      // apart that you could look at the page and not notice a single one. The
+      // drift stopped reading as weather and started reading as dust. A narrow
+      // screen also shows less of the field at once, so it needs the density
+      // more than a wide one, not less.
+      const active = Math.round(MAX_PETALS * densityRef.current);
 
       for (let i = 0; i < petals.length; i++) {
         const petal = petals[i];

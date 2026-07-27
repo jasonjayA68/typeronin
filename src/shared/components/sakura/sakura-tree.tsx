@@ -225,24 +225,25 @@ export function SakuraTree() {
         </defs>
       </svg>
 
-      {/* Desktop / tablet: slim trunk on the left, the small branch near the top. */}
+      {/* One viewport at every size.
+          ------------------------------------------------------------------
+          Phones used to get their own crop — a 17%-tall window onto the branch
+          alone, pinned below the header. It cost the phone every part of the
+          tree that gives it its shape: no trunk down the left edge, no root
+          flare, and a hard horizontal seam where the crop simply stopped.
+
+          `slice` already does the right thing on a tall narrow screen. The
+          viewBox is 1.6:1 and a phone is about 1:2.2, so height is what binds:
+          the art scales to fill the full height and the surplus width is
+          cropped from the right — which is exactly where there is nothing to
+          lose, the tree living against the left edge. A phone therefore sees
+          trunk, roots, branch and blossom, framed tighter than a desktop
+          rather than cut down. */}
       <svg
         aria-hidden="true"
         viewBox="0 0 1600 1000"
         preserveAspectRatio="xMinYMax slice"
-        className="pointer-events-none fixed inset-0 -z-20 hidden h-full w-full sm:block"
-      >
-        <use href="#sakura-tree-art" />
-      </svg>
-
-      {/* Mobile: the branch and its blossoms as a small accent, pinned just below
-          the header. The window follows the branch down to its new height; the
-          trunk falls outside this crop. */}
-      <svg
-        aria-hidden="true"
-        viewBox="0 210 640 340"
-        preserveAspectRatio="xMinYMin slice"
-        className="pointer-events-none fixed inset-x-0 top-14 -z-20 block h-[17%] w-full sm:hidden"
+        className="pointer-events-none fixed inset-0 -z-20 block h-full w-full"
       >
         <use href="#sakura-tree-art" />
       </svg>
