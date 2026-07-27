@@ -77,6 +77,13 @@ export const ADMIN_NAV: AdminSection[] = [
         permission: "users:write",
         status: "built",
       },
+      {
+        slug: "abuse",
+        label: "Abuse checks",
+        href: "/admin/abuse",
+        permission: "users:write",
+        status: "built",
+      },
     ],
   },
   {

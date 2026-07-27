@@ -181,6 +181,78 @@ export async function setModerationNote(input: unknown): Promise<ModerationResul
   }
 }
 
+/* --------------------------------------------------- bulk (multi-account) */
+
+const bulkSchema = z.object({
+  profileIds: z.array(z.uuid()).min(1, "Select at least one account.").max(100),
+});
+
+/**
+ * Flag a whole cluster of accounts at once — the payoff of the abuse checks,
+ * where several accounts share one IP or one payout number. Flagging gates
+ * nothing; it marks them for a human to review.
+ */
+export async function flagAccounts(input: unknown): Promise<ModerationResult> {
+  const { user } = await requirePermission("users:write");
+
+  const parsed = bulkSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing selected." };
+  const ids = parsed.data.profileIds;
+
+  try {
+    const updated = await prisma.profile.updateMany({
+      where: { id: { in: ids } },
+      data: { isFlagged: true, moderatedAt: new Date(), moderatedById: user.id },
+    });
+    await audit({
+      actorId: user.id,
+      action: "account.bulkFlagged",
+      entity: "Profile",
+      meta: { count: updated.count, profileIds: ids },
+    });
+    revalidatePath("/admin/abuse");
+    revalidatePath("/admin/users");
+    return { ok: true, message: `Flagged ${updated.count} account${updated.count === 1 ? "" : "s"}.` };
+  } catch (error) {
+    console.error("flagAccounts failed", error);
+    return { ok: false, message: "Those accounts could not be flagged." };
+  }
+}
+
+/**
+ * Ban a whole cluster at once. The acting admin's own account is never included,
+ * so a shared-IP group that happens to contain the reviewer cannot lock them out.
+ */
+export async function banAccounts(input: unknown): Promise<ModerationResult> {
+  const { user } = await requirePermission("users:write");
+
+  const parsed = bulkSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing selected." };
+  const ids = parsed.data.profileIds.filter((id) => id !== user.id);
+  if (ids.length === 0) {
+    return { ok: false, message: "That group is only your own account." };
+  }
+
+  try {
+    const updated = await prisma.profile.updateMany({
+      where: { id: { in: ids } },
+      data: { status: "BANNED", moderatedAt: new Date(), moderatedById: user.id },
+    });
+    await audit({
+      actorId: user.id,
+      action: "account.bulkBanned",
+      entity: "Profile",
+      meta: { count: updated.count, profileIds: ids },
+    });
+    revalidatePath("/admin/abuse");
+    revalidatePath("/admin/users");
+    return { ok: true, message: `Banned ${updated.count} account${updated.count === 1 ? "" : "s"}.` };
+  } catch (error) {
+    console.error("banAccounts failed", error);
+    return { ok: false, message: "Those accounts could not be banned." };
+  }
+}
+
 /* --------------------------------------------------- hold a payout */
 
 const holdSchema = z.object({ withdrawalId: z.uuid(), onHold: z.boolean() });
