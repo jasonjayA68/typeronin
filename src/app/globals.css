@@ -504,29 +504,30 @@
   @keyframes cut-whip {
     0% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(-96%) scaleX(0.4);
+      transform: rotate(var(--cut-rot)) translateX(-48%) scaleX(0.5);
     }
-    14% {
+    16% {
       opacity: 1;
     }
-    72% {
+    70% {
       opacity: 1;
     }
     100% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(96%) scaleX(1.25);
+      transform: rotate(var(--cut-rot)) translateX(48%) scaleX(1.08);
     }
   }
   /* The edge, mid-swing. Travels along its OWN axis (rotate before translate),
-     which is what a slash does — a bar sliding sideways is a wipe. Sized well
-     past the card (width 210%, offset -55%) and the button clips nothing, so the
-     stroke sweeps out beyond the button's edges like an anime slash. */
+     which is what a slash does — a bar sliding sideways is a wipe. Sized to reach
+     just a little past the card (width 118%, offset -9%) and swept a short
+     distance, so the stroke clears the button's edges only enough to read as a
+     cut — not shoot across the page. */
   .cut-blade {
     position: absolute;
-    top: calc(50% - 6px);
-    left: -55%;
-    height: 12px;
-    width: 210%;
+    top: calc(50% - 4px);
+    left: -9%;
+    height: 8px;
+    width: 118%;
     transform-origin: center;
     pointer-events: none;
     z-index: 1;
@@ -545,36 +546,6 @@
     animation: cut-whip 175ms cubic-bezier(0.16, 0.72, 0.24, 1) var(--cut-delay, 0ms) both;
   }
 
-  /* Where the edge bites. Short and bright: a spark that outlives the blade
-     stops being a spark. */
-  @keyframes cut-spark {
-    0% {
-      opacity: 0;
-      transform: rotate(var(--cut-rot)) scale(0.3);
-    }
-    30% {
-      opacity: 1;
-      transform: rotate(var(--cut-rot)) scale(1.15);
-    }
-    100% {
-      opacity: 0;
-      transform: rotate(var(--cut-rot)) scale(1.6);
-    }
-  }
-  .cut-spark {
-    position: absolute;
-    top: calc(50% - 7px);
-    left: calc(50% - 7px);
-    height: 14px;
-    width: 14px;
-    border-radius: 50%;
-    pointer-events: none;
-    background: radial-gradient(circle, #fff 0%, var(--cut-glow) 42%, transparent 72%);
-    /* Offset to the moment the edge crosses the middle — half of the whip's
-       175ms. Fired on the blade's own delay it lit up before the blade had
-       arrived, which reads as the card flashing and then being cut. */
-    animation: cut-spark 240ms ease-out calc(var(--cut-delay, 0ms) + 78ms) both;
-  }
 
   /* What the cut leaves. Drawn out from the centre as the blade clears. */
   .cut-scar {

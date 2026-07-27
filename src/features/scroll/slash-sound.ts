@@ -1,17 +1,18 @@
 "use client";
 
 /**
- * The sword-cut sound for SCROLL answers, synthesised with the Web Audio API so
- * it ships no audio file and never blocks a render.
+ * The sword "shing" for SCROLL answers, synthesised with the Web Audio API so it
+ * ships no audio file and never blocks a render.
  *
- * A cut is a fast band of noise sweeping downward — a "shing" — plus, for a
- * clean hit, a short rising tone that gives it the metallic ring. A wrong answer
- * gets a lower, duller strike. Kept short (~180ms) and quiet so it punctuates the
- * play rather than dominating it.
+ * A metallic RING, not a whoosh: two bright, slightly detuned high tones with a
+ * fast attack and a long ring-out — "shiiingg" — over a tiny high-passed noise
+ * transient that gives the very start its edge. A clean pick rings high and
+ * bright; a wrong pick rings lower and shorter. Kept quiet so it punctuates play
+ * rather than dominates it.
  *
- * One AudioContext, created lazily on the first cut (which is a click, so the
- * browser's autoplay gate is already satisfied) and reused. Under
- * prefers-reduced-motion we make no sound at all, matching the visuals.
+ * One AudioContext, created lazily on the first cut (a click, so the autoplay
+ * gate is already satisfied) and reused. Silent under prefers-reduced-motion,
+ * matching the visuals.
  */
 
 let ctx: AudioContext | null = null;
@@ -38,48 +39,52 @@ export function playSlash(kind: "clean" | "wrong"): void {
   if (ac.state === "suspended") ac.resume().catch(() => {});
 
   const now = ac.currentTime;
-  const dur = 0.18;
+  const clean = kind === "clean";
+  // Ring length — the "iiii" in shiiing. Longer for a clean hit.
+  const ring = clean ? 0.42 : 0.28;
 
   try {
-    // The whoosh: a burst of white noise pushed through a band-pass that sweeps
-    // from bright to dark, which is what makes it read as a blade, not static.
-    const frames = Math.max(1, Math.floor(ac.sampleRate * dur));
+    // The metallic ring: two detuned high partials. Detuning is what turns a
+    // plain tone into "metal"; sine keeps it a clear ring rather than a buzz.
+    const base = clean ? 2900 : 1900;
+    const master = ac.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(clean ? 0.34 : 0.4, now + 0.006);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + ring);
+    master.connect(ac.destination);
+
+    for (const mult of [1, 1.5]) {
+      const osc = ac.createOscillator();
+      osc.type = "sine";
+      const f = base * mult;
+      // A quick upward glide into the note gives the "sh→ing" onset.
+      osc.frequency.setValueAtTime(f * 0.86, now);
+      osc.frequency.exponentialRampToValueAtTime(f, now + 0.05);
+      const partial = ac.createGain();
+      partial.gain.value = mult === 1 ? 1 : 0.5;
+      osc.connect(partial).connect(master);
+      osc.start(now);
+      osc.stop(now + ring);
+    }
+
+    // A tiny high-passed noise transient at the very start — the "sh" edge of
+    // the blade catching, ~25ms, quiet.
+    const nDur = 0.03;
+    const frames = Math.max(1, Math.floor(ac.sampleRate * nDur));
     const buffer = ac.createBuffer(1, frames, ac.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
-
     const noise = ac.createBufferSource();
     noise.buffer = buffer;
-
-    const band = ac.createBiquadFilter();
-    band.type = "bandpass";
-    band.Q.value = 0.9;
-    band.frequency.setValueAtTime(kind === "clean" ? 3600 : 1300, now);
-    band.frequency.exponentialRampToValueAtTime(kind === "clean" ? 900 : 380, now + dur);
-
-    const gain = ac.createGain();
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(kind === "clean" ? 0.45 : 0.55, now + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-    noise.connect(band).connect(gain).connect(ac.destination);
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 5000;
+    const nGain = ac.createGain();
+    nGain.gain.setValueAtTime(clean ? 0.18 : 0.14, now);
+    nGain.gain.exponentialRampToValueAtTime(0.0001, now + nDur);
+    noise.connect(hp).connect(nGain).connect(ac.destination);
     noise.start(now);
-    noise.stop(now + dur);
-
-    // The ring: a short rising tone on a clean cut only.
-    if (kind === "clean") {
-      const osc = ac.createOscillator();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(1700, now);
-      osc.frequency.exponentialRampToValueAtTime(3300, now + 0.07);
-      const ring = ac.createGain();
-      ring.gain.setValueAtTime(0.0001, now);
-      ring.gain.exponentialRampToValueAtTime(0.13, now + 0.01);
-      ring.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
-      osc.connect(ring).connect(ac.destination);
-      osc.start(now);
-      osc.stop(now + 0.13);
-    }
+    noise.stop(now + nDur);
   } catch {
     // Audio is a flourish; never let it interrupt play.
   }

@@ -287,10 +287,10 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             >
               {choice}
               {isPicked && slash ? (
-                /* The cut. Each stroke is a blade, a spark where it bites, and
-                   the scar it leaves — see the .cut-* rules in globals.css. The
-                   wrapper carries the tone, so the same three parts draw both
-                   the clean cut and the wrong one. */
+                /* The cut. Each stroke is a tapered blade and the scar it leaves
+                   — see the .cut-* rules in globals.css. The wrapper carries the
+                   tone, so the same parts draw both the clean cut and the wrong
+                   one. */
                 <span
                   key={slash.key}
                   aria-hidden="true"
@@ -301,11 +301,9 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                       {/* Two strokes, the second a beat later, crossing into an
                           X that holds once the blades have gone. */}
                       <span className="cut-blade" />
-                      <span className="cut-spark" />
                       <span className="cut-scar cut-scar-hold" />
                       <span className="cut-cross">
                         <span className="cut-blade" />
-                        <span className="cut-spark" />
                         <span className="cut-scar cut-scar-hold" />
                       </span>
                       <span className="impact-flash" />
@@ -313,7 +311,6 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                   ) : (
                     <>
                       <span className="cut-blade" />
-                      <span className="cut-spark" />
                       <span className="cut-scar cut-scar-fade" />
                     </>
                   )}
