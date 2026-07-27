@@ -93,7 +93,9 @@ function Char({
     <span
       className={cn(
         "relative rounded-[3px] transition-colors duration-75",
-        state === "pending" && "text-muted-foreground/45",
+        // Readable, not faint: the passage should be easy to read before and
+        // during the run, so a player can see what they are about to type.
+        state === "pending" && "text-muted-foreground",
         state === "correct" && "text-foreground",
         // A missed cut stays visible for the rest of the run. That is the point.
         state === "wrong" &&
@@ -282,8 +284,7 @@ export function KataTrainer({
 
         <p
           className={cn(
-            "font-mono text-lg leading-[2.1] tracking-wide transition-[filter] select-none sm:text-xl",
-            !focused && !finished && "blur-[2px]"
+            "font-mono text-lg leading-[2.1] tracking-wide select-none sm:text-xl"
           )}
         >
           {words.map((word) => (
@@ -296,9 +297,9 @@ export function KataTrainer({
         </p>
 
         {!focused && !finished ? (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-2xl bg-background/40">
-            <p className="font-heading text-sm tracking-[0.2em] text-muted-foreground uppercase">
-              Click to take your stance
+          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-2xl bg-background/5">
+            <p className="rounded-full border border-sakura/40 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+              Click here to start typing
             </p>
           </div>
         ) : null}

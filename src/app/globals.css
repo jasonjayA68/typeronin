@@ -504,7 +504,7 @@
   @keyframes cut-whip {
     0% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(-92%) scaleX(0.4);
+      transform: rotate(var(--cut-rot)) translateX(-96%) scaleX(0.4);
     }
     14% {
       opacity: 1;
@@ -514,19 +514,22 @@
     }
     100% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(92%) scaleX(1.22);
+      transform: rotate(var(--cut-rot)) translateX(96%) scaleX(1.25);
     }
   }
   /* The edge, mid-swing. Travels along its OWN axis (rotate before translate),
-     which is what a slash does — a bar sliding sideways is a wipe. */
+     which is what a slash does — a bar sliding sideways is a wipe. Sized well
+     past the card (width 210%, offset -55%) and the button clips nothing, so the
+     stroke sweeps out beyond the button's edges like an anime slash. */
   .cut-blade {
     position: absolute;
-    top: calc(50% - 5px);
-    left: -25%;
-    height: 10px;
-    width: 150%;
+    top: calc(50% - 6px);
+    left: -55%;
+    height: 12px;
+    width: 210%;
     transform-origin: center;
     pointer-events: none;
+    z-index: 1;
     clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 100%);
     /* A narrow white core with the tone falling away fast on either side. A
        wide, even gradient is a light smear; an edge is bright in one place. */

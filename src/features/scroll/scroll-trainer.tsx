@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { celebrateBonus } from "@/features/gamification/celebrate-bonus";
 import { LevelUpModal } from "@/features/gamification/level-up-modal";
 import { loadScrollRound, saveScrollSession, type ScrollSaveResult } from "@/features/scroll/actions";
+import { playSlash } from "@/features/scroll/slash-sound";
 import type { TrainerPlayState } from "@/features/typing/kata-trainer";
 import { usePetals } from "@/shared/components/sakura/petal-context";
 import { cn } from "@/lib/utils";
@@ -117,6 +118,9 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
 
     setPicked(choice);
     setSlash({ key: index, wrong: !right });
+    // A sword's ring on the cut — a bright "shing" for right, a duller strike
+    // for wrong. Synthesised (no audio file), and skipped under reduced-motion.
+    playSlash(right ? "clean" : "wrong");
     if (right) {
       setCorrect((c) => c + 1);
       setCombo((c) => {
@@ -264,7 +268,11 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
               disabled={revealed}
               onClick={() => pick(choice)}
               className={cn(
-                "relative overflow-hidden rounded-xl border px-4 py-3.5 text-left font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                // No overflow-hidden: the slash is meant to sweep BEYOND the
+                // button's edges. The picked card lifts above its neighbours so
+                // the overflowing cut draws over them, not under.
+                "relative rounded-xl border px-4 py-3.5 text-left font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                isPicked && slash && "z-20",
                 !revealed && "border-border/60 hover:border-sakura/50 hover:bg-sakura/5",
                 revealed && isAnswer && "border-success/60 bg-success/10 text-success",
                 // The card answers the cut: a nudge for a clean one, a knock for
