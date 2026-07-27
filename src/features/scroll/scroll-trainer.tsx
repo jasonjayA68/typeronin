@@ -34,6 +34,46 @@ type Question = { wordId: string; definition: string; answer: string; choices: s
 const ROUND_DIFFICULTY = "MEDIUM" as const;
 const ROUND_SIZE = 10;
 
+/* The shape of a slash.
+   -----------------------------------------------------------------------
+   Each stroke is a crescent: an arc that bows across the card and closes to
+   a point at either end, thickest where the blade bit hardest. Both paths
+   below are the same arc drawn at two weights — a wide one for the blade in
+   flight, a fine one for the scar it leaves.
+
+   They are drawn with preserveAspectRatio="none" so the crescent stretches
+   to the width of whatever card it lands on. That does flatten the arc on a
+   wide card, which is the right trade: a slash reads by its curve, and a
+   curve held to a fixed aspect would either overshoot a wide card or fail to
+   cross a narrow one. */
+const BLADE_BODY = "M4 32 Q100 -16 196 32 Q100 2 4 32 Z";
+const BLADE_CORE = "M16 31 Q100 -13 184 31 Q100 -4 16 31 Z";
+const SCAR_ARC = "M10 31.5 Q100 -12.5 190 31.5 Q100 -6.5 10 31.5 Z";
+
+/** The edge mid-swing: the tone's crescent with a white one riding its edge. */
+function CutBlade() {
+  return (
+    <svg className="cut-blade" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+      <path className="cut-blade-body" d={BLADE_BODY} />
+      <path className="cut-blade-core" d={BLADE_CORE} />
+    </svg>
+  );
+}
+
+/** The mark left behind, on the same arc the blade travelled. */
+function CutScar({ className }: { className: string }) {
+  return (
+    <svg
+      className={cn("cut-scar", className)}
+      viewBox="0 0 200 40"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path d={SCAR_ARC} />
+    </svg>
+  );
+}
+
 export function ScrollTrainer({ playState = null }: { playState?: TrainerPlayState }) {
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -287,10 +327,10 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             >
               {choice}
               {isPicked && slash ? (
-                /* The cut. Each stroke is a tapered blade and the scar it leaves
-                   — see the .cut-* rules in globals.css. The wrapper carries the
-                   tone, so the same parts draw both the clean cut and the wrong
-                   one. */
+                /* The cut. Each stroke is a crescent blade and the scar it
+                   leaves — see the .cut-* rules in globals.css. The wrapper
+                   carries the tone, so the same parts draw both the clean cut
+                   and the wrong one. */
                 <span
                   key={slash.key}
                   aria-hidden="true"
@@ -300,18 +340,18 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                     <>
                       {/* Two strokes, the second a beat later, crossing into an
                           X that holds once the blades have gone. */}
-                      <span className="cut-blade" />
-                      <span className="cut-scar cut-scar-hold" />
+                      <CutBlade />
+                      <CutScar className="cut-scar-hold" />
                       <span className="cut-cross">
-                        <span className="cut-blade" />
-                        <span className="cut-scar cut-scar-hold" />
+                        <CutBlade />
+                        <CutScar className="cut-scar-hold" />
                       </span>
                       <span className="impact-flash" />
                     </>
                   ) : (
                     <>
-                      <span className="cut-blade" />
-                      <span className="cut-scar cut-scar-fade" />
+                      <CutBlade />
+                      <CutScar className="cut-scar-fade" />
                     </>
                   )}
                 </span>

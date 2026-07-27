@@ -467,11 +467,14 @@
        3. the card recoils along the cut, then settles;
        4. the scar is left behind and fades in its own time.
 
-     The blade itself is a LENS, not a bar: clip-path tapers it to points at
-     both ends, so it has the shape of a moving edge instead of a rectangle.
-     That is why the glow is a drop-shadow rather than a box-shadow — a box
-     shadow traces the element's box and would put a rectangular halo around
-     a tapered blade, giving the whole trick away.
+     The blade itself is a CRESCENT, not a bar: an SVG arc that bows through
+     the card and narrows to points at both ends. A straight tapered line —
+     however well lit — still reads as a stick laid over the card, because a
+     sword travels on the arc of the arms that swing it and the mark it leaves
+     curves with that arc. The curve is the whole tell, so it is drawn as a
+     real path rather than faked with clip-path (which cannot bend) and lit
+     with drop-shadow rather than box-shadow (which would trace the element's
+     rectangle instead of the blade).
 
      One clean cut for a right answer. Two crossing cuts, harder, for a
      wrong one — and there the scar HOLDS as an X, because the mark that
@@ -494,17 +497,19 @@
     --cut-glow: color-mix(in oklab, var(--color-destructive) 80%, white);
     --cut-scar: var(--color-destructive);
   }
-  /* The second cut of the pair: opposite angle, a beat later — two strokes
+  /* The second cut of the pair: opposite angle, a beat later, and its arc
+     flipped so the two crescents bow AWAY from each other — two strokes
      landing at once is one X-shaped stamp, not two cuts. */
   .cut-cross {
     --cut-rot: 34deg;
+    --cut-flip: -1;
     --cut-delay: 105ms;
   }
 
   @keyframes cut-whip {
     0% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(-48%) scaleX(0.5);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) translateX(-48%) scaleX(0.5);
     }
     16% {
       opacity: 1;
@@ -514,78 +519,88 @@
     }
     100% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) translateX(48%) scaleX(1.08);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) translateX(48%) scaleX(1.08);
     }
   }
   /* The edge, mid-swing. Travels along its OWN axis (rotate before translate),
      which is what a slash does — a bar sliding sideways is a wipe. Sized to reach
      just a little past the card (width 118%, offset -9%) and swept a short
      distance, so the stroke clears the button's edges only enough to read as a
-     cut — not shoot across the page. */
+     cut — not shoot across the page.
+
+     The box is deliberately taller than the old 8px bar because the arc needs
+     headroom to bow into, and NARROWER (90%, not the 118% a straight bar
+     wanted) because the curve adds its own length: a crescent already reaches
+     past the card corners once it is rotated, and at the old width it swung
+     halfway across the page. preserveAspectRatio="none" lets it stretch to
+     whatever width the card is without the arc flattening at the tips. */
   .cut-blade {
     position: absolute;
-    top: calc(50% - 4px);
-    left: -9%;
-    height: 8px;
-    width: 118%;
+    top: calc(50% - 11px);
+    left: 5%;
+    height: 22px;
+    width: 90%;
+    overflow: visible;
     transform-origin: center;
     pointer-events: none;
     z-index: 1;
-    clip-path: polygon(0% 50%, 50% 0%, 100% 50%, 50% 100%);
-    /* A narrow white core with the tone falling away fast on either side. A
-       wide, even gradient is a light smear; an edge is bright in one place. */
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      var(--cut-edge) 43%,
-      #fff 50%,
-      var(--cut-edge) 57%,
-      transparent 100%
-    );
     filter: drop-shadow(0 0 4px var(--cut-glow));
     animation: cut-whip 175ms cubic-bezier(0.16, 0.72, 0.24, 1) var(--cut-delay, 0ms) both;
   }
+  /* Two stacked crescents rather than a gradient: the tone carries the body of
+     the blade and a slimmer white crescent rides its leading edge. A gradient
+     across a curved shape puts its bright band on a straight vertical line,
+     which fights the curve; a second path follows it. */
+  .cut-blade-body {
+    fill: var(--cut-edge);
+  }
+  .cut-blade-core {
+    fill: #fff;
+  }
 
-
-  /* What the cut leaves. Drawn out from the centre as the blade clears. */
+  /* What the cut leaves: the same arc, thinner. Drawn out from the centre as
+     the blade clears. */
   .cut-scar {
     position: absolute;
-    top: calc(50% - 1px);
-    left: 6%;
-    height: 2px;
-    width: 88%;
-    border-radius: 2px;
+    /* Same box height as the blade so the scar lies on the arc the blade
+       actually travelled; only the span is shorter, because a cut stops short
+       of the edges it passed between. */
+    top: calc(50% - 11px);
+    left: 16%;
+    height: 22px;
+    width: 68%;
+    overflow: visible;
     transform-origin: center;
     pointer-events: none;
-    background: var(--cut-scar);
-    box-shadow: 0 0 4px 0.5px var(--cut-glow);
+    fill: var(--cut-scar);
+    filter: drop-shadow(0 0 3px var(--cut-glow));
   }
   @keyframes cut-scar-fade {
     0% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) scaleX(0.35);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(0.35);
     }
     25% {
       opacity: 0.95;
-      transform: rotate(var(--cut-rot)) scaleX(1);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(1);
     }
     100% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) scaleX(1);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(1);
     }
   }
   @keyframes cut-scar-hold {
     0% {
       opacity: 0;
-      transform: rotate(var(--cut-rot)) scaleX(0);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(0);
     }
     55% {
       opacity: 1;
-      transform: rotate(var(--cut-rot)) scaleX(1.06);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(1.06);
     }
     100% {
       opacity: 0.92;
-      transform: rotate(var(--cut-rot)) scaleX(1);
+      transform: rotate(var(--cut-rot)) scaleY(var(--cut-flip, 1)) scaleX(1);
     }
   }
   .cut-scar-fade {
