@@ -240,8 +240,13 @@ export default async function Home() {
           </Container>
         </section>
 
+        {/* The spacing lives on the slot, not on this Container: AdSlot renders
+            null when the placement is off or unbooked, and padding the wrapper
+            would hold open a gap around an advert that is not there. A top
+            margin only — the section below already opens with pt-20, so the
+            80px underneath is already paid for. */}
         <Container>
-          <AdSlot placement="between-sections" />
+          <AdSlot placement="between-sections" className="mt-20" />
         </Container>
 
         {/* ---------------- Why stay: ranks + global play ---------------- */}
@@ -345,8 +350,11 @@ export default async function Home() {
           <InkDivider />
         </Container>
 
-        {/* Trophy row: a quiet reassurance strip, kept short. */}
-        <Container className="pb-16">
+        {/* Trophy row: a quiet reassurance strip, kept short.
+            Padded on both sides: InkDivider carries no margin of its own, so a
+            bottom-only padding left the icon sitting on the rule with 64px of
+            empty space below it. */}
+        <Container className="py-16">
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center">
             <TrophyIcon aria-hidden="true" className="size-6 text-sakura" />
             <p className="text-sm text-muted-foreground">
