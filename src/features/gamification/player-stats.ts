@@ -3,39 +3,42 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 /**
- * The single bundle of facts every Bushido trial and Mission is judged against.
+ * The single bundle of facts every achievement and mission is judged against.
  *
  * Both surfaces (see features/gamification/trials.ts and features/missions/
  * catalog.ts) read only from here, so the granting path and the display path can
  * never disagree about what a player has done. Everything is derived from the
- * two game mechanics that actually pay Honor — KATA typing runs and SCROLL vocab
+ * two games that actually pay Honor — Typing Phrases runs and Find the Word
  * rounds — never stored, so there is nothing to keep in sync with the sessions
  * that produced it.
+ *
+ * The field names keep the original "kata" and "scroll" wording: they match the
+ * session tables and the save actions, and only the labels players read changed.
  */
 export type PlayerStats = {
-  /** Finished KATA typing runs. */
+  /** Finished Typing Phrases runs. */
   typingRuns: number;
-  /** Finished SCROLL vocab rounds. */
+  /** Finished Find the Word rounds. */
   scrollRuns: number;
-  /** Both mechanics together — one "draw" is one run of either. */
+  /** Both games together — one run of either counts once. */
   totalRuns: number;
-  /** KATA runs finished with not one stroke astray (no incorrect characters). */
+  /** Typing Phrases runs finished with no incorrect characters. */
   cleanKatas: number;
-  /** KATA runs at 95% accuracy or better. */
+  /** Typing Phrases runs at 95% accuracy or better. */
   katas95: number;
-  /** Highest Ma (rhythm) held on any KATA run. */
+  /** Highest rhythm score (`ma`) held on any Typing Phrases run. */
   maxMa: number;
-  /** KATA runs that held Ma at 80 or above. */
+  /** Typing Phrases runs that held a rhythm score of 80 or above. */
   maRunsAbove80: number;
-  /** HARD-difficulty runs across both mechanics. */
+  /** HARD-difficulty runs across both games. */
   hardRuns: number;
-  /** SCROLL rounds answered in full — every question correct. */
+  /** Find the Word rounds answered in full — every question correct. */
   perfectScrolls: number;
-  /** SCROLL rounds at 95% correct or better. */
+  /** Find the Word rounds at 95% correct or better. */
   scrolls95: number;
-  /** Distinct calendar days the player has trained on (either mechanic). */
+  /** Distinct calendar days the player has played on (either game). */
   distinctDays: number;
-  /** The denormalised login/training streak kept on the profile. */
+  /** The denormalised day streak kept on the profile. */
   streakDays: number;
 };
 
@@ -49,7 +52,7 @@ function toInt(value: unknown): number {
  *
  * A handful of aggregate queries for the predicates Prisma can express, plus two
  * raw queries for the ones it cannot: comparing two columns (correct vs. total
- * on a SCROLL round) and counting distinct training days across both tables.
+ * on a Find the Word round) and counting distinct play days across both tables.
  * Table and column names are the model/field names verbatim (no @@map in the
  * schema), quoted so Postgres does not fold them to lowercase.
  */

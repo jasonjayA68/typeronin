@@ -30,7 +30,7 @@ const PAGE_SIZE = 25;
 const STATUSES = ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"] as const;
 type Status = (typeof STATUSES)[number];
 
-/** Live, pending, or off. Drives the dot beside each row. */
+/** Published, waiting, or hidden. Drives the dot beside each row. */
 const TONE: Record<Status, "on" | "off" | "warn"> = {
   PUBLISHED: "on",
   SCHEDULED: "warn",
@@ -140,7 +140,7 @@ export default async function PostsPage(props: PageProps<"/admin/posts">) {
   return (
     <AdminPage
       title="Blog posts"
-      description="Everything written, at every stage. A post is created as a draft and stays one until someone with the right to publish decides otherwise."
+      description="Every post, finished or not. A new post starts as a draft. It stays hidden until someone with permission publishes it."
       actions={
         <Button asChild size="sm">
           <Link href="/admin/posts/new">New post</Link>
@@ -148,7 +148,7 @@ export default async function PostsPage(props: PageProps<"/admin/posts">) {
       }
     >
       <PanelGrid cols={4}>
-        <Stat label="Posts" value={number(total)} hint={`${number(countOf("PUBLISHED"))} live`} framed accent />
+        <Stat label="Posts" value={number(total)} hint={`${number(countOf("PUBLISHED"))} published`} framed accent />
         <Stat label="Drafts" value={number(countOf("DRAFT"))} framed />
         <Stat label="Scheduled" value={number(countOf("SCHEDULED"))} framed />
         <Stat label="Archived" value={number(countOf("ARCHIVED"))} framed />
@@ -164,7 +164,7 @@ export default async function PostsPage(props: PageProps<"/admin/posts">) {
               type="search"
               name="q"
               defaultValue={q ?? ""}
-              placeholder="Search titles and bodies"
+              placeholder="Search titles and text"
               aria-label="Search posts"
               className="h-7 min-w-0 flex-1"
             />
@@ -174,7 +174,7 @@ export default async function PostsPage(props: PageProps<"/admin/posts">) {
           </form>
 
           <Pill href={link({ ...filter, status: undefined })} active={!status}>
-            Any state
+            All states
           </Pill>
           {STATUSES.map((value) => (
             <Pill key={value} href={link({ ...filter, status: value })} active={status === value}>
@@ -272,8 +272,8 @@ export default async function PostsPage(props: PageProps<"/admin/posts">) {
             }
           >
             {q || status || category
-              ? "No post fits this filter. Widen it, or start something new."
-              : "The blog has no posts. The first one starts as a draft and goes out when you say so."}
+              ? "No post fits this filter. Try a wider filter, or write something new."
+              : "The blog has no posts yet. The first one starts as a draft and goes live when you say so."}
           </EmptyState>
         )}
       </Panel>

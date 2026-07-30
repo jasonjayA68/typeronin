@@ -1,7 +1,20 @@
 /**
  * Passages are prose, not word salad. Random word lists are what every typing
- * site drills; sentences with rhythm are what a student can actually breathe to,
+ * site drills; sentences with rhythm are what a player can actually breathe to,
  * and rhythm is the thing TypeRonin measures.
+ *
+ * They are also read by someone who may be learning English, may be nine years
+ * old, and may be running the page through a translator. So they use everyday
+ * words and everyday images — practising an instrument, walking a road — and no
+ * swords, no masters, no cultural knowledge required to follow the sentence.
+ *
+ * This set is the fallback and the first seed. Once `prisma/seed-passages.ts`
+ * has run, the Passages admin owns the live copy and edits the database rows;
+ * changing the prose here does NOT change what players already see.
+ *
+ * `Discipline` is an internal key for passage length, not a label: "kata" is a
+ * medium passage, "iai" a single line, "scroll" a long one. Nothing renders
+ * these words.
  */
 
 export type Discipline = "kata" | "iai" | "scroll";
@@ -14,75 +27,54 @@ export type Passage = {
   text: string;
 };
 
-export const DISCIPLINES: Record<
-  Discipline,
-  { name: string; kanji: string; blurb: string }
-> = {
-  kata: {
-    name: "Kata",
-    kanji: "型",
-    blurb: "Form practice. A measured passage, cut cleanly from first char to last.",
-  },
-  iai: {
-    name: "Iai",
-    kanji: "居合",
-    blurb: "The single breath. One short line, drawn and finished without hesitation.",
-  },
-  scroll: {
-    name: "Scroll",
-    kanji: "巻物",
-    blurb: "Long-form endurance. Your rhythm will drift; the work is noticing.",
-  },
-};
-
 export const PASSAGES: readonly Passage[] = [
   {
     id: "kata-still-water",
     discipline: "kata",
     title: "Still Water",
-    text: "The mind must be like still water, so that it reflects the world exactly as it is. When the water is disturbed, the moon upon it breaks into pieces, and the student mistakes the pieces for the moon.",
+    text: "A calm mind is like still water. It shows the world exactly as it is. When the water is shaken, the picture breaks apart, and it is easy to mistake the pieces for the whole.",
   },
   {
-    id: "kata-the-plain-cut",
+    id: "kata-one-clear-choice",
     discipline: "kata",
-    title: "The Plain Cut",
-    text: "A student asked which strike was strongest. The master answered that the strongest strike is the one made without a second thought about the first. Doubt costs more than distance.",
+    title: "One Clear Choice",
+    text: "A student asked which answer was the best one. The teacher said the best answer is the one you give without doubting the answer before it. Doubt costs more time than the work does.",
   },
   {
     id: "kata-ten-thousand",
     discipline: "kata",
     title: "Ten Thousand Times",
-    text: "I do not fear the one who has practiced ten thousand strikes once. I fear the one who has practiced one strike ten thousand times, until the strike no longer belongs to the hand.",
+    text: "I am not afraid of someone who has practised ten thousand things once. I am afraid of someone who has practised one thing ten thousand times, until the hands no longer need to think about it.",
   },
   {
-    id: "iai-first-light",
+    id: "iai-type-it-once",
     discipline: "iai",
-    title: "First Light",
-    text: "Draw once. Do not draw again.",
+    title: "Type It Once",
+    text: "Type it once. Do not go back.",
   },
   {
     id: "iai-the-breath",
     discipline: "iai",
-    title: "The Breath",
+    title: "Smooth and Fast",
     text: "Slow is smooth, and smooth becomes fast.",
   },
   {
     id: "iai-no-second",
     discipline: "iai",
     title: "No Second Chance",
-    text: "A cut once made cannot be unmade.",
+    text: "Once you press a key, it is final.",
   },
   {
     id: "scroll-the-long-road",
     discipline: "scroll",
     title: "The Long Road",
-    text: "Mastery is not a summit but a road, and the road is made of ordinary days. The student who trains only when inspired will always be outpaced by the one who trains on the grey mornings, when nothing feels sharp and the hands are slow and the work is dull. Inspiration arrives as a guest. Discipline lives in the house. In time the two are difficult to tell apart, because the disciplined student has been visited so often that the guest has simply stopped leaving.",
+    text: "Getting better is not a mountain top. It is a road, and the road is made of ordinary days. The person who practises only when they feel excited will always fall behind the person who practises on grey mornings, when nothing feels easy and the hands are slow and the work is dull. Excitement comes and goes like a visitor. Practice lives in the house. Given enough time the two are hard to tell apart, because the visitor has simply stopped leaving.",
   },
   {
-    id: "scroll-the-quiet-forge",
+    id: "scroll-every-hour-shows",
     discipline: "scroll",
-    title: "The Quiet Forge",
-    text: "Steel is folded not to make it beautiful but to make it honest. Each fold drives out what does not belong, and what remains is thinner, harder, and far less forgiving of the smith who hurried. The blade remembers every shortcut taken in its making, and it will confess them all on the day it is finally asked to cut something that matters. So it is with the hands, and so it is with the hours you give them.",
+    title: "Every Hour Shows",
+    text: "A song is not learned by playing it through once. Each time you play it, one more small mistake is driven out, and what is left is cleaner, faster, and far less kind to a player in a hurry. The music remembers every shortcut taken while it was being learned, and it will show them all on the day someone is finally listening. The same is true of your hands, and of the hours you give them.",
   },
 ];
 

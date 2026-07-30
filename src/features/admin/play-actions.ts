@@ -36,7 +36,7 @@ function refreshSeasons() {
 /* ------------------------------------------------------------ game modes */
 
 /** Integer percentages: 100 = unchanged. A float here rounds into balances. */
-const multiplier = z.coerce.number().int().min(0, "A multiplier cannot be negative.").max(1000, "A multiplier above 1000% is a typo, not a design.");
+const multiplier = z.coerce.number().int().min(0, "A payout percent cannot be a negative number.").max(1000, "A payout percent above 1000 is too high. Check the number.");
 const seconds = z.coerce.number().int().min(5).max(7200);
 
 const modeFields = z.object({
@@ -45,14 +45,14 @@ const modeFields = z.object({
     .trim()
     .min(2)
     .max(40)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "A slug is lowercase letters, numbers and hyphens."),
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "A short name uses small letters, numbers and hyphens."),
   name: z.string().trim().min(2, "Give it a name.").max(60),
   description: z.string().trim().max(240).nullable(),
   kanji: z.string().trim().max(4).nullable(),
   kind: z.enum(["PRACTICE", "TIMED"]),
   isActive: z.boolean(),
   sort: z.coerce.number().int().min(0).max(999),
-  timeOptions: z.array(seconds).max(8, "Eight clocks is already more than anyone will read."),
+  timeOptions: z.array(seconds).max(8, "Eight timer choices is the most you can offer."),
   allowCustomTime: z.boolean(),
   customMinSeconds: seconds.nullable(),
   customMaxSeconds: seconds.nullable(),
@@ -60,7 +60,7 @@ const modeFields = z.object({
   honorMultiplier: multiplier,
   xpMultiplier: multiplier,
   kiCost: z.coerce.number().int().min(0).max(10_000),
-  minAccuracy: z.coerce.number().int().min(0, "An accuracy floor cannot be negative.").max(100, "An accuracy floor above 100% can never be met."),
+  minAccuracy: z.coerce.number().int().min(0, "The lowest accuracy cannot be a negative number.").max(100, "The lowest accuracy cannot be above 100%."),
 });
 
 const createModeInput = modeFields.extend({ categoryIds: z.array(z.uuid()).max(50) });
@@ -76,17 +76,17 @@ type ModeFields = z.infer<typeof modeFields>;
  */
 function checkMode(data: ModeFields): string | null {
   if (data.kind === "TIMED" && data.timeOptions.length === 0 && !data.allowCustomTime) {
-    return "A timed mode needs at least one clock, or custom time allowed. Otherwise there is nothing to start.";
+    return "A timed mode needs at least one timer choice, or custom timers turned on.";
   }
   if (data.kind === "PRACTICE" && (data.timeOptions.length > 0 || data.allowCustomTime)) {
-    return "A practice mode has no clock. Clear its time options, or make it timed.";
+    return "A practice mode has no timer. Clear the timer choices, or change the type to timed.";
   }
   if (data.allowCustomTime) {
     if (data.customMinSeconds === null || data.customMaxSeconds === null) {
-      return "Custom time needs both a floor and a ceiling.";
+      return "Custom timers need both a shortest and a longest time.";
     }
     if (data.customMinSeconds >= data.customMaxSeconds) {
-      return "The custom time floor must be below its ceiling.";
+      return "The shortest custom timer must be less than the longest.";
     }
   }
   return null;
@@ -119,7 +119,7 @@ export async function createGameMode(input: unknown): Promise<PlayActionResult> 
 
   const pool = [...new Set(categoryIds)];
   if (await poolIsUnknown(pool)) {
-    return { ok: false, message: "That word pool names a category that does not exist." };
+    return { ok: false, message: "One of the categories you picked no longer exists." };
   }
 
   try {
@@ -143,7 +143,7 @@ export async function createGameMode(input: unknown): Promise<PlayActionResult> 
     refreshModes();
     return { ok: true };
   } catch (error) {
-    if (isUniqueViolation(error)) return { ok: false, message: `The slug "${fields.slug}" is taken.` };
+    if (isUniqueViolation(error)) return { ok: false, message: `The short name "${fields.slug}" is already used.` };
     console.error("createGameMode failed", error);
     return { ok: false, message: "That mode could not be created." };
   }
@@ -180,7 +180,7 @@ export async function updateGameMode(modeId: string, input: unknown): Promise<Pl
     return { ok: true };
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { ok: false, message: `The slug "${parsed.data.slug}" is taken.` };
+      return { ok: false, message: `The short name "${parsed.data.slug}" is already used.` };
     }
     console.error("updateGameMode failed", error);
     return { ok: false, message: "That mode could not be saved." };
@@ -229,7 +229,7 @@ export async function setGameModeCategories(
 
   const pool = [...new Set(parsed.data.categoryIds)];
   if (await poolIsUnknown(pool)) {
-    return { ok: false, message: "That word pool names a category that does not exist." };
+    return { ok: false, message: "One of the categories you picked no longer exists." };
   }
 
   try {
@@ -255,7 +255,7 @@ export async function setGameModeCategories(
     return { ok: true };
   } catch (error) {
     console.error("setGameModeCategories failed", error);
-    return { ok: false, message: "That word pool could not be saved." };
+    return { ok: false, message: "Those categories could not be saved." };
   }
 }
 
@@ -295,7 +295,7 @@ export async function deleteGameMode(modeId: string): Promise<PlayActionResult> 
 
 const seasonInput = z.object({
   scope: z.enum(["GLOBAL", "WEEKLY", "MONTHLY", "COUNTRY"]),
-  label: z.string().trim().min(2, "Give the season a label.").max(60),
+  label: z.string().trim().min(2, "Give the season a name.").max(60),
   startsAt: z.coerce.date(),
   endsAt: z.coerce.date(),
 });
@@ -304,7 +304,7 @@ export async function createSeason(input: unknown): Promise<PlayActionResult> {
   const { user } = await requirePermission("settings:write");
 
   const parsed = seasonInput.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "A season needs a scope, a label and two dates." };
+  if (!parsed.success) return { ok: false, message: "A season needs a name, a type and a start and end date." };
 
   const { scope, label, startsAt, endsAt } = parsed.data;
   if (endsAt <= startsAt) return { ok: false, message: "A season must end after it starts." };
@@ -330,7 +330,7 @@ export async function createSeason(input: unknown): Promise<PlayActionResult> {
     if (isUniqueViolation(error)) {
       return {
         ok: false,
-        message: `A ${scope.toLowerCase()} season already starts at that moment. Move the start, or close the one that holds it.`,
+        message: `A ${scope.toLowerCase()} season already starts at that time. Pick a different start, or close that season first.`,
       };
     }
     console.error("createSeason failed", error);
@@ -353,7 +353,7 @@ export async function closeSeason(seasonId: string): Promise<PlayActionResult> {
     });
 
     if (closed.count === 0) {
-      return { ok: false, message: "That season is already closed, or is not there." };
+      return { ok: false, message: "That season is already closed, or no longer exists." };
     }
 
     await audit({

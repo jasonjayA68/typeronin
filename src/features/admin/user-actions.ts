@@ -55,7 +55,7 @@ export async function grantRole(profileId: string, roleSlug: string): Promise<Us
     return { ok: true };
   } catch (error) {
     console.error("grantRole failed", error);
-    return { ok: false, message: "That role could not be granted." };
+    return { ok: false, message: "That role could not be given." };
   }
 }
 
@@ -74,7 +74,7 @@ export async function revokeRole(profileId: string, roleSlug: string): Promise<U
   if (slug.data === "admin" && id.data === user.id) {
     return {
       ok: false,
-      message: "You cannot revoke your own admin role. Ask another admin to do it.",
+      message: "You cannot remove your own admin role. Ask another admin to do it.",
     };
   }
 
@@ -100,7 +100,7 @@ export async function revokeRole(profileId: string, roleSlug: string): Promise<U
     return { ok: true };
   } catch (error) {
     console.error("revokeRole failed", error);
-    return { ok: false, message: "That role could not be revoked." };
+    return { ok: false, message: "That role could not be removed." };
   }
 }
 
@@ -148,7 +148,7 @@ export async function updateUser(
 
   const parsed = updateSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "That change did not make sense." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check what you entered." };
   }
   const data = parsed.data;
 
@@ -165,7 +165,7 @@ export async function updateUser(
         select: { id: true },
       });
       if (taken && taken.id !== id.data) {
-        return { ok: false, message: "That handle is already taken." };
+        return { ok: false, message: "That username is already taken." };
       }
     }
 
@@ -174,7 +174,7 @@ export async function updateUser(
     let emailChanged = false;
     if (data.email) {
       if (!isAdminKeyConfigured) {
-        return { ok: false, message: "Editing email needs the admin key to be configured." };
+        return { ok: false, message: "Changing an email is not set up on this site. A developer must set it up." };
       }
       const admin = supabaseAdmin();
       const current = await admin.auth.admin.getUserById(id.data);
@@ -222,7 +222,7 @@ export async function updateUser(
 }
 
 /**
- * Delete a student's account outright — for clearing test/dummy accounts.
+ * Delete a user's account outright — for clearing test/dummy accounts.
  *
  * Two things must go: the Profile (which cascades every session, claim, trial and
  * withdrawal it owns, and nulls the authorship of anything it wrote) and the
@@ -259,7 +259,7 @@ export async function deleteUser(profileId: string): Promise<UserActionResult> {
     if (!profile) return { ok: false, message: "Unknown user." };
 
     if (profile.roles.some((r) => r.role.slug === "admin")) {
-      return { ok: false, message: "Revoke this user's admin role before deleting the account." };
+      return { ok: false, message: "Remove this user's admin role before deleting the account." };
     }
 
     await prisma.profile.delete({ where: { id: id.data } });

@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 /**
  * Account moderation — the tools that protect the economy from cheating, bots,
  * and payout fraud. Every action here is gated on a permission and written to
- * the audit log, because a moderation action is exactly the kind of thing that
+ * the activity log, because an action like this is exactly the kind of thing that
  * has to be answerable for later.
  *
  * Two permissions, deliberately: account state (ban/suspend/flag/note) is
@@ -45,7 +45,7 @@ export async function setAccountStatus(input: unknown): Promise<ModerationResult
 
   const parsed = statusSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the details." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check what you entered." };
   }
   const { profileId, status, reason } = parsed.data;
 
@@ -59,7 +59,7 @@ export async function setAccountStatus(input: unknown): Promise<ModerationResult
       where: { id: profileId },
       data: { status, moderatedAt: new Date(), moderatedById: user.id },
     });
-    if (updated.count === 0) return { ok: false, message: "That account was not found." };
+    if (updated.count === 0) return { ok: false, message: "That account could not be found." };
 
     await audit({
       actorId: user.id,
@@ -88,7 +88,7 @@ export async function setAccountFlag(input: unknown): Promise<ModerationResult> 
   const { user } = await requirePermission("users:write");
 
   const parsed = flagSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Check the details." };
+  if (!parsed.success) return { ok: false, message: "Check what you entered." };
   const { profileId, flagged } = parsed.data;
 
   try {
@@ -96,7 +96,7 @@ export async function setAccountFlag(input: unknown): Promise<ModerationResult> 
       where: { id: profileId },
       data: { isFlagged: flagged, moderatedAt: new Date(), moderatedById: user.id },
     });
-    if (updated.count === 0) return { ok: false, message: "That account was not found." };
+    if (updated.count === 0) return { ok: false, message: "That account could not be found." };
 
     await audit({
       actorId: user.id,
@@ -106,7 +106,7 @@ export async function setAccountFlag(input: unknown): Promise<ModerationResult> 
     });
 
     refreshUser(profileId);
-    return { ok: true, message: flagged ? "Account flagged." : "Flag cleared." };
+    return { ok: true, message: flagged ? "Account flagged." : "Flag removed." };
   } catch (error) {
     console.error("setAccountFlag failed", error);
     return { ok: false, message: "The flag could not be changed." };
@@ -122,7 +122,7 @@ export async function setWithdrawalsFrozen(input: unknown): Promise<ModerationRe
   const { user } = await requirePermission("payouts:write");
 
   const parsed = freezeSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, message: "Check the details." };
+  if (!parsed.success) return { ok: false, message: "Check what you entered." };
   const { profileId, frozen } = parsed.data;
 
   try {
@@ -130,7 +130,7 @@ export async function setWithdrawalsFrozen(input: unknown): Promise<ModerationRe
       where: { id: profileId },
       data: { withdrawalsFrozen: frozen, moderatedAt: new Date(), moderatedById: user.id },
     });
-    if (updated.count === 0) return { ok: false, message: "That account was not found." };
+    if (updated.count === 0) return { ok: false, message: "That account could not be found." };
 
     await audit({
       actorId: user.id,
@@ -140,10 +140,10 @@ export async function setWithdrawalsFrozen(input: unknown): Promise<ModerationRe
     });
 
     refreshUser(profileId);
-    return { ok: true, message: frozen ? "Withdrawals frozen." : "Withdrawals resumed." };
+    return { ok: true, message: frozen ? "Payouts blocked." : "Payouts allowed again." };
   } catch (error) {
     console.error("setWithdrawalsFrozen failed", error);
-    return { ok: false, message: "The freeze could not be changed." };
+    return { ok: false, message: "That could not be changed." };
   }
 }
 
@@ -164,7 +164,7 @@ export async function setModerationNote(input: unknown): Promise<ModerationResul
       where: { id: profileId },
       data: { moderationNote: note || null, moderatedAt: new Date(), moderatedById: user.id },
     });
-    if (updated.count === 0) return { ok: false, message: "That account was not found." };
+    if (updated.count === 0) return { ok: false, message: "That account could not be found." };
 
     await audit({
       actorId: user.id,
@@ -188,7 +188,7 @@ const bulkSchema = z.object({
 });
 
 /**
- * Flag a whole cluster of accounts at once — the payoff of the abuse checks,
+ * Flag a whole group of accounts at once — the point of the Suspicious accounts page,
  * where several accounts share one IP or one payout number. Flagging gates
  * nothing; it marks them for a human to review.
  */
@@ -230,7 +230,7 @@ export async function banAccounts(input: unknown): Promise<ModerationResult> {
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing selected." };
   const ids = parsed.data.profileIds.filter((id) => id !== user.id);
   if (ids.length === 0) {
-    return { ok: false, message: "That group is only your own account." };
+    return { ok: false, message: "That group holds only your own account." };
   }
 
   try {
@@ -260,7 +260,7 @@ const holdSchema = z.object({ withdrawalId: z.uuid(), onHold: z.boolean() });
 /**
  * Hold (or release) a specific payout for manual review. A held payout cannot be
  * approved or marked paid until released — enforced in the withdrawal actions.
- * The escrowed Honor stays held throughout, so nothing moves either way.
+ * The Honor stays on hold throughout, so nothing moves either way.
  */
 export async function setWithdrawalHold(input: unknown): Promise<ModerationResult> {
   const { user } = await requirePermission("payouts:write");
@@ -276,7 +276,7 @@ export async function setWithdrawalHold(input: unknown): Promise<ModerationResul
       data: { onHold },
     });
     if (updated.count === 0) {
-      return { ok: false, message: "Only a pending or approved payout can be held." };
+      return { ok: false, message: "Only a waiting or approved payout can be put on hold." };
     }
 
     await audit({
@@ -287,7 +287,7 @@ export async function setWithdrawalHold(input: unknown): Promise<ModerationResul
     });
 
     revalidatePath("/admin/withdrawals");
-    return { ok: true, message: onHold ? "Payout held for review." : "Payout released." };
+    return { ok: true, message: onHold ? "Payout put on hold." : "Payout released." };
   } catch (error) {
     console.error("setWithdrawalHold failed", error);
     return { ok: false, message: "The hold could not be changed." };

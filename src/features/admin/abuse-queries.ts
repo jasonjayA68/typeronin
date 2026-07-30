@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Multi-account detection for the admin abuse checks.
+ * Multi-account detection for the admin Suspicious accounts page.
  *
  * Two questions, both "which accounts share one thing they should not":
  *

@@ -97,9 +97,12 @@ function makePetal(width: number, height: number, seeded: boolean): Petal {
     phase: Math.random() * Math.PI * 2,
     spin: (Math.random() - 0.5) * 1.2,
     rotation: Math.random() * Math.PI * 2,
-    // 40–70% opacity per the spec: present enough to read, faint enough to stay
-    // beneath the interface. The paler tones lean more transparent.
-    alpha: 0.4 + depth * 0.3,
+    // 24–46% opacity. This was 40–70%, which put a drifting pink shape at up to
+    // 70% straight across body copy — the petals are `fixed`, so they cross the
+    // text rather than sitting under a card with it. Faint enough now that the
+    // fall still reads as movement without ever becoming something the eye has
+    // to look past. The paler tones lean more transparent.
+    alpha: 0.24 + depth * 0.22,
     depth,
     // Weighted toward the mid pink; the palest tone is the rarest, like real fall.
     tone: [0, 0, 1, 1, 2][(Math.random() * 5) | 0],

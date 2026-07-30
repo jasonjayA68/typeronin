@@ -40,7 +40,7 @@ const BLANK: Omit<CategoryDraft, "id"> = {
   isActive: true,
 };
 
-/** Shared field set. Create and edit differ only in where the values start. */
+/** Shared boxes. Create and edit differ only in where the values start. */
 function CategoryFields({
   values,
   onChange,
@@ -68,12 +68,12 @@ function CategoryFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category-slug">Slug</Label>
+        <Label htmlFor="category-slug">Web address</Label>
         <Input
           id="category-slug"
           value={values.slug}
           disabled={disabled}
-          placeholder="Left blank, it is derived from the name"
+          placeholder="Leave empty and it is made from the name"
           onChange={(e) => set("slug", e.target.value)}
         />
       </div>
@@ -89,7 +89,7 @@ function CategoryFields({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="category-intro">Intro</Label>
+        <Label htmlFor="category-intro">Opening text</Label>
         <textarea
           id="category-intro"
           rows={3}
@@ -99,13 +99,13 @@ function CategoryFields({
           className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
         />
         <p className="text-xs text-muted-foreground">
-          Long-form copy for the category landing page.
+          A longer piece of writing shown at the top of the category page.
         </p>
       </div>
 
       <div className="flex items-end gap-4">
         <div className="w-24 space-y-2">
-          <Label htmlFor="category-sort">Sort</Label>
+          <Label htmlFor="category-sort">Order</Label>
           <Input
             id="category-sort"
             inputMode="numeric"
@@ -124,7 +124,7 @@ function CategoryFields({
             onChange={(e) => set("isActive", e.target.checked)}
             className="size-4 accent-sakura"
           />
-          Active
+          Show to readers
         </Label>
       </div>
     </div>
@@ -158,7 +158,8 @@ export function NewCategoryButton() {
         <DialogHeader>
           <DialogTitle>New category</DialogTitle>
           <DialogDescription>
-            The slug is the URL. Leave it blank and it follows the name.
+            The web address is the last part of the link. Leave it empty and it is made from the
+            name.
           </DialogDescription>
         </DialogHeader>
         <CategoryFields values={values} onChange={setValues} disabled={pending} />
@@ -209,7 +210,7 @@ export function CategoryRowActions({
       }
       toast.success(
         postCount > 0
-          ? `${category.name} removed. ${postCount} ${postCount === 1 ? "post is" : "posts are"} now uncategorised.`
+          ? `${category.name} removed. ${postCount} ${postCount === 1 ? "post has" : "posts have"} no category now.`
           : `${category.name} removed`
       );
       setConfirming(false);
@@ -233,7 +234,7 @@ export function CategoryRowActions({
           <DialogHeader>
             <DialogTitle>{category.name}</DialogTitle>
             <DialogDescription>
-              Changing the slug changes the URL. Existing links to the old one will not resolve.
+              Changing the web address changes the link. Old links will stop working.
             </DialogDescription>
           </DialogHeader>
           <CategoryFields values={values} onChange={setValues} disabled={pending} />
@@ -261,13 +262,12 @@ export function CategoryRowActions({
               {postCount > 0 ? (
                 <>
                   <span className="tabular text-sakura">{postCount}</span>{" "}
-                  {postCount === 1 ? "post is" : "posts are"} filed here. Deleting the category
-                  does not delete them — they stay published and become uncategorised, with no
-                  category page to reach them from. Re-file them first if that is not what you
-                  want.
+                  {postCount === 1 ? "post is" : "posts are"} in this category. Deleting it does not
+                  delete them. They stay published but have no category, so readers cannot find them
+                  from a category page. Move them first if that is not what you want.
                 </>
               ) : (
-                "Nothing is filed here. This removes the category only."
+                "No posts are in this category. This removes the category only."
               )}
             </DialogDescription>
           </DialogHeader>
@@ -281,7 +281,7 @@ export function CategoryRowActions({
               Cancel
             </Button>
             <Button variant="destructive" size="sm" onClick={remove} disabled={pending}>
-              {pending ? "Removing" : postCount > 0 ? `Delete and uncategorise ${postCount}` : "Delete"}
+              {pending ? "Removing" : postCount > 0 ? `Delete and free ${postCount} posts` : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

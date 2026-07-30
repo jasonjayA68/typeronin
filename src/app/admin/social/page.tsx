@@ -18,7 +18,7 @@ export default async function SocialPage() {
   return (
     <AdminPage
       title="Social media"
-      description="The accounts linked from the site footer. Leave a field blank to hide that network. No address is hardcoded — the footer shows exactly what is set here."
+      description="The social accounts linked at the bottom of every page. Leave a box empty and that one is hidden."
     >
       <Panel title="Links">
         <SocialEditor initial={links} />

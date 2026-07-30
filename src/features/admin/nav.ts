@@ -1,13 +1,14 @@
 /**
- * The admin modules.
+ * The admin pages.
  *
- * Every module the product intends to have is listed, including the ones not
- * built yet — but `status` is honest about which. A sidebar of links that 404 is
- * worse than a sidebar that says "not yet": the first wastes your time, the
- * second tells you where the work is.
+ * Every page the product intends to have is listed, including the ones not built
+ * yet — `status` is honest about which. A sidebar of links that 404 is worse than
+ * one that says "not yet": the first wastes your time, the second tells you where
+ * the work is.
  *
- * `permission` gates the link and the route. The two must agree, so both read
- * from here.
+ * `label` is what an admin reads and can be reworded freely. `slug`, `href` and
+ * `permission` are used in code and routing — changing one breaks the page or its
+ * access check, so a label that no longer matches its slug is expected.
  */
 
 export type AdminModule = {
@@ -46,7 +47,7 @@ export const ADMIN_NAV: AdminSection[] = [
       },
       {
         slug: "audit",
-        label: "Audit log",
+        label: "Activity log",
         href: "/admin/audit",
         permission: "audit:read",
         status: "built",
@@ -79,7 +80,7 @@ export const ADMIN_NAV: AdminSection[] = [
       },
       {
         slug: "abuse",
-        label: "Abuse checks",
+        label: "Suspicious accounts",
         href: "/admin/abuse",
         permission: "users:write",
         status: "built",
@@ -87,11 +88,11 @@ export const ADMIN_NAV: AdminSection[] = [
     ],
   },
   {
-    title: "Revenue",
+    title: "Money",
     modules: [
       {
         slug: "economy",
-        label: "Honor economy",
+        label: "Honor value",
         href: "/admin/economy",
         permission: "settings:write",
         status: "built",
@@ -105,7 +106,7 @@ export const ADMIN_NAV: AdminSection[] = [
       },
       {
         slug: "advertisements",
-        label: "Advertisements",
+        label: "Ads",
         href: "/admin/advertisements",
         permission: "ads:write",
         status: "built",
@@ -113,7 +114,7 @@ export const ADMIN_NAV: AdminSection[] = [
     ],
   },
   {
-    title: "Play",
+    title: "Game",
     modules: [
       {
         slug: "words",
@@ -124,7 +125,7 @@ export const ADMIN_NAV: AdminSection[] = [
       },
       {
         slug: "passages",
-        label: "Passages",
+        label: "Typing phrases",
         href: "/admin/passages",
         permission: "words:write",
         status: "built",

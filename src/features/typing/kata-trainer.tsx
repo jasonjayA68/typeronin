@@ -6,8 +6,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { celebrateBonus } from "@/features/gamification/celebrate-bonus";
-import { rankForHonor } from "@/features/gamification/ranks";
-import { DISCIPLINES, passagesFor } from "@/features/typing/passages";
+import { rankForHonor, rankLabel } from "@/features/gamification/ranks";
+import { passagesFor } from "@/features/typing/passages";
 import { LevelUpModal } from "@/features/gamification/level-up-modal";
 import { saveSession, type SaveResult } from "@/features/typing/actions";
 import { useKata, type CharState } from "@/features/typing/use-kata";
@@ -40,10 +40,10 @@ type Words = ReturnType<typeof toWords>;
  * Counts the engine does not keep, derived from the per-character states once
  * the run is over.
  *
- * A word counts as struck only if every one of its characters was attempted;
- * a run abandoned mid-word does not owe you a word. Streak counts consecutive
- * clean characters, combo consecutive clean words — combo is the harder of the
- * two, since one slip anywhere in a word breaks it.
+ * A word counts only if every one of its characters was attempted; a run
+ * abandoned mid-word does not owe you a word. Streak counts consecutive correct
+ * characters, combo consecutive correct words — combo is the harder of the two,
+ * since one wrong key anywhere in a word breaks it.
  */
 function summarise(words: Words, states: CharState[]) {
   let correctWords = 0;
@@ -97,7 +97,7 @@ function Char({
         // during the run, so a player can see what they are about to type.
         state === "pending" && "text-muted-foreground",
         state === "correct" && "text-foreground",
-        // A missed cut stays visible for the rest of the run. That is the point.
+        // A wrong key stays visible for the rest of the run. That is the point.
         state === "wrong" &&
           "bg-destructive/15 text-destructive underline decoration-destructive/60 decoration-wavy underline-offset-4",
         isCursor && "bg-sakura/20"
@@ -154,8 +154,8 @@ export function KataTrainer({
   passages: GamePassage[];
   playState?: TrainerPlayState;
 }) {
-  // KATA is one discipline now: the typing game. The choice of game — KATA or
-  // SCROLL — is the toggle above this, so there is no sub-mode to pick here.
+  // This component is one whole game: Typing Phrases. The choice between it and
+  // Find the Word is the toggle above, so there is no sub-mode to pick here.
   const [passageIndex, setPassageIndex] = useState(0);
 
   // The admin's passages, or the built-in set if the table came back empty.
@@ -192,7 +192,7 @@ export function KataTrainer({
   useEffect(() => {
     if (!runKey || savedRun.current === runKey) return;
     // Claim the run before awaiting: an effect that fires twice (Strict Mode,
-    // or a re-render mid-flight) must not record the same cut twice.
+    // or a re-render mid-flight) must not record the same run twice.
     savedRun.current = runKey;
 
     const counts = summarise(words, states);
@@ -213,13 +213,13 @@ export function KataTrainer({
       // Keep the remaining counter honest with what the server actually did.
       if (result.status === "saved") {
         setRemaining(result.remaining);
-        // Any Bushido trial or Mission this run completed pays extra Honor —
+        // Any achievement or mission this run completed pays extra Honor —
         // announce each one.
         if (result.bonus) celebrateBonus(result.bonus.unlocked);
       } else if (result.status === "limit") setRemaining(0);
     });
 
-    // A finished cut is worth a gust of blossom.
+    // A finished game is worth a gust of blossom.
     gust(stats.wrong === 0 ? 1 : 0.5);
     // Only the completed run matters here; stats/words are settled by then.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -238,9 +238,12 @@ export function KataTrainer({
 
   return (
     <div className="space-y-6">
-      {/* Discipline blurb + games remaining */}
+      {/* What to do, how it is scored, and games remaining — all above the fold. */}
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-xs text-muted-foreground">{DISCIPLINES.kata.blurb}</p>
+        <p className="text-xs text-muted-foreground">
+          Type the phrase exactly as it is written. You are scored on speed and accuracy. Fewer
+          mistakes means more Honor.
+        </p>
         {remaining !== null ? (
           <span className="ml-auto text-xs whitespace-nowrap" aria-live="polite">
             <span className="tabular text-sakura">{remaining}</span>{" "}
@@ -253,15 +256,23 @@ export function KataTrainer({
 
       {/* Live instrument panel */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="WPM" value={String(stats.wpm)} hint={`raw ${stats.rawWpm}`} />
-        <Stat label="Accuracy" value={`${stats.accuracy}%`} hint={`${stats.wrong} missed`} />
-        <Stat label="Rhythm" value={String(stats.ma)} hint="rhythm evenness" accent />
+        <Stat
+          label="Words per minute (WPM)"
+          value={String(stats.wpm)}
+          hint={`${stats.rawWpm} before mistakes`}
+        />
+        <Stat
+          label="Accuracy"
+          value={`${stats.accuracy}%`}
+          hint={`${stats.wrong} wrong ${stats.wrong === 1 ? "key" : "keys"}`}
+        />
+        <Stat label="Rhythm" value={String(stats.ma)} hint="how even your speed is" accent />
         <Stat label="Time" value={`${seconds}s`} hint={passage.title} />
       </div>
 
       {/* The passage */}
       <div
-        className="paper-texture relative cursor-text rounded-2xl border border-border/60 bg-card/40 p-6 sm:p-8"
+        className="paper-texture relative cursor-text rounded-2xl border border-border/60 bg-card p-6 sm:p-8"
         onClick={focus}
       >
         {/* Focus target. Kept transparent rather than hidden so it can still be
@@ -274,7 +285,7 @@ export function KataTrainer({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className="absolute inset-0 size-full cursor-text opacity-0"
-          aria-label={`Type the passage: ${passage.title}`}
+          aria-label={`Type this phrase: ${passage.title}`}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -305,7 +316,7 @@ export function KataTrainer({
         ) : null}
       </div>
 
-      {/* The house rule, and the nudge when it is tested. */}
+      {/* The one rule of this game, and the reminder when a player tests it. */}
       <div className="flex min-h-6 items-center gap-4">
         <p
           aria-live="polite"
@@ -315,18 +326,18 @@ export function KataTrainer({
           )}
         >
           {refusals > 0
-            ? "Backspace is off — keep going and finish the phrase."
-            : "Type carefully — backspace is disabled, so each key counts."}
+            ? "Backspace is turned off. Keep going and finish the phrase."
+            : "Backspace is turned off. Every key you press counts."}
         </p>
       </div>
 
       {/* Result */}
       {finished ? (
-        <div className="gold-edge animate-in fade-in slide-in-from-bottom-2 rounded-2xl bg-card/60 p-6 duration-500 sm:p-8">
+        <div className="gold-edge animate-in fade-in slide-in-from-bottom-2 rounded-2xl bg-card p-6 duration-500 sm:p-8">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="font-heading text-xs tracking-[0.22em] text-sakura uppercase">
-                Cut complete
+                Game complete
               </p>
               <p className="mt-2 text-2xl font-semibold">
                 {/* The server's figure once saved — it carries the daily multiplier
@@ -338,8 +349,8 @@ export function KataTrainer({
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {stats.wrong === 0
-                  ? "Not a single stroke astray. This is the standard."
-                  : `${stats.wrong} ${stats.wrong === 1 ? "stroke" : "strokes"} astray. Accuracy is weighted heaviest — clean the cut and the Honor follows.`}
+                  ? "No wrong keys. That is a perfect game."
+                  : `${stats.wrong} wrong ${stats.wrong === 1 ? "key" : "keys"}. Accuracy counts for the most Honor. Fewer mistakes means a bigger reward.`}
               </p>
               {/* What actually became of the run. Never claim it was kept. */}
               <p className="mt-3 text-xs text-muted-foreground" aria-live="polite">
@@ -350,20 +361,23 @@ export function KataTrainer({
                       <span className="text-foreground">That was today&apos;s last game. </span>
                     ) : null}
                     <Link href="/dashboard" className="text-sakura underline-offset-4 hover:underline">
-                      See your standing
+                      See your progress
                     </Link>
                     .
                   </>
                 ) : saved?.status === "limit" ? (
                   saved.message
                 ) : saved?.status === "cooldown" ? (
-                  `Too soon — wait ${saved.secondsLeft}s, and the next game will count.`
+                  `Please wait ${saved.secondsLeft} seconds. Your next game will then count.`
                 ) : saved?.status === "error" ? (
                   saved.message
                 ) : (
                   <>
-                    At this pace you train as{" "}
-                    <span className="text-foreground">{rankForHonor(stats.honor * 12).name}</span>.
+                    Keep playing at this speed and you reach{" "}
+                    <span className="text-foreground">
+                      {rankLabel(rankForHonor(stats.honor * 12))}
+                    </span>
+                    .
                   </>
                 )}
               </p>
@@ -375,7 +389,7 @@ export function KataTrainer({
                 // the server, so send them onward instead.
                 <Button asChild variant="dojo">
                   <Link href="/dashboard">
-                    See your standing
+                    See your progress
                     <ArrowRightIcon aria-hidden="true" />
                   </Link>
                 </Button>
@@ -383,10 +397,10 @@ export function KataTrainer({
                 <>
                   <Button variant="outline" onClick={again}>
                     <RotateCcwIcon aria-hidden="true" />
-                    Again
+                    Try again
                   </Button>
                   <Button variant="dojo" onClick={nextPassage}>
-                    Next passage
+                    Next phrase
                     <ArrowRightIcon aria-hidden="true" />
                   </Button>
                 </>

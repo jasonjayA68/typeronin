@@ -30,7 +30,7 @@ export async function setPlacementActive(placementId: string, isActive: boolean)
   const { user } = await requirePermission("ads:write");
 
   const parsed = z.uuid().safeParse(placementId);
-  if (!parsed.success) return { ok: false, message: "Unknown placement." };
+  if (!parsed.success) return { ok: false, message: "Unknown ad position." };
 
   try {
     const placement = await prisma.advertisementPlacement.update({
@@ -51,7 +51,7 @@ export async function setPlacementActive(placementId: string, isActive: boolean)
     return { ok: true };
   } catch (error) {
     console.error("setPlacementActive failed", error);
-    return { ok: false, message: "That placement could not be changed." };
+    return { ok: false, message: "That ad position could not be changed." };
   }
 }
 
@@ -62,7 +62,7 @@ export async function setPlacementDevices(
   const { user } = await requirePermission("ads:write");
 
   const parsed = z.uuid().safeParse(placementId);
-  if (!parsed.success) return { ok: false, message: "Unknown placement." };
+  if (!parsed.success) return { ok: false, message: "Unknown ad position." };
 
   try {
     const placement = await prisma.advertisementPlacement.update({
@@ -83,7 +83,7 @@ export async function setPlacementDevices(
     return { ok: true };
   } catch (error) {
     console.error("setPlacementDevices failed", error);
-    return { ok: false, message: "That placement could not be changed." };
+    return { ok: false, message: "That ad position could not be changed." };
   }
 }
 
@@ -143,7 +143,7 @@ export async function upsertAdvertisement(
     return { ok: true };
   } catch (error) {
     console.error("upsertAdvertisement failed", error);
-    return { ok: false, message: "That advert could not be saved." };
+    return { ok: false, message: "That ad could not be saved." };
   }
 }
 
@@ -151,7 +151,7 @@ export async function deleteAdvertisement(adId: string): Promise<AdActionResult>
   const { user } = await requirePermission("ads:write");
 
   const parsed = z.uuid().safeParse(adId);
-  if (!parsed.success) return { ok: false, message: "Unknown advert." };
+  if (!parsed.success) return { ok: false, message: "Unknown ad." };
 
   try {
     const ad = await prisma.advertisement.delete({
@@ -169,6 +169,6 @@ export async function deleteAdvertisement(adId: string): Promise<AdActionResult>
     return { ok: true };
   } catch (error) {
     console.error("deleteAdvertisement failed", error);
-    return { ok: false, message: "That advert could not be removed." };
+    return { ok: false, message: "That ad could not be removed." };
   }
 }

@@ -40,9 +40,9 @@ export const DEFAULT_PLAY_LIMITS: PlayLimits = {
   honorMultiplierPercent: 100,
 };
 
-/** The exact words the dojo shows once the day's games are used up. */
+/** The exact words the player sees once the day's games are used up. */
 export const LIMIT_REACHED_MESSAGE =
-  "You have completed today's training. Return tomorrow to continue earning Honors.";
+  "You have played all your games for today. Come back tomorrow to earn more Honor.";
 
 export const playLimitsSchema = z.object({
   maxGamesPerDay: z.coerce

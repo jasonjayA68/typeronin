@@ -26,7 +26,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 
 /**
- * Choose a file from the library, or add one without leaving the page.
+ * Choose a file from the media library, or add one without leaving the page.
  *
  * The uploader is embedded rather than linked to. Picking a featured image is
  * nearly always the moment you discover you have not uploaded it yet, and
@@ -54,7 +54,7 @@ export function MediaPicker({
   /** Narrow the library to one kind. Null offers everything. */
   only = "IMAGE",
   heading = "Choose an image",
-  description = "Files come from the library. What you pick is referenced, not copied.",
+  description = "Pick a file from the media library. The file is used, not copied.",
 }: {
   trigger: ReactNode;
   onPick: (media: Picked) => void;
@@ -134,7 +134,7 @@ export function MediaPicker({
             />
             <div>
               <Button variant="ghost" size="sm" onClick={() => setUploading(false)}>
-                Back to the library
+                Back to the media library
               </Button>
             </div>
           </>
@@ -145,7 +145,7 @@ export function MediaPicker({
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search name, alt or caption"
+                placeholder="Search file name or description"
                 aria-label="Search the library"
                 className="h-7 w-full min-w-0 sm:w-64"
               />
@@ -195,7 +195,7 @@ export function MediaPicker({
                 </ul>
               ) : (
                 <p className="py-12 text-center text-sm text-muted-foreground">
-                  {q ? "Nothing matches that." : "The library is empty."} Upload what you need.
+                  {q ? "Nothing matches that." : "The media library is empty."} Upload what you need.
                 </p>
               )}
             </div>

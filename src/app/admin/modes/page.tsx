@@ -156,13 +156,13 @@ async function removeMode(formData: FormData) {
 
   const id = text(formData.get("id"));
   if (formData.get("confirm") !== "on") {
-    redirect(back({ edit: id, error: "Tick the confirmation to delete a mode." }));
+    redirect(back({ edit: id, error: "Tick the box to confirm before deleting a mode." }));
   }
 
   const result = await deleteGameMode(id);
   redirect(
     result.ok
-      ? back({ ok: "Mode deleted. The runs played on it were kept." })
+      ? back({ ok: "Mode deleted. The games played on it were kept." })
       : back({ edit: id, error: result.message })
   );
 }
@@ -219,7 +219,7 @@ function clocksOf(mode: ModeRow): string {
     const bounds =
       mode.customMinSeconds !== null && mode.customMaxSeconds !== null
         ? `${mode.customMinSeconds}–${mode.customMaxSeconds}s`
-        : "unbounded";
+        : "any length";
     return preset ? `${preset}, custom ${bounds}` : `custom ${bounds}`;
   }
   return preset || "—";
@@ -242,7 +242,11 @@ function ModeForm({
         <Input id="name" name="name" defaultValue={mode?.name ?? ""} required maxLength={60} />
       </Field>
 
-      <Field name="slug" label="Slug" hint="Lowercase letters, numbers and hyphens. The engine addresses a mode by this.">
+      <Field
+        name="slug"
+        label="Short name"
+        hint="Small letters, numbers and hyphens only. The game uses this to find the mode. Do not change it once players are using the mode."
+      >
         <Input id="slug" name="slug" defaultValue={mode?.slug ?? ""} required maxLength={40} />
       </Field>
 
@@ -250,29 +254,29 @@ function ModeForm({
         <Input id="description" name="description" defaultValue={mode?.description ?? ""} maxLength={240} />
       </Field>
 
-      <Field name="kanji" label="Kanji" hint="Optional, up to four characters.">
+      <Field name="kanji" label="Badge character" hint="Optional. Up to four characters.">
         <Input id="kanji" name="kanji" defaultValue={mode?.kanji ?? ""} maxLength={4} />
       </Field>
 
       <Field
         name="kind"
-        label="Kind"
-        hint="Kind is an enum because each implies engine behaviour: a clock, or no clock. Adding one is a code change."
+        label="Type"
+        hint="Only these two types exist. Adding a new type needs a developer."
       >
         <select id="kind" name="kind" defaultValue={mode?.kind ?? "PRACTICE"} className={CONTROL}>
-          <option value="PRACTICE">Practice — untimed</option>
-          <option value="TIMED">Timed — races a clock</option>
+          <option value="PRACTICE">Practice — no timer</option>
+          <option value="TIMED">Timed — race the clock</option>
         </select>
       </Field>
 
-      <Field name="difficulty" label="Difficulty" hint="Leave open and the player chooses.">
+      <Field name="difficulty" label="Difficulty" hint="Leave this open and the player picks.">
         <select
           id="difficulty"
           name="difficulty"
           defaultValue={mode?.difficulty ?? ""}
           className={CONTROL}
         >
-          <option value="">Open — player chooses</option>
+          <option value="">Open — the player picks</option>
           <option value="EASY">Easy</option>
           <option value="MEDIUM">Medium</option>
           <option value="HARD">Hard</option>
@@ -281,8 +285,8 @@ function ModeForm({
 
       <Field
         name="timeOptions"
-        label="Clocks (seconds)"
-        hint="Comma separated, e.g. 120, 300. Empty for practice. A timed mode with no clock and no custom span is refused."
+        label="Timer choices (seconds)"
+        hint="Separate with commas, for example 120, 300. Leave empty for practice. A timed mode needs either a choice here or a custom range below."
       >
         <Input
           id="timeOptions"
@@ -293,7 +297,7 @@ function ModeForm({
         />
       </Field>
 
-      <Field name="sort" label="Sort">
+      <Field name="sort" label="Order" hint="Lower numbers show first.">
         <Input
           id="sort"
           name="sort"
@@ -305,7 +309,7 @@ function ModeForm({
         />
       </Field>
 
-      <Field name="customMinSeconds" label="Custom floor (seconds)">
+      <Field name="customMinSeconds" label="Shortest custom timer (seconds)">
         <Input
           id="customMinSeconds"
           name="customMinSeconds"
@@ -317,7 +321,7 @@ function ModeForm({
         />
       </Field>
 
-      <Field name="customMaxSeconds" label="Custom ceiling (seconds)">
+      <Field name="customMaxSeconds" label="Longest custom timer (seconds)">
         <Input
           id="customMaxSeconds"
           name="customMaxSeconds"
@@ -331,8 +335,8 @@ function ModeForm({
 
       <Field
         name="honorMultiplier"
-        label="Honor multiplier %"
-        hint="Integer percentages, 100 leaves the payout unchanged. Range 0 to 1000."
+        label="Honor payout %"
+        hint="100 pays the normal amount. 200 pays double. 0 pays nothing. Range 0 to 1000."
       >
         <Input
           id="honorMultiplier"
@@ -345,7 +349,7 @@ function ModeForm({
         />
       </Field>
 
-      <Field name="xpMultiplier" label="XP multiplier %">
+      <Field name="xpMultiplier" label="XP payout %" hint="100 gives the normal amount.">
         <Input
           id="xpMultiplier"
           name="xpMultiplier"
@@ -357,7 +361,7 @@ function ModeForm({
         />
       </Field>
 
-      <Field name="kiCost" label="Ki cost" hint="Charged to start. Zero is free.">
+      <Field name="kiCost" label="Ki cost" hint="Ki is the energy a player spends to start a game. Set 0 to make it free.">
         <Input
           id="kiCost"
           name="kiCost"
@@ -371,8 +375,8 @@ function ModeForm({
 
       <Field
         name="minAccuracy"
-        label="Accuracy floor %"
-        hint="Runs under this earn nothing. Zero disables the floor. Range 0 to 100."
+        label="Lowest accuracy to earn %"
+        hint="A game below this accuracy earns nothing. Set 0 to let every game earn. Range 0 to 100."
       >
         <Input
           id="minAccuracy"
@@ -386,17 +390,17 @@ function ModeForm({
       </Field>
 
       <div className="flex flex-wrap items-center gap-4 sm:col-span-2">
-        <Check name="isActive" label="Active" defaultChecked={mode?.isActive ?? true} />
-        <Check name="allowCustomTime" label="Allow a custom clock" defaultChecked={mode?.allowCustomTime ?? false} />
+        <Check name="isActive" label="On" defaultChecked={mode?.isActive ?? true} />
+        <Check name="allowCustomTime" label="Let players set their own timer" defaultChecked={mode?.allowCustomTime ?? false} />
       </div>
 
       <fieldset className="min-w-0 sm:col-span-2">
         <legend className="text-xs tracking-[0.12em] text-muted-foreground uppercase">
-          Word pool
+          Words from
         </legend>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Tick nothing and the mode draws from every active category — that is what an empty pool
-          means, not a mode with no words.
+          Tick the categories this mode uses. Tick none and it uses every category that is on. It
+          does not mean the mode has no words.
         </p>
         {categories.length ? (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -417,7 +421,7 @@ function ModeForm({
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-xs text-muted-foreground">No active categories to draw from.</p>
+          <p className="mt-4 text-xs text-muted-foreground">No categories are turned on.</p>
         )}
       </fieldset>
 
@@ -461,7 +465,7 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
   return (
     <AdminPage
       title="Game modes"
-      description="A mode is a row, not a deploy: its clock, its word pool, its difficulty and its payout all live in the table. Only kind stays code, because a kind is engine behaviour."
+      description="A game mode is one way to play. You set its timer, its words, its difficulty and how much Honor it pays. Honor is the points players earn. Changes take effect at once, with no need for a developer."
       actions={
         showForm ? null : (
           <Button asChild variant="dojo" size="sm">
@@ -486,29 +490,29 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
 
       <PanelGrid cols={4}>
         <Stat framed label="Modes" value={String(modes.length)} />
-        <Stat framed accent label="Active" value={String(active)} hint="Retired modes keep their history." />
-        <Stat framed label="Runs recorded" value={runs.toLocaleString("en-US")} />
-        <Stat framed label="Active categories" value={String(categories.length)} hint="What an empty pool draws from." />
+        <Stat framed accent label="On" value={String(active)} hint="Modes turned off keep their history." />
+        <Stat framed label="Games played" value={runs.toLocaleString("en-US")} />
+        <Stat framed label="Categories on" value={String(categories.length)} hint="Used when no category is ticked." />
       </PanelGrid>
 
       <Panel title="Modes">
         {modes.length ? (
           <DataTable>
             <caption className="sr-only">
-              Every game mode, with its clock, pool, difficulty, payout and the runs played on it.
+              Every game mode, with its timer, words, difficulty, payout and games played.
             </caption>
             <thead>
               <tr>
                 <Th>Mode</Th>
-                <Th>Kind</Th>
-                <Th>Clocks</Th>
+                <Th>Type</Th>
+                <Th>Timers</Th>
                 <Th>Difficulty</Th>
                 <Th numeric>Honor</Th>
                 <Th numeric>XP</Th>
-                <Th numeric>Ki</Th>
-                <Th numeric>Floor</Th>
-                <Th>Word pool</Th>
-                <Th numeric>Runs</Th>
+                <Th numeric>Ki cost</Th>
+                <Th numeric>Min accuracy</Th>
+                <Th>Words from</Th>
+                <Th numeric>Games</Th>
                 <Th>State</Th>
                 <Th className="text-right">Edit</Th>
               </tr>
@@ -540,13 +544,13 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
                     {mode.categories.length ? (
                       mode.categories.map((c) => c.category.name).join(", ")
                     ) : (
-                      <span className="text-muted-foreground">Every active category</span>
+                      <span className="text-muted-foreground">Every category that is on</span>
                     )}
                   </Td>
                   <Td numeric>{mode._count.sessions.toLocaleString("en-US")}</Td>
                   <Td>
                     <StatusDot tone={mode.isActive ? "on" : "off"}>
-                      {mode.isActive ? "Active" : "Retired"}
+                      {mode.isActive ? "On" : "Off"}
                     </StatusDot>
                   </Td>
                   <Td>
@@ -555,7 +559,7 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
                         <input type="hidden" name="id" value={mode.id} />
                         <input type="hidden" name="next" value={mode.isActive ? "off" : "on"} />
                         <Button type="submit" size="xs" variant="outline">
-                          {mode.isActive ? "Retire" : "Restore"}
+                          {mode.isActive ? "Turn off" : "Turn on"}
                         </Button>
                       </form>
                       <PanelLink href={`/admin/modes?edit=${mode.id}`}>Edit</PanelLink>
@@ -570,8 +574,8 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
             title="No modes"
             action={<PanelLink href="/admin/modes?edit=new">Create the first one</PanelLink>}
           >
-            The seed ships a practice and a timed mode. Without a row here the games have nothing to
-            offer.
+            The site normally comes with a practice mode and a timed mode. With none here, players
+            have nothing to play.
           </EmptyState>
         )}
       </Panel>
@@ -591,8 +595,8 @@ export default async function GameModesPage(props: PageProps<"/admin/modes">) {
                 <span className="tabular text-sakura">
                   {editing._count.sessions.toLocaleString("en-US")}
                 </span>{" "}
-                {editing._count.sessions === 1 ? "run" : "runs"} played on it — the link is cleared
-                and each run still records what kind it was. The mode itself does not come back.
+                {editing._count.sessions === 1 ? "game" : "games"} already played on it. The mode
+                itself cannot be brought back.
               </p>
               <div className="mt-4 flex flex-wrap items-center gap-4">
                 <Check name="confirm" label="I understand" />

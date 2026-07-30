@@ -27,7 +27,7 @@ export function PasswordInput({
       <Input
         type={visible ? "text" : "password"}
         // Room for the toggle, so a long password never runs under it.
-        className={cn("pr-9", className)}
+        className={cn("h-11 pr-12", className)}
         {...props}
       />
 
@@ -38,17 +38,18 @@ export function PasswordInput({
         aria-pressed={visible}
         aria-label={visible ? "Hide password" : "Show password"}
         aria-describedby={hintId}
-        className="absolute top-1/2 right-1 grid size-6 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        // 44px square: the icon is small, the target it sits in is not.
+        className="absolute top-1/2 right-0 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         {visible ? (
-          <EyeOffIcon aria-hidden="true" className="size-4" />
+          <EyeOffIcon aria-hidden="true" className="size-5" />
         ) : (
-          <EyeIcon aria-hidden="true" className="size-4" />
+          <EyeIcon aria-hidden="true" className="size-5" />
         )}
       </button>
 
       <span id={hintId} className="sr-only">
-        Revealing your password shows it to anyone who can see this screen.
+        Showing your password lets anyone near you read it.
       </span>
     </div>
   );

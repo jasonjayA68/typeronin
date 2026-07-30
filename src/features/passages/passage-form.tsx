@@ -20,8 +20,9 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
 /**
- * Writing passages. Client-side because each save reports a result worth reading
- * — a refusal, or a confirmation — rather than just navigating away.
+ * Writing typing phrases. Client-side because each save reports a result worth
+ * reading — why it was refused, or that it worked — rather than just navigating
+ * away.
  */
 
 const DIFFICULTIES = ["EASY", "MEDIUM", "HARD"] as const;
@@ -67,7 +68,7 @@ function Fields({ values, idPrefix }: { values?: Partial<PassageValues>; idPrefi
       </div>
 
       <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor={`${idPrefix}-text`}>Passage</Label>
+        <Label htmlFor={`${idPrefix}-text`}>Text</Label>
         <textarea
           id={`${idPrefix}-text`}
           name="text"
@@ -76,7 +77,7 @@ function Fields({ values, idPrefix }: { values?: Partial<PassageValues>; idPrefi
           maxLength={2000}
           spellCheck
           defaultValue={values?.text ?? ""}
-          placeholder="The prose the student types, clean, from first character to last."
+          placeholder="The exact text the player types, from the first letter to the last."
           className={cn(field, "h-auto resize-y py-2 leading-relaxed")}
         />
       </div>
@@ -118,7 +119,7 @@ function Fields({ values, idPrefix }: { values?: Partial<PassageValues>; idPrefi
           defaultChecked={values?.isActive ?? true}
           className="size-4 rounded border-input accent-sakura"
         />
-        Active — the dojo may draw this passage
+        On — the game can use this phrase
       </label>
     </div>
   );
@@ -140,13 +141,13 @@ export function PassageCreate() {
             return;
           }
           formRef.current?.reset();
-          toast.success("Passage added.");
+          toast.success("Phrase added.");
         });
       }}
     >
       <Fields idPrefix="new-passage" />
       <Button type="submit" size="sm" disabled={pending}>
-        {pending ? "Adding" : "Add passage"}
+        {pending ? "Adding" : "Add phrase"}
       </Button>
     </form>
   );
@@ -165,9 +166,9 @@ export function PassageEdit({ passage }: { passage: PassageValues }) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit passage</DialogTitle>
+          <DialogTitle>Edit phrase</DialogTitle>
           <DialogDescription>
-            Changes take effect on the next visit to the dojo.
+            Changes take effect the next time someone opens the game.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -179,7 +180,7 @@ export function PassageEdit({ passage }: { passage: PassageValues }) {
                 return;
               }
               setOpen(false);
-              toast.success("Passage saved.");
+              toast.success("Phrase saved.");
             });
           }}
           className="space-y-4"

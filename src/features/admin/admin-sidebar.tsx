@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 import type { AdminSection } from "@/features/admin/nav";
 
 /**
- * The module rail.
+ * The list of admin pages.
  *
- * Planned modules render as disabled text with a reason, not as links. The
- * sidebar is the map of the panel; a map that marks roads which do not exist is
- * worse than one that shows the gap.
+ * Pages that are not built yet render as grey text with a reason, not as links.
+ * The sidebar is the map of the admin area; a map that shows roads which do not
+ * exist is worse than one that admits the gap.
  */
 export function AdminSidebar({ sections }: { sections: AdminSection[] }) {
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export function AdminSidebar({ sections }: { sections: AdminSection[] }) {
                 return (
                   <li key={mod.slug}>
                     <span
-                      title={mod.note ?? "Not built yet"}
+                      title={mod.note ?? "Not built yet."}
                       aria-disabled="true"
                       className="flex cursor-not-allowed items-center justify-between gap-2 rounded-lg px-3 py-1.5 text-sm text-muted-foreground/50"
                     >

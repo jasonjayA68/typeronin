@@ -66,15 +66,28 @@ const CATEGORIES = [
   },
 ] as const;
 
-/** The seven virtues, mirroring the Bushido Trials page. */
+/**
+ * The seven achievements shown on the Train page.
+ *
+ * Each `description` states the exact condition the player must meet, and those
+ * conditions live in TRIAL_REQUIREMENTS (src/features/gamification/trials.ts) —
+ * the two must agree. They previously did not: these were the seven Bushido
+ * virtues, and "Take a scroll two ranks above your standing" described nothing
+ * the code actually checked (it checks one game on the hard setting). A player
+ * could not tell what to do, and would not know when they had done it.
+ *
+ * The `slug` stays as the virtue name: it is the key TRIAL_REQUIREMENTS and
+ * ProfileAchievement rows are stored against, and renaming it would orphan every
+ * achievement already earned.
+ */
 const ACHIEVEMENTS = [
-  { slug: "rectitude", name: "Rectitude", kanji: "義", description: "Type what is written. No paraphrase, no shortcut, no silent correction.", honorReward: 800, xpReward: 200, sort: 0 },
-  { slug: "courage", name: "Courage", kanji: "勇", description: "Take a scroll two ranks above your standing, and finish what you began.", honorReward: 1200, xpReward: 300, sort: 1 },
-  { slug: "benevolence", name: "Benevolence", kanji: "仁", description: "Forgive your own slow morning. Return the next day and train it again.", honorReward: 600, xpReward: 150, sort: 2 },
-  { slug: "respect", name: "Respect", kanji: "礼", description: "Hold your rhythm through a full scroll without once rushing the close.", honorReward: 900, xpReward: 220, sort: 3 },
-  { slug: "honesty", name: "Honesty", kanji: "誠", description: "Post a run you are not proud of. The record is the record.", honorReward: 500, xpReward: 120, sort: 4 },
-  { slug: "honour", name: "Honour", kanji: "名誉", description: "Finish a kata with not one stroke astray.", honorReward: 1500, xpReward: 400, sort: 5 },
-  { slug: "loyalty", name: "Loyalty", kanji: "忠義", description: "Train seven days running. The dojo remembers who returns.", honorReward: 2000, xpReward: 500, sort: 6 },
+  { slug: "rectitude", name: "Perfect Game", description: "Finish one Typing Phrases game with no wrong keys.", honorReward: 800, xpReward: 200, sort: 0 },
+  { slug: "courage", name: "Try Something Hard", description: "Finish one game on the hard setting.", honorReward: 1200, xpReward: 300, sort: 1 },
+  { slug: "benevolence", name: "Come Back Again", description: "Play on two different days.", honorReward: 600, xpReward: 150, sort: 2 },
+  { slug: "respect", name: "Perfect Round", description: "Answer every question correctly in one Find the Word round.", honorReward: 900, xpReward: 220, sort: 3 },
+  { slug: "honesty", name: "First Three Games", description: "Play three games. Every game counts, good or bad.", honorReward: 500, xpReward: 120, sort: 4 },
+  { slug: "honour", name: "Three Perfect Games", description: "Finish three Typing Phrases games with no wrong keys.", honorReward: 1500, xpReward: 400, sort: 5 },
+  { slug: "loyalty", name: "Seven Days", description: "Play on seven different days.", honorReward: 2000, xpReward: 500, sort: 6 },
 ] as const;
 
 /** Reward and gameplay knobs the admin panel will later edit in place. */
@@ -113,16 +126,20 @@ const PERMISSIONS = [
 const ROLES = [
   {
     slug: "admin",
-    name: "Magistrate",
-    description: "Full authority over the dojo.",
+    // The name is a display label and nothing is gated on it — the `slug` is what
+    // the permission checks read. So it says what the role does, in the plainest
+    // word available. These were Magistrate / Scribe / Warden, which asked a new
+    // admin to learn a metaphor before they could tell who was allowed to do what.
+    name: "Admin",
+    description: "Can do everything.",
     // Every permission. Spelled as a wildcard here and expanded below, so a new
     // permission is never accidentally withheld from the role that must have it.
     permissions: "*" as const,
   },
   {
     slug: "editor",
-    name: "Scribe",
-    description: "Writes and publishes the scrolls. No authority over play.",
+    name: "Editor",
+    description: "Writes and publishes blog posts. Cannot change the game or money.",
     permissions: [
       "blog:read",
       "blog:write",
@@ -134,8 +151,8 @@ const ROLES = [
   },
   {
     slug: "moderator",
-    name: "Warden",
-    description: "Keeps the hall civil. Sees people and reports, not revenue.",
+    name: "Moderator",
+    description: "Handles players and reports. Cannot see money.",
     permissions: ["users:read", "comments:moderate", "reports:read", "reports:resolve"],
   },
 ] as const;

@@ -44,7 +44,7 @@ export default async function BlogCategoriesPage() {
   return (
     <AdminPage
       title="Blog categories"
-      description="The filing scheme for the blog. Sort decides the order they appear in; inactive keeps a category on file without listing it."
+      description="Groups that blog posts are sorted into. Order decides which shows first. Turning a category off keeps it but hides it from readers."
       actions={<NewCategoryButton />}
     >
       <Panel
@@ -52,7 +52,7 @@ export default async function BlogCategoriesPage() {
         action={
           categories.length ? (
             <span className="text-xs text-muted-foreground">
-              <span className="tabular">{categories.length}</span> filing{" "}
+              <span className="tabular">{categories.length}</span> categories holding{" "}
               <span className="tabular">{filed}</span> {filed === 1 ? "post" : "posts"}
             </span>
           ) : null
@@ -61,14 +61,14 @@ export default async function BlogCategoriesPage() {
         {categories.length ? (
           <DataTable>
             <caption className="sr-only">
-              Blog categories in sort order, with the number of posts filed under each.
+              Blog categories in order, with the number of posts in each.
             </caption>
             <thead>
               <tr>
                 <Th>Category</Th>
-                <Th>Slug</Th>
+                <Th>Web address</Th>
                 <Th numeric>Posts</Th>
-                <Th numeric>Sort</Th>
+                <Th numeric>Order</Th>
                 <Th>State</Th>
                 <Th className="text-right">Actions</Th>
               </tr>
@@ -99,7 +99,7 @@ export default async function BlogCategoriesPage() {
                   </Td>
                   <Td>
                     <StatusDot tone={category.isActive ? "on" : "off"}>
-                      {category.isActive ? "Active" : "Hidden"}
+                      {category.isActive ? "On" : "Hidden"}
                     </StatusDot>
                   </Td>
                   <Td className="text-right">
@@ -122,8 +122,8 @@ export default async function BlogCategoriesPage() {
           </DataTable>
         ) : (
           <EmptyState title="No categories yet" action={<NewCategoryButton />}>
-            A post can be filed without one, so this is optional. It earns its keep once there are
-            enough posts that readers need a way through them.
+            Categories are optional. A post can be published without one. They help once there are
+            enough posts that readers need a way to find things.
           </EmptyState>
         )}
       </Panel>

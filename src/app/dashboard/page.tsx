@@ -8,7 +8,13 @@ import { getEconomyConfig } from "@/features/economy/service";
 import { getDailyPlayState } from "@/features/play/service";
 import { getDashboard } from "@/features/profile/queries";
 import { ensureProfile } from "@/features/profile/service";
-import { nextRank, rankForHonor, rankProgress } from "@/features/gamification/ranks";
+import {
+  nextRank,
+  rankForHonor,
+  rankLabel,
+  rankProgress,
+  rankTier,
+} from "@/features/gamification/ranks";
 import { Empty, Panel, Stat, when } from "@/features/profile/dashboard-panels";
 import { CancelWithdrawalButton } from "@/features/withdrawals/cancel-button";
 import {
@@ -34,7 +40,7 @@ import { Progress } from "@/shared/components/ui/progress";
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Your Honor, your rewards wallet, and your progress — all in one place.",
+  description: "Your Honor points, your rewards wallet, and your progress — all in one place.",
 };
 
 /** Initials for the avatar tile. */
@@ -101,9 +107,9 @@ export default async function DashboardPage() {
       <SiteHeader />
       <main className="flex-1">
         <PageHeader
-          eyebrow={held.name}
+          eyebrow={rankLabel(held)}
           title={`Welcome back, ${profile.displayName}`}
-          lede="Track your rewards, your rank, and your daily games — all in one place."
+          lede="Track your Honor, your rewards, and your games left today. Honor is the points you earn by playing."
           actions={
             <Button asChild variant="dojo" size="lg">
               <Link href="/dojo">
@@ -128,7 +134,7 @@ export default async function DashboardPage() {
             <Panel title="Games Today">
               <div className="flex items-center gap-2">
                 <Gamepad2Icon aria-hidden="true" className="size-5 text-sakura" />
-                <Stat label="Remaining" value={gamesLabel} hint="Resets daily" />
+                <Stat label="Left today" value={gamesLabel} hint="You get new games every day" />
               </div>
             </Panel>
             <Panel title="Day Streak">
@@ -140,15 +146,23 @@ export default async function DashboardPage() {
                 <Stat
                   label="In a row"
                   value={String(profile.streakDays)}
-                  hint={profile.lastPlayedOn ? `Last: ${when(profile.lastPlayedOn)}` : "Not yet begun"}
+                  hint={
+                    profile.lastPlayedOn
+                      ? `Last played ${when(profile.lastPlayedOn)}`
+                      : "You have not played yet"
+                  }
                 />
               </div>
             </Panel>
-            <Panel title="Rank">
+            <Panel title="Level">
               <Stat
                 label="Current"
-                value={held.name}
-                hint={next ? `Next: ${next.name}` : "Top rank reached"}
+                value={`Level ${rankTier(held)}`}
+                hint={
+                  next
+                    ? `${held.name} · Next: Level ${rankTier(next)}`
+                    : `${held.name} · Highest level reached`
+                }
               />
             </Panel>
           </div>
@@ -174,7 +188,7 @@ export default async function DashboardPage() {
               <Stat
                 label="Available to Withdraw"
                 value={canWithdraw ? honorToCash(profile.honor, economy) : formatCash(0)}
-                hint={canWithdraw ? "Ready to cash out" : "Below the minimum"}
+                hint={canWithdraw ? "Ready to cash out" : "Below the minimum amount"}
               />
             </div>
 
@@ -205,7 +219,7 @@ export default async function DashboardPage() {
                       more Honor to unlock withdrawals.
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Withdrawals open at{" "}
+                      You can withdraw once you have{" "}
                       <span className="tabular text-foreground">
                         {economy.minWithdrawalHonor.toLocaleString()}
                       </span>{" "}
@@ -298,30 +312,32 @@ export default async function DashboardPage() {
           {/* Saved payout methods — reusable destinations with optional QR codes */}
           <Panel title="Payout Methods" className="mt-4">
             <p className="mb-4 text-sm text-muted-foreground">
-              Save where you want to be paid — GCash, Maya, or a bank — with an optional QR code,
-              so withdrawals are one tap next time.
+              Save where you want to be paid. Choose GCash, Maya, or a bank, and add a QR code if you
+              have one. Your next withdrawal is then much faster.
             </p>
             <PayoutMethodsPanel methods={payoutMethods} />
           </Panel>
 
-          {/* Rank progress */}
-          <Panel title="Your Rank" className="mt-4">
+          {/* Level progress */}
+          <Panel title="Your Level" className="mt-4">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="text-sm text-muted-foreground">
-                <span className="font-heading tracking-wide text-foreground">{held.name}</span>
+                <span className="font-heading tracking-wide text-foreground">{rankLabel(held)}</span>
                 {next ? (
                   <>
                     {" → "}
-                    <span className="font-heading tracking-wide text-foreground">{next.name}</span>
+                    <span className="font-heading tracking-wide text-foreground">
+                      {rankLabel(next)}
+                    </span>
                   </>
                 ) : (
-                  " — top rank"
+                  " — the highest level"
                 )}
               </p>
               <p className="tabular text-sm text-sakura">
                 {next
-                  ? `${(next.honor - profile.honor).toLocaleString()} Honor to go`
-                  : "Nothing left to climb"}
+                  ? `${(next.honor - profile.honor).toLocaleString()} more Honor to reach it`
+                  : "You are at the highest level"}
               </p>
             </div>
             <Progress value={progress} className="mt-3" />

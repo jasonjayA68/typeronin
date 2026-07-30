@@ -106,13 +106,13 @@ export function MediaRowActions({ media }: { media: MediaDraft }) {
           <DialogHeader>
             <DialogTitle className="truncate">{media.fileName}</DialogTitle>
             <DialogDescription>
-              The description travels with the file. Every post using it shows this alt text.
+              The description belongs to the file. Every post using it shows this description.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-alt">Alt text{isImage ? "" : " (optional)"}</Label>
+              <Label htmlFor="edit-alt">Description{isImage ? "" : " (optional)"}</Label>
               <Input
                 id="edit-alt"
                 value={altText}
@@ -121,8 +121,8 @@ export function MediaRowActions({ media }: { media: MediaDraft }) {
               />
               <p className="text-xs text-muted-foreground">
                 {isImage
-                  ? "What someone who cannot see it needs to know. Required for images."
-                  : "Nothing visual to describe. Leave it blank."}
+                  ? "Describe the picture for someone who cannot see it. Required for images."
+                  : "There is nothing to describe. Leave it empty."}
               </p>
             </div>
 
@@ -159,9 +159,9 @@ export function MediaRowActions({ media }: { media: MediaDraft }) {
             <DialogTitle className="truncate">Delete {media.fileName}</DialogTitle>
             <DialogDescription>
               {usage === null ? (
-                "Checking what uses this file…"
+                "Checking where this file is used…"
               ) : uses === 0 ? (
-                "Nothing uses this file. It is removed from storage and from the library, for good."
+                "Nothing uses this file. Deleting it removes it for good."
               ) : (
                 <>
                   <span className="tabular text-sakura">{uses}</span>{" "}
@@ -169,13 +169,11 @@ export function MediaRowActions({ media }: { media: MediaDraft }) {
                   {usage.embedded > 0 ? (
                     <>
                       {" "}
-                      — <span className="tabular">{usage.embedded}</span> with it{" "}
-                      {usage.embedded === 1 ? "embedded" : "embedded"} in the body, where it will
-                      become a hole in the article
+                      — <span className="tabular">{usage.embedded}</span> of them show it inside the
+                      text, where it will leave a gap
                     </>
                   ) : null}
-                  . Deleting it cannot be undone; the file is gone from storage, not just from this
-                  list.
+                  . Deleting cannot be undone. The file is removed for good, not just from this list.
                 </>
               )}
             </DialogDescription>

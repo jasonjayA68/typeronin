@@ -35,11 +35,12 @@ function tell(result: ModerationResult) {
 }
 
 /**
- * The moderation dialog for one account.
+ * The account status dialog for one account.
  *
- * State only — every button calls a self-authorizing, audit-logged server
- * action. Account controls need `users:write`; freezing withdrawals needs
- * `payouts:write`, so that control is shown only when the operator holds it.
+ * State only — every button calls a server action that checks the permission
+ * itself and writes to the activity log. Account controls need `users:write`;
+ * blocking payouts needs `payouts:write`, so that button is shown only when the
+ * admin holds it.
  */
 export function ModerationControls({
   profileId,
@@ -65,14 +66,14 @@ export function ModerationControls({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <ShieldAlertIcon aria-hidden="true" />
-          Moderate
+          Account status
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Moderate {displayName}</DialogTitle>
+          <DialogTitle>Account status for {displayName}</DialogTitle>
           <DialogDescription>
-            Every action here is recorded in the audit log.
+            Every action here is saved in the activity log.
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +81,7 @@ export function ModerationControls({
           {/* Account status */}
           <section className="space-y-2">
             <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-              Account status — currently {state.status.toLowerCase()}
+              Status — now {state.status.toLowerCase()}
             </p>
             {isSelf ? (
               <p className="text-xs text-muted-foreground">
@@ -120,7 +121,7 @@ export function ModerationControls({
           {/* Flag + freeze toggles */}
           <section className="space-y-2">
             <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-              Flags
+              Restrictions
             </p>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -131,7 +132,7 @@ export function ModerationControls({
                   run(() => setAccountFlag({ profileId, flagged: !state.isFlagged }))
                 }
               >
-                {state.isFlagged ? "Clear flag" : "Flag as suspicious"}
+                {state.isFlagged ? "Remove the flag" : "Flag as suspicious"}
               </Button>
               {canFreeze ? (
                 <Button
@@ -144,7 +145,7 @@ export function ModerationControls({
                     )
                   }
                 >
-                  {state.withdrawalsFrozen ? "Unfreeze withdrawals" : "Freeze withdrawals"}
+                  {state.withdrawalsFrozen ? "Allow payouts again" : "Block payouts"}
                 </Button>
               ) : null}
             </div>
@@ -156,7 +157,7 @@ export function ModerationControls({
               htmlFor={`note-${profileId}`}
               className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase"
             >
-              Internal note
+              Private note
             </label>
             <textarea
               id={`note-${profileId}`}
@@ -165,7 +166,7 @@ export function ModerationControls({
               rows={3}
               disabled={pending}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Only staff can see this."
+              placeholder="Only admins can see this. The player never sees it."
               className={cn(
                 "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none",
                 "focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
@@ -195,10 +196,10 @@ export function StatusBadges({ state }: { state: ModerationState }) {
     badges.push({ label: "Suspended", className: "bg-warning/15 text-warning" });
   if (state.isFlagged) badges.push({ label: "Flagged", className: "bg-sakura/15 text-sakura" });
   if (state.withdrawalsFrozen)
-    badges.push({ label: "Frozen", className: "bg-muted text-muted-foreground" });
+    badges.push({ label: "Payouts blocked", className: "bg-muted text-muted-foreground" });
 
   if (badges.length === 0) {
-    return <span className="text-xs text-muted-foreground">Active</span>;
+    return <span className="text-xs text-muted-foreground">Normal</span>;
   }
   return (
     <span className="flex flex-wrap gap-1">

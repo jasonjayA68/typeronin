@@ -24,13 +24,13 @@ export const metadata: Metadata = {
 const STATUSES = ["PENDING", "APPROVED", "SPAM", "REJECTED"] as const;
 
 const LABEL: Record<CommentStatus, string> = {
-  PENDING: "Pending",
+  PENDING: "Waiting",
   APPROVED: "Approved",
   SPAM: "Spam",
   REJECTED: "Rejected",
 };
 
-/** The queue defaults to what needs a decision, not to everything. */
+/** The list opens on what needs a decision, not on everything. */
 function parseStatus(value: string | string[] | undefined): CommentStatus {
   const first = Array.isArray(value) ? value[0] : value;
   const upper = first?.toUpperCase();
@@ -92,7 +92,7 @@ export default async function CommentsPage(props: PageProps<"/admin/comments">) 
   return (
     <AdminPage
       title="Comments"
-      description="Nothing reaches a post until it is approved here. Rejected and spam both stay on file — the difference is that spam is evidence, and a filter worth training needs it."
+      description="No comment appears on the blog until you approve it here. Rejected and spam comments are both kept on file, so you can always look back at them."
     >
       <PanelGrid cols={4}>
         {STATUSES.map((s) => (
@@ -102,7 +102,7 @@ export default async function CommentsPage(props: PageProps<"/admin/comments">) 
             accent={s === "PENDING"}
             label={LABEL[s]}
             value={(counts.get(s) ?? 0).toLocaleString("en-US")}
-            hint={s === "PENDING" ? "Awaiting a decision" : undefined}
+            hint={s === "PENDING" ? "Waiting for you to decide" : undefined}
           />
         ))}
       </PanelGrid>
@@ -120,16 +120,16 @@ export default async function CommentsPage(props: PageProps<"/admin/comments">) 
         {rows.length ? (
           <CommentQueue rows={rows} />
         ) : status === "PENDING" ? (
-          <EmptyState title="Nothing awaiting moderation">
+          <EmptyState title="Nothing waiting for review">
             {total > 0
-              ? "Every comment on file has been decided. New ones arrive here first and stay invisible to readers until approved."
-              : "No one has commented yet. When they do, nothing appears on the post until it is approved here."}
+              ? "Every comment has been decided. New ones come here first and stay hidden from readers until you approve them."
+              : "No one has commented yet. When they do, nothing shows on the blog until you approve it here."}
           </EmptyState>
         ) : (
           <EmptyState title={`No ${LABEL[status].toLowerCase()} comments`}>
             {total > 0
-              ? "Nothing is filed under this state. The other tabs may have what you are looking for."
-              : "No one has commented yet, so every state is empty."}
+              ? "Nothing is in this group. Try one of the other tabs."
+              : "No one has commented yet, so every group is empty."}
           </EmptyState>
         )}
       </Panel>

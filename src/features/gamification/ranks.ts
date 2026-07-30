@@ -1,20 +1,24 @@
 /**
- * The nine ranks. Progression is gated on Honor, which is only earned by
- * accurate cuts — speed alone never advances a student.
+ * The nine levels. Moving up is gated on Honor, which is only earned by
+ * accurate play — speed alone never moves a player up.
  *
  * Kept as one ordered list so the ladder renders, the badge resolves, and the
- * "next rank" maths all read from the same source.
+ * "next level" maths all read from the same source.
+ *
+ * Each level keeps a short name as flavour, but the name is never shown on its
+ * own: {@link rankLabel} pairs it with the plain level number, so the ladder is
+ * legible to a player who has never seen the names before.
  */
 
 export type Rank = {
   slug: string;
-  /** English name, used as the primary label. */
+  /** Short name, shown beside the level number. */
   name: string;
-  /** Kanji, shown as a quiet secondary mark. */
+  /** Kanji. Decorative only, and never the sole label for a level. */
   kanji: string;
-  /** Honor required to hold this rank. */
+  /** Honor required to hold this level. */
   honor: number;
-  /** One line of flavour, written as a sensei would say it. */
+  /** One plain line about what the player has shown at this level. */
   creed: string;
 };
 
@@ -24,65 +28,74 @@ export const RANKS: readonly Rank[] = [
     name: "Heimin",
     kanji: "平民",
     honor: 0,
-    creed: "You arrive with nothing but willingness. It is enough to begin.",
+    creed: "You have started. That is all it takes to begin.",
   },
   {
     slug: "ashigaru",
     name: "Ashigaru",
     kanji: "足軽",
     honor: 500,
-    creed: "You hold the line. Your hands are learning where they live.",
+    creed: "You are playing often. Your hands are learning the keys.",
   },
   {
     slug: "bushi",
     name: "Bushi",
     kanji: "武士",
     honor: 1_500,
-    creed: "The keys no longer surprise you. Now the work truly starts.",
+    creed: "You know where the keys are. Now you can build speed.",
   },
   {
     slug: "samurai",
     name: "Samurai",
     kanji: "侍",
     honor: 4_000,
-    creed: "You serve the sentence, not your own haste.",
+    creed: "You type the words correctly instead of rushing them.",
   },
   {
     slug: "ronin",
     name: "Ronin",
     kanji: "浪人",
     honor: 8_000,
-    creed: "No master, no excuses. Your discipline is now your own.",
+    creed: "You practise without being told. The habit is yours now.",
   },
   {
     slug: "hatamoto",
     name: "Hatamoto",
     kanji: "旗本",
     honor: 15_000,
-    creed: "Others watch your hands to learn the way of them.",
+    creed: "You are faster than most players here.",
   },
   {
     slug: "karo",
     name: "Karō",
     kanji: "家老",
     honor: 26_000,
-    creed: "You correct by example. Rarely by word.",
+    creed: "You make very few mistakes, even at high speed.",
   },
   {
     slug: "daimyo",
     name: "Daimyō",
     kanji: "大名",
     honor: 42_000,
-    creed: "Precision has become ordinary to you. That is the rarest thing.",
+    creed: "Accurate typing is normal for you now. Very few players reach this.",
   },
   {
     slug: "shogun",
     name: "Shōgun",
     kanji: "将軍",
     honor: 65_000,
-    creed: "There is no summit. There is only the next stroke, made well.",
+    creed: "This is the highest level. Keep playing to hold your place.",
   },
 ] as const;
+
+/**
+ * How a level is written wherever a player can see it: the number first, then
+ * the name. Use this instead of `rank.name` on its own — the number is the part
+ * that needs no explanation and no translation.
+ */
+export function rankLabel(rank: Rank): string {
+  return `Level ${rankTier(rank)} · ${rank.name}`;
+}
 
 /** The highest rank whose Honor threshold has been met. */
 export function rankForHonor(honor: number): Rank {
@@ -93,12 +106,12 @@ export function rankForHonor(honor: number): Rank {
   return held;
 }
 
-/** The rank above the one currently held, or null at the summit. */
+/** The rank above the one currently held, or null at the top level. */
 export function nextRank(honor: number): Rank | null {
   return RANKS.find((rank) => rank.honor > honor) ?? null;
 }
 
-/** Progress toward the next rank, 0–1. Returns 1 at the summit. */
+/** Progress toward the next rank, 0–1. Returns 1 at the top level. */
 export function rankProgress(honor: number): number {
   const held = rankForHonor(honor);
   const next = nextRank(honor);

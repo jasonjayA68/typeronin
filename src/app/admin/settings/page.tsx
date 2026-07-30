@@ -18,14 +18,14 @@ export default async function SettingsPage() {
   return (
     <AdminPage
       title="Settings"
-      description="Reward values, game knobs and feature flags. Stored one row per key with a JSON value, so a new setting needs no migration."
+      description="The saved values behind rewards, game rules and features. This page shows them so you can check what is set. Most are changed on their own page instead."
     >
       {settings.length ? (
         <div className="space-y-3">
           {settings.map((setting) => (
             <section
               key={setting.key}
-              className="min-w-0 rounded-xl border border-border bg-card/60 p-5"
+              className="min-w-0 rounded-xl border border-border bg-card p-5"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-4">
                 <code className="text-sm font-medium text-foreground">{setting.key}</code>
@@ -43,14 +43,13 @@ export default async function SettingsPage() {
           ))}
         </div>
       ) : (
-        <EmptyState title="No settings yet">Run the seed to populate them.</EmptyState>
+        <EmptyState title="No settings yet">Run the seed to create them.</EmptyState>
       )}
 
-      <Panel title="Read-only for now" className="border-dashed bg-transparent">
+      <Panel title="You can read this page, not change it" className="border-dashed bg-transparent">
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-          These are shown, not editable. Editing arbitrary JSON safely needs per-key schemas and
-          validation — a free-text box that can write a malformed reward table into production is
-          not a feature. Change them with SQL until the typed editors exist.
+          Settings are shown here, not edited. A free text box could save a broken value and break
+          the live site. Use the page for each setting instead, such as Honor value or Daily limits.
         </p>
       </Panel>
     </AdminPage>

@@ -163,7 +163,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
   return (
     <AdminPage
       title="Words"
-      description="The corpus the typing engine draws from. A word belongs to one category at a time and may sit in several; difficulty and frequency decide how often it is chosen."
+      description="The list of words the games use. Each word sits in one category. Difficulty and frequency decide how often it is picked. A word with a meaning also becomes a Find the Word question."
       actions={
         // A plain anchor rather than PanelLink: this is a download, and Link
         // would prefetch it — running the export query on hover.
@@ -180,7 +180,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
           role="status"
           className="rounded-lg border border-sakura/30 bg-sakura/10 px-4 py-3 text-sm text-sakura"
         >
-          That change was refused. Nothing was altered.
+          That change was not allowed. Nothing was changed.
         </p>
       ) : null}
 
@@ -188,7 +188,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
         <Stat
           label="Words"
           value={number(total)}
-          hint={`${number(activeCount)} active · ${number(total - activeCount)} off`}
+          hint={`${number(activeCount)} on · ${number(total - activeCount)} off`}
           framed
           accent
         />
@@ -197,7 +197,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
         ))}
       </PanelGrid>
 
-      <Panel title="Corpus">
+      <Panel title="Word list">
         <Toolbar>
           {/* GET, so a search is a URL someone can send to someone else. */}
           <form method="get" action="/admin/words" className="flex w-full min-w-0 shrink-0 gap-2 sm:w-72">
@@ -244,10 +244,10 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
           ))}
 
           <Pill href={link({ ...filter, active: undefined })} active={active === undefined}>
-            Any state
+            On or off
           </Pill>
           <Pill href={link({ ...filter, active: "true" })} active={active === true}>
-            Active
+            On
           </Pill>
           <Pill href={link({ ...filter, active: "false" })} active={active === false}>
             Off
@@ -265,7 +265,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
                   <Th>Word</Th>
                   <Th>Category</Th>
                   <Th>Difficulty</Th>
-                  <Th>Lang</Th>
+                  <Th>Language</Th>
                   <Th>Tags</Th>
                   <Th numeric>Frequency</Th>
                   <Th>State</Th>
@@ -291,7 +291,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
                     </Td>
                     <Td>
                       <StatusDot tone={word.isActive ? "on" : "off"}>
-                        {word.isActive ? "Active" : "Off"}
+                        {word.isActive ? "On" : "Off"}
                       </StatusDot>
                     </Td>
                     {canWrite ? (
@@ -302,7 +302,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
                             <input type="hidden" name="next" value={String(!word.isActive)} />
                             <input type="hidden" name="back" value={back} />
                             <Button type="submit" size="xs" variant="ghost">
-                              {word.isActive ? "Disable" : "Enable"}
+                              {word.isActive ? "Turn off" : "Turn on"}
                             </Button>
                           </form>
                           <form action={removeWord}>
@@ -324,7 +324,7 @@ export default async function WordsPage(props: PageProps<"/admin/words">) {
           </>
         ) : (
           <EmptyState title="No words match">
-            Nothing in the corpus fits this filter. Widen it, or add the word below.
+            No word fits this filter. Try a wider filter, or add the word below.
           </EmptyState>
         )}
       </Panel>

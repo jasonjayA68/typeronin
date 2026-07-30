@@ -20,7 +20,7 @@ import { prisma } from "@/lib/prisma";
 import { Button } from "@/shared/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Passages",
+  title: "Typing phrases",
   robots: { index: false, follow: false },
 };
 
@@ -77,43 +77,43 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
 
   return (
     <AdminPage
-      title="Passages"
-      description="The typing passages the game draws from. Each passage is a title and a body typed clean; only the active ones are used, in the order below."
+      title="Typing phrases"
+      description="The texts players type in the game. Each one has a title and a body. Only the ones set to On are used, in the order shown below."
     >
       {notice === "refused" ? (
         <p
           role="status"
           className="rounded-lg border border-sakura/30 bg-sakura/10 px-4 py-3 text-sm text-sakura"
         >
-          That change was refused. Nothing was altered.
+          That change was not allowed. Nothing was changed.
         </p>
       ) : null}
 
       <PanelGrid cols={2}>
         <Stat
-          label="Passages"
+          label="Phrases"
           value={String(total)}
-          hint={`${activeCount} active · ${total - activeCount} off`}
+          hint={`${activeCount} on · ${total - activeCount} off`}
           framed
           accent
         />
         <Stat
-          label="In rotation"
+          label="In use"
           value={String(activeCount)}
-          hint={activeCount === 0 ? "Falls back to the built-in set" : "Used in the game"}
+          hint={activeCount === 0 ? "The game uses its built-in texts" : "Used in the game"}
           framed
         />
       </PanelGrid>
 
-      <Panel title="Passages">
+      <Panel title="Phrases">
         {passages.length ? (
           <DataTable>
-            <caption className="sr-only">Passages, in the order the game draws them.</caption>
+            <caption className="sr-only">Typing phrases, in the order the game uses them.</caption>
             <thead>
               <Tr>
                 <Th numeric>Order</Th>
                 <Th>Title</Th>
-                <Th>Passage</Th>
+                <Th>Text</Th>
                 <Th>Difficulty</Th>
                 <Th>State</Th>
                 {canWrite ? <Th numeric>Actions</Th> : null}
@@ -134,7 +134,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
                   </Td>
                   <Td>
                     <StatusDot tone={passage.isActive ? "on" : "off"}>
-                      {passage.isActive ? "Active" : "Off"}
+                      {passage.isActive ? "On" : "Off"}
                     </StatusDot>
                   </Td>
                   {canWrite ? (
@@ -154,7 +154,7 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
                           <input type="hidden" name="id" value={passage.id} />
                           <input type="hidden" name="next" value={String(!passage.isActive)} />
                           <Button type="submit" size="xs" variant="ghost">
-                            {passage.isActive ? "Disable" : "Enable"}
+                            {passage.isActive ? "Turn off" : "Turn on"}
                           </Button>
                         </form>
                         <form action={removePassage}>
@@ -171,14 +171,15 @@ export default async function PassagesPage(props: PageProps<"/admin/passages">) 
             </tbody>
           </DataTable>
         ) : (
-          <EmptyState title="No passages yet">
-            The game is running on the built-in set. Add a passage below to take over the rotation.
+          <EmptyState title="No phrases yet">
+            The game is using its built-in texts. Add a phrase below and the game will use yours
+            instead.
           </EmptyState>
         )}
       </Panel>
 
       {canWrite ? (
-        <Panel title="Add a passage">
+        <Panel title="Add a phrase">
           <PassageCreate />
         </Panel>
       ) : null}

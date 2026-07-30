@@ -6,12 +6,13 @@ import { MISSIONS } from "@/features/missions/catalog";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Where Bushido trials and Missions are actually paid.
+ * Where achievements and missions are actually paid.
  *
- * The two game mechanics (KATA typing, SCROLL vocab) already credit the Honor a
- * single run is worth. This is the second, slower payout: after a run is saved,
- * we recompute the player's standing and hand over the reward for any trial or
- * mission that is newly complete — once, and only once. Idempotency is the
+ * The two games (Typing Phrases, Find the Word — "kata" and "scroll" in the code)
+ * already credit the Honor a single run is worth. This is the second, slower
+ * payout: after a run is saved, we recompute the player's standing and hand over
+ * the reward for any achievement or mission that is newly complete — once, and
+ * only once. "Trial" remains the internal name for an achievement. Idempotency is the
  * database's job: ProfileAchievement and MissionClaim both have composite primary
  * keys, so `createMany({ skipDuplicates: true })` cannot pay the same trial or
  * mission twice, and we only add the Honor for rows that were genuinely new.
@@ -32,14 +33,14 @@ export type ProgressReward = {
 const NOTHING: ProgressReward = { honor: 0, xp: 0, unlocked: [] };
 
 /**
- * Grant every trial and mission the player has newly earned. Safe to call after
- * any run; returns what was awarded so the caller can celebrate it.
+ * Grant every achievement and mission the player has newly earned. Safe to call
+ * after any run; returns what was awarded so the caller can celebrate it.
  */
 export async function grantProgressRewards(profileId: string): Promise<ProgressReward> {
   const stats = await computePlayerStats(profileId);
 
-  // Trials are the seeded Achievement rows; their reward is the seeded value, so
-  // it can never drift from what the trial card shows.
+  // Achievements are the seeded Achievement rows; their reward is the seeded
+  // value, so it can never drift from what the card shows.
   const achievements = await prisma.achievement.findMany({
     where: { isActive: true, slug: { in: Object.keys(TRIAL_REQUIREMENTS) } },
     select: { id: true, slug: true, name: true, honorReward: true, xpReward: true },
@@ -99,7 +100,7 @@ export async function grantProgressRewards(profileId: string): Promise<ProgressR
   } catch (error) {
     // A failed bonus payout must never undo a saved run — the run and its Honor
     // are already committed by the caller. Log and move on; the next run will
-    // find the same trials still unmet and pay them then.
+    // find the same achievements still unmet and pay them then.
     console.error("grantProgressRewards failed", error);
     return NOTHING;
   }
@@ -136,8 +137,9 @@ export type ProgressView = {
 };
 
 /**
- * Everything the /achievements and /missions pages render. Signed out, it shows
- * the catalog with nothing earned; signed in, it reflects real standing.
+ * Everything the /train page renders (the /achievements and /missions routes now
+ * redirect there). Signed out, it shows the catalog with nothing earned; signed
+ * in, it reflects real standing.
  */
 export async function getProgressView(profileId: string | null): Promise<ProgressView> {
   const achievements = await prisma.achievement.findMany({
@@ -146,7 +148,7 @@ export async function getProgressView(profileId: string | null): Promise<Progres
     select: { slug: true, name: true, kanji: true, description: true, honorReward: true },
   });
 
-  const zero = { ratio: 0, label: "Not yet begun" };
+  const zero = { ratio: 0, label: "Not started yet" };
 
   if (!profileId) {
     return {

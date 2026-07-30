@@ -18,9 +18,10 @@ import {
 } from "@/shared/components/ui/dialog";
 
 /**
- * Flag-all / Ban-all for one cluster of accounts that share an IP or a payout
- * number. Flag is one click (reversible, gates nothing); Ban is destructive, so
- * it sits behind a confirmation naming how many accounts it will close.
+ * Flag all / Ban all for one group of accounts that share a sign-in address or a
+ * payout number. Flagging is one click and can be undone, and it stops nothing.
+ * Banning is serious, so it sits behind a confirmation saying how many accounts
+ * it will close.
  */
 export function AbuseGroupActions({ profileIds }: { profileIds: string[] }) {
   const [pending, start] = useTransition();
@@ -68,8 +69,9 @@ export function AbuseGroupActions({ profileIds }: { profileIds: string[] }) {
           <DialogHeader>
             <DialogTitle>Ban these {profileIds.length} accounts?</DialogTitle>
             <DialogDescription>
-              Each will be blocked from playing, earning, and withdrawing. Your own account is never
-              included. This is logged and can be reversed per account from the Users page.
+              Each one will be stopped from playing, earning and getting paid. Your own account is
+              never included. This is saved in the activity log, and you can undo it for one account
+              at a time from the Users page.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

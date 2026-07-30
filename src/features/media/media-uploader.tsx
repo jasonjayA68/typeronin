@@ -17,9 +17,9 @@ import { Label } from "@/shared/components/ui/label";
  *
  * The file never touches our server — see features/media/actions.ts for why.
  *
- * The alt text is asked for *before* the upload rather than after, which is the
- * whole reason this is a small form and not a one-click file input. An image
- * without alt text is refused by `recordUpload`, and being refused after the
+ * The description is asked for *before* the upload rather than after, which is
+ * the whole reason this is a small form and not a one-click file input. An image
+ * without a description is refused by `recordUpload`, and being refused after the
  * bytes are already up means the object gets deleted and the person uploads it
  * twice. Ask first, and the refusal never happens.
  */
@@ -106,12 +106,12 @@ export function MediaUploader({ onUploaded }: { onUploaded?: () => void }) {
 
         if (error) {
           console.error("uploadToSignedUrl failed", error);
-          toast.error("The upload did not reach storage. Nothing was saved.");
+          toast.error("The file did not upload. Nothing was saved.");
           return;
         }
       } catch (error) {
         console.error("uploadToSignedUrl threw", error);
-        toast.error("The upload did not reach storage. Nothing was saved.");
+        toast.error("The file did not upload. Nothing was saved.");
         return;
       }
 
@@ -181,11 +181,11 @@ export function MediaUploader({ onUploaded }: { onUploaded?: () => void }) {
               </p>
               {unsupported ? (
                 <p className="mt-2 text-xs text-destructive">
-                  That file type is not accepted here.
+                  That kind of file cannot be uploaded here.
                 </p>
               ) : tooBig ? (
                 <p className="mt-2 text-xs text-destructive">
-                  Over the {formatBytes(accepted!.limit)} limit for this type.
+                  Too large. The limit for this kind of file is {formatBytes(accepted!.limit)}.
                 </p>
               ) : null}
             </div>
@@ -195,18 +195,18 @@ export function MediaUploader({ onUploaded }: { onUploaded?: () => void }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="media-alt">Alt text{isImage ? "" : " (optional)"}</Label>
+            <Label htmlFor="media-alt">Description{isImage ? "" : " (optional)"}</Label>
             <Input
               id="media-alt"
               value={altText}
               disabled={pending}
-              placeholder="An empty dojo at dawn, one sword on the rack"
+              placeholder="A person typing at a desk beside a window"
               onChange={(e) => setAltText(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
               {isImage
-                ? "What someone who cannot see it needs to know. Required for images."
-                : "A video or document has nothing to describe visually. Leave it blank."}
+                ? "Describe the picture for someone who cannot see it. Required for images."
+                : "A video or document has nothing to describe. Leave it empty."}
             </p>
           </div>
 
@@ -216,7 +216,7 @@ export function MediaUploader({ onUploaded }: { onUploaded?: () => void }) {
               id="media-caption"
               value={caption}
               disabled={pending}
-              placeholder="Optional — shown beneath the image where it appears"
+              placeholder="Optional. Shown under the image."
               onChange={(e) => setCaption(e.target.value)}
               className={field}
             />
@@ -230,7 +230,7 @@ export function MediaUploader({ onUploaded }: { onUploaded?: () => void }) {
             {pending ? "Uploading" : "Upload"}
           </Button>
           {needsAlt && !pending ? (
-            <p className="text-xs text-muted-foreground">Alt text first, then upload.</p>
+            <p className="text-xs text-muted-foreground">Write a description first, then upload.</p>
           ) : null}
         </>
       ) : null}

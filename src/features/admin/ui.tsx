@@ -68,7 +68,7 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className={cn("min-w-0 rounded-xl border border-border bg-card/60 p-5 sm:p-6", className)}>
+    <section className={cn("min-w-0 rounded-xl border border-border bg-card p-5 sm:p-6", className)}>
       {title ? (
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="font-heading text-xs font-semibold tracking-[0.16em] text-foreground uppercase">
@@ -127,7 +127,7 @@ export function Stat({
   framed?: boolean;
 }) {
   return (
-    <div className={cn("min-w-0", framed && "rounded-xl border border-border bg-card/60 p-5")}>
+    <div className={cn("min-w-0", framed && "rounded-xl border border-border bg-card p-5")}>
       <p className="text-xs tracking-[0.12em] break-words text-muted-foreground uppercase">
         {label}
       </p>

@@ -4,8 +4,8 @@ import { RegisterForm } from "@/features/auth/register-form";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = {
-  title: "Enter the Dojo",
-  description: "Create a free account and start playing.",
+  title: "Create free account",
+  description: "Create a free TypeRonin account and start playing.",
 };
 
 export default function RegisterPage() {

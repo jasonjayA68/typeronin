@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRightIcon, LoaderCircleIcon } from "lucide-react";
+import { LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -11,7 +11,10 @@ import {
   AuthFormShell,
   FieldError,
   FormNotice,
+  LinkDivider,
   NotConnectedNotice,
+  authFieldClass,
+  authLinkClass,
 } from "@/features/auth/auth-form-shell";
 import { signIn } from "@/features/auth/actions";
 import { PasswordInput } from "@/features/auth/password-input";
@@ -20,10 +23,16 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
+/**
+ * Sign in. Two fields, one button, and nothing else above it — a returning
+ * player should be able to read this screen in a glance. "Forgot password" and
+ * "Create account" are real needs but rare ones, so they sit below the button
+ * as one quiet row rather than as choices beside the fields.
+ */
 export function LoginForm({ configured }: { configured: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // A failed confirmation link sends the student back here with a reason.
+  // A failed confirmation link sends the player back here with a reason.
   const [error, setError] = useState<string | null>(searchParams.get("error"));
 
   const {
@@ -61,67 +70,72 @@ export function LoginForm({ configured }: { configured: boolean }) {
   return (
     <AuthFormShell
       title="Welcome back"
-      lede="Sign in to your account."
       footer={
         <>
-          No account yet?{" "}
-          <Link href="/register" className="text-sakura underline-offset-4 hover:underline">
-            Sign up
+          <Link href="/forgot" className={authLinkClass}>
+            Forgot password?
+          </Link>
+          <LinkDivider />
+          <Link href="/register" className={authLinkClass}>
+            Create free account
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-        {error ? <FormNotice tone="error">{error}</FormNotice> : null}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormNotice tone="error">{error}</FormNotice>
 
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            className="mt-2"
-            {...register("email")}
-          />
-          <FieldError id="email-error" message={errors.email?.message} />
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Link
-              href="/forgot"
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              Forgot password?
-            </Link>
+        <div className="space-y-5">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              className={authFieldClass}
+              {...register("email")}
+            />
+            <FieldError id="email-error" message={errors.email?.message} />
           </div>
-          <PasswordInput
-            id="password"
-            autoComplete="current-password"
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={errors.password ? "password-error" : undefined}
-            className="mt-2"
-            {...register("password")}
-          />
-          <FieldError id="password-error" message={errors.password?.message} />
+
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <PasswordInput
+              id="password"
+              autoComplete="current-password"
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
+              className={authFieldClass}
+              {...register("password")}
+            />
+            <FieldError id="password-error" message={errors.password?.message} />
+          </div>
+
+          {/* The one thing to do on this screen. Full width, 48px tall, and it
+              keeps its label while pending so nobody wonders what is spinning. */}
+          <Button
+            type="submit"
+            variant="dojo"
+            size="xl"
+            className="w-full"
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+                Signing in…
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+
+          {configured ? null : <NotConnectedNotice />}
         </div>
-
-        <Button type="submit" variant="dojo" size="lg" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
-          ) : (
-            <>
-              Sign in
-              <ArrowRightIcon aria-hidden="true" />
-            </>
-          )}
-        </Button>
-
-        {configured ? null : <NotConnectedNotice />}
       </form>
     </AuthFormShell>
   );

@@ -149,10 +149,16 @@ export function SiteHeaderNav({ student }: { student: Student | null }) {
   const navigation = NAVIGATION;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-md">
+    // The bar was 80% opaque, so the canopy and the falling petals drifted
+    // through the navigation itself and the links had to compete with them.
+    // Navigation is the one thing that must stay readable on every page, at
+    // every scroll position, so it gets a near-solid ground of its own.
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md">
       <Container>
         <div className="flex h-16 items-center justify-between gap-4">
-          <Logo />
+          {/* The one mark that is always above the fold, so it is the one that
+              gets preloaded. Every other use of <Logo /> loads lazily. */}
+          <Logo priority />
 
           <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
             {navigation.map((item) => (

@@ -49,13 +49,13 @@ export async function createCategory(input: unknown): Promise<ContentActionResul
 
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the details." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check what you entered." };
   }
   const data = parsed.data;
 
   const slug = slugify(data.slug || data.name);
   if (!slug) {
-    return { ok: false, message: "That name yields no usable slug. Set one by hand." };
+    return { ok: false, message: "That name cannot be turned into a web address. Type one yourself." };
   }
 
   try {
@@ -83,7 +83,7 @@ export async function createCategory(input: unknown): Promise<ContentActionResul
     return { ok: true };
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { ok: false, message: `The slug "${slug}" is already taken. Choose another.` };
+      return { ok: false, message: `The slug "${slug}" is already used. Choose another.` };
     }
     console.error("createCategory failed", error);
     return { ok: false, message: "That category could not be saved." };
@@ -101,13 +101,13 @@ export async function updateCategory(
 
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the details." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Check what you entered." };
   }
   const data = parsed.data;
 
   const slug = slugify(data.slug || data.name);
   if (!slug) {
-    return { ok: false, message: "That name yields no usable slug. Set one by hand." };
+    return { ok: false, message: "That name cannot be turned into a web address. Type one yourself." };
   }
 
   try {
@@ -136,7 +136,7 @@ export async function updateCategory(
     return { ok: true };
   } catch (error) {
     if (isUniqueViolation(error)) {
-      return { ok: false, message: `The slug "${slug}" is already taken. Choose another.` };
+      return { ok: false, message: `The slug "${slug}" is already used. Choose another.` };
     }
     console.error("updateCategory failed", error);
     return { ok: false, message: "That category could not be saved." };
@@ -172,7 +172,7 @@ export async function deleteCategory(
     if (posts > 0 && !acknowledgeOrphans) {
       return {
         ok: false,
-        message: `${posts} ${posts === 1 ? "post is" : "posts are"} filed here and would be left uncategorised. Confirm to continue.`,
+        message: `${posts} ${posts === 1 ? "post is" : "posts are"} in this category and would be left with no category. Confirm to continue.`,
       };
     }
 
@@ -207,7 +207,7 @@ type ModerateIntent = keyof typeof STATUS_FOR | "delete";
 
 const idsSchema = z
   .array(z.uuid())
-  .min(1, "Nothing was selected.")
+  .min(1, "Nothing was ticked.")
   .max(BULK_LIMIT, `${BULK_LIMIT} comments at a time is the limit.`);
 
 function refreshComments() {
@@ -225,7 +225,7 @@ async function applyIntent(
 ): Promise<ContentActionResult> {
   const parsed = idsSchema.safeParse(ids);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing was selected." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing was ticked." };
   }
   const where = { id: { in: parsed.data } };
 
@@ -286,7 +286,7 @@ export async function bulkModerateComments(input: unknown): Promise<ContentActio
 
   const parsed = bulkSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing was selected." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Nothing was ticked." };
   }
 
   return applyIntent(user.id, parsed.data.ids, parsed.data.intent);

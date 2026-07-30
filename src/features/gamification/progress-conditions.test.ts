@@ -5,10 +5,14 @@ import { TRIAL_REQUIREMENTS } from "@/features/gamification/trials";
 import { MISSIONS_BY_KEY } from "@/features/missions/catalog";
 
 /**
- * The alignment between the two game mechanics (KATA, SCROLL) and the extra Honor
- * paid by Bushido trials and Missions lives entirely in these predicates. If a
- * threshold moves, that is a product decision and this test should move with it —
- * but it must never move by accident.
+ * The alignment between the two games (Typing Phrases and Find the Word — "kata"
+ * and "scroll" in the code) and the extra Honor paid by achievements and missions
+ * lives entirely in these predicates. If a threshold moves, that is a product
+ * decision and this test should move with it — but it must never move by
+ * accident.
+ *
+ * Slugs, keys and stat fields keep their original wording; only the labels a
+ * player reads changed, and no assertion here depends on those.
  */
 
 const ZERO: PlayerStats = {
@@ -31,7 +35,7 @@ const stats = (over: Partial<PlayerStats>): PlayerStats => ({ ...ZERO, ...over }
 const trialMet = (slug: string, s: PlayerStats) => TRIAL_REQUIREMENTS[slug]!.met(s);
 const missionMet = (key: string, s: PlayerStats) => MISSIONS_BY_KEY.get(key)!.met(s);
 
-describe("Bushido trials map to real play", () => {
+describe("Achievements map to real play", () => {
   it("a fresh account has earned nothing", () => {
     for (const slug of Object.keys(TRIAL_REQUIREMENTS)) {
       expect(trialMet(slug, ZERO), slug).toBe(false);

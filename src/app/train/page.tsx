@@ -30,7 +30,7 @@ import { Progress } from "@/shared/components/ui/progress";
 export const metadata: Metadata = {
   title: "Train",
   description:
-    "How you level up on TypeRonin. Complete missions and earn achievements to gain Honor, climb the ranks, and unlock real rewards.",
+    "How you level up on TypeRonin. Complete missions and earn achievements to gain Honor points, move up the nine levels, and unlock real rewards.",
 };
 
 /** Mission icons, mapped from the catalog's icon key. */
@@ -50,17 +50,17 @@ const STEPS = [
   {
     n: "1",
     title: "Play",
-    body: "Type phrases or match word meanings. Every finished game is scored on speed and accuracy.",
+    body: "Type phrases, or match words to their meaning. Every finished game is scored on speed and accuracy.",
   },
   {
     n: "2",
     title: "Earn Honor",
-    body: "Clean, accurate play earns Honor. Missions and achievements pay bonus Honor on top.",
+    body: "Accurate play earns Honor. Missions and achievements pay extra Honor on top.",
   },
   {
     n: "3",
-    title: "Rank up & cash out",
-    body: "Honor raises your rank through nine tiers — and converts into real rewards you can withdraw.",
+    title: "Level up and cash out",
+    body: "Honor moves you up through nine levels. You can turn it into real rewards and withdraw them.",
   },
 ] as const;
 
@@ -78,20 +78,20 @@ export default async function TrainPage() {
         <PageHeader
           eyebrow="Play · Learn · Earn"
           title="Train"
-          lede="Complete missions and earn achievements to gain Honor, climb the ranks, and unlock real rewards."
+          lede="Complete missions and earn achievements to gain Honor — the points you earn by playing. Honor moves you up the levels and unlocks real rewards."
         />
 
         <Container className="py-12 sm:py-16">
           {/* How progression works — answered in three plain steps. */}
           <section aria-labelledby="how" className="mx-auto max-w-4xl">
             <h2 id="how" className="text-center text-xl font-semibold sm:text-2xl">
-              How progression works
+              How you make progress
             </h2>
             <ol className="mt-8 grid gap-4 sm:grid-cols-3">
               {STEPS.map((step) => (
                 <li
                   key={step.n}
-                  className="rounded-2xl border border-border/60 bg-card/50 p-5 text-center"
+                  className="rounded-2xl border border-border/60 bg-card p-5 text-center"
                 >
                   <span className="mx-auto grid size-9 place-items-center rounded-full border border-sakura/40 bg-sakura/10 font-heading text-sm font-semibold text-sakura">
                     {step.n}
@@ -113,8 +113,8 @@ export default async function TrainPage() {
                   Missions
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Ongoing goals across every game. Reach one and its bonus Honor is paid on your next
-                  finished game.
+                  Ongoing goals across both games. When you reach one, its extra Honor is paid after
+                  your next finished game.
                 </p>
               </div>
               {user ? (
@@ -131,7 +131,7 @@ export default async function TrainPage() {
                 return (
                   <Card
                     key={mission.key}
-                    className={cn("bg-card/60 backdrop-blur-sm", mission.complete && "gold-edge")}
+                    className={cn("bg-card backdrop-blur-sm", mission.complete && "gold-edge")}
                   >
                     <CardHeader>
                       <div className="mb-3 flex items-start justify-between gap-3">
@@ -196,7 +196,8 @@ export default async function TrainPage() {
             </div>
           </section>
 
-          {/* Achievements (formerly "Bushido Trials") */}
+          {/* Achievements. "Trial" is still the internal name in the code and the
+              database; players only ever read "achievement". */}
           <section aria-labelledby="achievements" className="mt-16">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="max-w-2xl">
@@ -204,8 +205,8 @@ export default async function TrainPage() {
                   Achievements
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  One-time milestones for lasting habits — steady practice, clean accuracy, and
-                  showing up day after day. Each pays a larger Honor reward, once.
+                  One-time goals for good habits: regular practice, high accuracy, and playing day
+                  after day. Each one pays a larger Honor reward, one time only.
                 </p>
               </div>
               {user ? (
@@ -220,7 +221,7 @@ export default async function TrainPage() {
                 <Card
                   key={trial.slug}
                   className={cn(
-                    "bg-card/60 backdrop-blur-sm",
+                    "bg-card backdrop-blur-sm",
                     trial.earned ? "gold-edge" : "bg-card/30"
                   )}
                 >

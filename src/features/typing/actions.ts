@@ -99,7 +99,7 @@ export async function saveSession(input: unknown): Promise<SaveResult> {
   const rawWpm = Math.round(typedChars / 5 / minutes);
 
   // No hand does this. Past it, the clock is wrong or it is not a hand at all;
-  // either way it must not reach the Hall of Legends.
+  // either way it must not reach the leaderboard.
   if (wpm > 400) return { status: "error", message: "That result could not be verified." };
 
   const baseHonor = computeHonor(r.correctChars, accuracy, r.ma);

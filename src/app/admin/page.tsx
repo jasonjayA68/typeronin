@@ -25,7 +25,7 @@ export default async function OverviewPage() {
   return (
     <AdminPage
       title="Overview"
-      description="Every figure is computed from the tables that own it. Nothing here is a stored counter, and nothing is estimated."
+      description="A quick look at how the site is doing. Every number is counted live, not estimated. Honor is the points players earn."
     >
       {/* Top-level figures are the only stats that carry a surface. */}
       <PanelGrid cols={4}>
@@ -43,7 +43,7 @@ export default async function OverviewPage() {
           hint={`${o.sessions7} in the last 7 days`}
         />
         <Stat framed label="Average WPM" value={String(o.avgWpm)} hint={`${o.avgAccuracy}% accuracy`} />
-        <Stat framed label="Average Ma" value={String(o.avgMa)} hint="Rhythm evenness" />
+        <Stat framed label="Average rhythm" value={String(o.avgMa)} hint="How even the typing is" />
       </PanelGrid>
 
       <PanelGrid cols={2}>
@@ -71,7 +71,7 @@ export default async function OverviewPage() {
             </ol>
           ) : (
             <EmptyState title="No users yet">
-              The hall fills as people train.
+              Users appear here once people sign up and play.
             </EmptyState>
           )}
         </Panel>
@@ -88,7 +88,7 @@ export default async function OverviewPage() {
             </ul>
           ) : (
             <EmptyState title="Nothing played yet">
-              Category popularity is counted from sessions.
+              This counts how often each category is played.
             </EmptyState>
           )}
         </Panel>
@@ -96,16 +96,16 @@ export default async function OverviewPage() {
 
       <PanelGrid cols={3}>
         <Panel
-          title="Advertising"
+          title="Ads"
           action={<PanelLink href="/admin/advertisements">Manage</PanelLink>}
         >
           <div className="grid grid-cols-2 gap-4">
-            <Stat label="Live slots" value={String(o.activePlacements)} />
+            <Stat label="Ad positions on" value={String(o.activePlacements)} />
             <Stat label="Booked" value={String(o.liveAds)} />
           </div>
           {o.activePlacements === 0 ? (
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              Advertising is off entirely. No third-party script is loaded.
+              Ads are off everywhere. No outside code is loaded.
             </p>
           ) : null}
         </Panel>
@@ -117,11 +117,11 @@ export default async function OverviewPage() {
             <Stat label="Queued" value={String(o.posts.scheduled)} />
           </div>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            {o.pendingComments} awaiting moderation · {o.subscribers} subscribers
+            {o.pendingComments} waiting for review · {o.subscribers} subscribers
           </p>
         </Panel>
 
-        <Panel title="Recent actions" action={<PanelLink href="/admin/audit">Full log</PanelLink>}>
+        <Panel title="Recent actions" action={<PanelLink href="/admin/audit">Activity log</PanelLink>}>
           {o.recentAudit.length ? (
             <ul className="space-y-3">
               {o.recentAudit.map((a) => (
@@ -136,7 +136,7 @@ export default async function OverviewPage() {
               ))}
             </ul>
           ) : (
-            <EmptyState title="Nothing yet">Administrative actions appear here.</EmptyState>
+            <EmptyState title="Nothing yet">Admin actions appear here.</EmptyState>
           )}
         </Panel>
       </PanelGrid>

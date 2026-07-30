@@ -20,12 +20,12 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
 /**
- * Per-row edit and delete for the Students table.
+ * Edit and delete for one row of the Users table.
  *
- * A client island inside a server-rendered table: the authority lives in the
- * server actions (each re-checks `users:write`), this only gathers the input and
- * reports the answer. Delete is destructive and irreversible, so it sits behind
- * its own confirmation naming the account.
+ * A client island inside a server-rendered table: the server actions decide what
+ * is allowed (each re-checks `users:write`), this only gathers the input and
+ * reports the answer. Delete cannot be undone, so it sits behind its own
+ * confirmation naming the account.
  */
 export function UserRowActions({
   profileId,
@@ -55,12 +55,12 @@ export function UserRowActions({
   const [mail, setMail] = useState(email);
   const [pending, startTransition] = useTransition();
 
-  // Self-delete is refused by the action; admins must be demoted first. Say so
-  // early rather than let the click travel to a refusal.
+  // Deleting yourself is refused by the action, and an admin must lose the role
+  // first. Say so here rather than let the click travel to a refusal.
   const deleteBlockedReason = isSelf
     ? "You cannot delete your own account."
     : isAdmin
-      ? "Revoke the admin role before deleting this account."
+      ? "Remove the admin role before deleting this account."
       : null;
 
   function submitEdit() {
@@ -107,8 +107,8 @@ export function UserRowActions({
           <DialogHeader>
             <DialogTitle>Edit user</DialogTitle>
             <DialogDescription>
-              Update this user&apos;s details. Roles, Honor, and account status are managed
-              elsewhere. Changing the email sets it immediately (no confirmation needed).
+              Change this user&apos;s details. Roles, Honor and account status are set elsewhere. A
+              new email takes effect at once, with no confirmation email.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -159,7 +159,7 @@ export function UserRowActions({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor={`bio-${profileId}`}>Bio</Label>
+              <Label htmlFor={`bio-${profileId}`}>About</Label>
               <textarea
                 id={`bio-${profileId}`}
                 value={about}
@@ -204,9 +204,9 @@ export function UserRowActions({
           <DialogHeader>
             <DialogTitle>Delete this account?</DialogTitle>
             <DialogDescription>
-              This permanently removes <span className="font-medium text-foreground">@{handle}</span>{" "}
-              and everything it owns — sessions, trials, missions and withdrawals — along with the
-              login itself. This cannot be undone.
+              This removes <span className="font-medium text-foreground">@{handle}</span> and
+              everything it owns: games, achievements, missions and payout requests, plus the login
+              itself. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

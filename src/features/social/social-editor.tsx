@@ -16,9 +16,9 @@ import { Label } from "@/shared/components/ui/label";
 /**
  * The social-links editor.
  *
- * One field per network, each next to its own glyph so an operator sees at a
- * glance which is which. A blank field is a network that will not appear in the
- * footer — validation is the server's, and blank is always allowed.
+ * One box per network, each next to its own icon so an admin sees at a glance
+ * which is which. An empty box means that network is hidden at the bottom of the
+ * page — validation is the server's, and empty is always allowed.
  */
 export function SocialEditor({ initial }: { initial: SocialLinks }) {
   const [links, setLinks] = useState<SocialLinks>(initial);
@@ -34,7 +34,7 @@ export function SocialEditor({ initial }: { initial: SocialLinks }) {
         toast.error(result.message);
         return;
       }
-      toast.success("Social links saved");
+      toast.success("Saved");
     });
 
   return (

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Read-only, deliberately. No actions are imported here, and none exist for
+ * Read-only, on purpose. No actions are imported here, and none exist for
  * roles: see the closing panel for why.
  */
 async function getMatrix() {
@@ -74,7 +74,7 @@ function Granted({ on, role, permission }: { on: boolean; role: string; permissi
         </span>
       )}
       <span className="sr-only">
-        {role} {on ? "holds" : "does not hold"} {permission}
+        {role} {on ? "is allowed to" : "is not allowed to"} {permission}
       </span>
     </>
   );
@@ -91,28 +91,28 @@ export default async function RolesPage() {
   return (
     <AdminPage
       title="Roles"
-      description="A role is a named bundle of permissions, and the database is the source of truth for authority — no deploy grants anyone anything. This is the whole matrix, as it stands."
+      description="A role is a set of permissions. A permission is one thing a person is allowed to do. This page shows every role and what it allows."
     >
       <PanelGrid cols={3}>
-        <Stat framed label="Roles" value={String(roles.length)} hint="All three are seeded." />
-        <Stat framed label="Permissions" value={String(permissions.length)} hint="The vocabulary of the panel." />
-        <Stat framed accent label="Grants held" value={String(holders)} hint="Role rows across all profiles." />
+        <Stat framed label="Roles" value={String(roles.length)} hint="Three come with the site." />
+        <Stat framed label="Permissions" value={String(permissions.length)} hint="Everything the admin pages can do." />
+        <Stat framed accent label="People with a role" value={String(holders)} hint="Counted across all roles." />
       </PanelGrid>
 
       <Panel title="Roles">
         {roles.length ? (
           <DataTable>
             <caption className="sr-only">
-              Each role, whether it is a system role, how many permissions it grants and how many
-              profiles hold it.
+              Each role, where it came from, how many permissions it allows and how many people have
+              it.
             </caption>
             <thead>
               <tr>
                 <Th>Role</Th>
-                <Th>Purpose</Th>
-                <Th>Origin</Th>
+                <Th>What it is for</Th>
+                <Th>Where it came from</Th>
                 <Th numeric>Permissions</Th>
-                <Th numeric>Profiles</Th>
+                <Th numeric>People</Th>
               </tr>
             </thead>
             <tbody>
@@ -125,7 +125,7 @@ export default async function RolesPage() {
                   <Td className="text-muted-foreground">{role.description ?? "—"}</Td>
                   <Td>
                     <StatusDot tone={role.isSystem ? "on" : "off"}>
-                      {role.isSystem ? "System" : "Custom"}
+                      {role.isSystem ? "Built in" : "Added later"}
                     </StatusDot>
                   </Td>
                   <Td numeric>{role.granted.size}</Td>
@@ -136,20 +136,19 @@ export default async function RolesPage() {
           </DataTable>
         ) : (
           <EmptyState title="No roles">
-            Run <code>npx prisma db seed</code> to create the three the panel expects.
+            Run <code>npx prisma db seed</code> to create the three roles the site expects.
           </EmptyState>
         )}
       </Panel>
 
-      <Panel title="Permission matrix">
+      <Panel title="Who can do what">
         <p className="mb-4 text-sm leading-relaxed text-pretty text-muted-foreground">
-          Permissions are named <code className="text-foreground">resource:action</code> and grouped
-          by resource. A module that grants no permission cannot be reached at all, so this list is
-          also the list of things the panel can do.
+          Each permission is named <code className="text-foreground">area:action</code> and grouped by
+          area. A tick means that role is allowed to do it.
         </p>
         <DataTable>
           <caption className="sr-only">
-            Permissions as rows, roles as columns, a check where the role holds the permission.
+            Permissions as rows and roles as columns, with a tick where the role is allowed.
           </caption>
           <thead>
             <tr>
@@ -198,37 +197,32 @@ export default async function RolesPage() {
         </DataTable>
       </Panel>
 
-      <Panel title="Read-only, deliberately" className="border-dashed bg-transparent">
+      <Panel title="You can read this page, not change it" className="border-dashed bg-transparent">
         <div className="space-y-4 text-sm leading-relaxed text-pretty text-muted-foreground">
           <p>
-            Creating roles and editing this matrix is not wired up, and that is a decision rather
-            than a gap. Authority is read from these tables on every request, so a mis-set matrix
-            does not fail loudly — it locks people out of the panel that would fix it. The safe
-            version needs a rule that an admin cannot drop their own authority, and a matrix editor
-            that cannot leave zero holders of{" "}
-            <code className="text-foreground">users:write</code>. Until those exist, a form here
-            would be a foot-gun with a save button.
+            You cannot add roles or change the ticks here yet. That is on purpose. One wrong tick can
+            lock everyone out of the page needed to fix it. An editor is only safe once it stops you
+            from removing your own access, and from leaving nobody who can manage users.
           </p>
           <p>
-            System roles are marked <span className="text-foreground">System</span> above and could
-            not be deleted even once editing lands. The seed re-creates them, code checks for the{" "}
-            <code className="text-foreground">admin</code> slug by name, and deleting a role cascades
-            its grants — so removing one would silently revoke everyone who held it and then hand the
-            slug back on the next seed.
+            Roles marked <span className="text-foreground">Built in</span> cannot be deleted. The site
+            recreates them, and the code looks for the{" "}
+            <code className="text-foreground">admin</code> role by name. Deleting a role would also
+            remove it from everyone who has it.
           </p>
           <p>
-            Grants are made from the command line, which is also how the first admin exists at all —
-            there is no chicken-and-egg panel to log into first:
+            Roles are given from the command line. This is also how the first admin is created, since
+            there is no admin page to sign in to yet:
           </p>
           <pre className="overflow-x-auto rounded-lg border border-border/60 bg-background/60 p-4 text-xs">
             <code>{`npx tsx scripts/grant-admin.ts you@example.com
 npx tsx scripts/grant-admin.ts you@example.com --revoke`}</code>
           </pre>
           <p>
-            The account must already exist in Supabase auth and have confirmed its email; the script
-            grants a role, it does not mint credentials. The role is read per request, so a grant
-            takes effect without signing out. Everything else — which permissions each role bundles —
-            is changed in <code className="text-foreground">prisma/seed.ts</code> and re-seeded.
+            The account must already exist and have a confirmed email. The command gives a role; it
+            does not create a login. The change takes effect at once, with no need to sign out. To
+            change which permissions a role has, edit{" "}
+            <code className="text-foreground">prisma/seed.ts</code> and run the seed again.
           </p>
         </div>
       </Panel>

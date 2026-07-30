@@ -28,9 +28,15 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               Admin
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage the platform.{" "}
-              <Link href="/" className="underline-offset-4 hover:text-foreground hover:underline">
-                Return to the site
+              Manage the game, the players and the site.{" "}
+              <span aria-hidden="true">·</span>{" "}
+              {/* Underlined at rest, not on hover: unhovered it read as the tail
+                  of the sentence before it rather than as somewhere to go. */}
+              <Link
+                href="/"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                Back to the site
               </Link>
             </p>
           </Container>

@@ -8,7 +8,7 @@ import { setPlacementActive, setPlacementDevices } from "@/features/admin/ad-act
 import { cn } from "@/lib/utils";
 
 /**
- * The live switch for a placement.
+ * The on/off switch for one ad position.
  *
  * Optimistic on the label only — the real state comes back from the server, and
  * a failure snaps it back and says why. An ad switch that lies about being off
@@ -31,7 +31,7 @@ export function PlacementToggle({
       type="button"
       role="switch"
       aria-checked={on}
-      aria-label={`${on ? "Disable" : "Enable"} ${label}`}
+      aria-label={`${on ? "Turn off" : "Turn on"} ${label}`}
       disabled={pending}
       onClick={() => {
         const next = !on;
@@ -43,7 +43,7 @@ export function PlacementToggle({
             toast.error(result.message);
             return;
           }
-          toast.success(next ? `${label} is live` : `${label} is off`);
+          toast.success(next ? `${label} is on` : `${label} is off`);
         });
       }}
       className={cn(
@@ -65,7 +65,7 @@ export function PlacementToggle({
   );
 }
 
-/** Desktop / mobile targeting for a placement. */
+/** Show this ad position on desktop, on mobile, or both. */
 export function DeviceToggles({
   placementId,
   showOnDesktop,
@@ -81,9 +81,9 @@ export function DeviceToggles({
   const [pending, startTransition] = useTransition();
 
   const update = (next: { showOnDesktop: boolean; showOnMobile: boolean }) => {
-    // A slot on neither device is just a disabled slot wearing a disguise.
+    // An ad position on neither device is just an off position in disguise.
     if (!next.showOnDesktop && !next.showOnMobile) {
-      toast.error("A slot must show somewhere. Disable it instead.");
+      toast.error("An ad position must show on desktop or mobile. Turn it off instead.");
       return;
     }
     const previous = devices;

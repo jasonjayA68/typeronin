@@ -96,11 +96,11 @@ export default async function AnalyticsPage() {
   return (
     <AdminPage
       title="Analytics"
-      description="Thirty days, computed from the tables that own the data. What cannot be computed honestly is named at the bottom rather than estimated."
+      description="The last thirty days of play and sign-ups. Every number is counted from real records. What we cannot count is listed at the bottom."
     >
       <PanelGrid cols={4}>
         <Stat framed accent label="Games, 30 days" value={sessionTotal.toLocaleString()} />
-        <Stat framed label="New students" value={signupTotal.toLocaleString()} />
+        <Stat framed label="New users" value={signupTotal.toLocaleString()} />
         <Stat framed label="Referrals" value={String(referralTotal)} hint="All time" />
         <Stat
           framed
@@ -115,7 +115,7 @@ export default async function AnalyticsPage() {
           <Bars data={a.sessions} label="Games played" />
         </Panel>
         <Panel title="Growth">
-          <Bars data={a.signups} label="New students" />
+          <Bars data={a.signups} label="New users" />
         </Panel>
       </PanelGrid>
 
@@ -130,8 +130,8 @@ export default async function AnalyticsPage() {
               }))}
             />
           ) : (
-            <EmptyState title="No sessions yet">
-              Category popularity is counted from games played.
+            <EmptyState title="No games yet">
+              This counts how often each category is played.
             </EmptyState>
           )}
         </Panel>
@@ -145,8 +145,8 @@ export default async function AnalyticsPage() {
               }))}
             />
           ) : (
-            <EmptyState title="No sessions yet">
-              The shape of who plays appears once there are games to measure.
+            <EmptyState title="No games yet">
+              Typing speeds appear here once people have played.
             </EmptyState>
           )}
         </Panel>
@@ -159,35 +159,32 @@ export default async function AnalyticsPage() {
               rows={a.modes.map((m) => ({ label: m.mode.toLowerCase(), count: m.count }))}
             />
           ) : (
-            <EmptyState title="No sessions yet" />
+            <EmptyState title="No games yet" />
           )}
         </Panel>
 
-        <Panel title="Newsletter sources">
+        <Panel title="Where subscribers came from">
           {a.subscriberSources.length ? (
             <Distribution
               rows={a.subscriberSources.map((s) => ({ label: s.source, count: s.count }))}
             />
           ) : (
             <EmptyState title="No subscribers yet">
-              Sources are recorded on the signup form.
+              The sign-up form records where each person came from.
             </EmptyState>
           )}
         </Panel>
       </PanelGrid>
 
-      <Panel title="Not measured" className="border-dashed bg-transparent">
+      <Panel title="What we do not measure" className="border-dashed bg-transparent">
         <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           <p className="text-pretty">
-            Daily <em>users</em>, traffic sources, blog traffic and advert performance need a
-            page-view pipeline, and there is not one. Sessions are games played, not visitors —
-            showing one labelled as the other is how a dashboard starts lying, so those figures are
-            absent.
+            We do not count page views. So daily visitors, where traffic comes from, blog traffic and
+            ad results are missing. The numbers above count games played, not visitors.
           </p>
           <p className="text-pretty">
-            Advert impressions and clicks are counted on the Advertisement rows, but internal
-            counters measure what we rendered, not what a network billed. They will never be the
-            source of truth for revenue, and they are not shown here as though they were.
+            We do count how often each ad is shown and clicked. Those are our own counts, not the ad
+            network&apos;s. Use the network&apos;s report for money.
           </p>
         </div>
       </Panel>

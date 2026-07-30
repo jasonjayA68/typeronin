@@ -35,7 +35,7 @@ const STATUSES = ["CONFIRMED", "PENDING", "UNSUBSCRIBED"] as const;
 
 const LABEL: Record<SubscriberStatus, string> = {
   CONFIRMED: "Confirmed",
-  PENDING: "Pending",
+  PENDING: "Waiting",
   UNSUBSCRIBED: "Unsubscribed",
 };
 
@@ -114,14 +114,14 @@ export default async function NewsletterPage(props: PageProps<"/admin/newsletter
   return (
     <AdminPage
       title="Newsletter"
-      description="Every address and how it got here. Pending means the address was given but never proven, so it belongs to no one until it is confirmed."
+      description="Every email address that signed up, and where it came from. Waiting means the person typed the address but never clicked the confirm link, so we cannot be sure it is theirs."
       actions={
         // A plain anchor, not Link: the response is a download, not a route.
         // Offered only when there is something to export — `disabled` on an
         // anchor renders an invalid attribute and still follows the href.
         confirmed > 0 ? (
           <Button asChild size="sm" variant="outline">
-            <a href="/admin/newsletter/export">Export confirmed</a>
+            <a href="/admin/newsletter/export">Download confirmed</a>
           </Button>
         ) : null
       }
@@ -132,11 +132,11 @@ export default async function NewsletterPage(props: PageProps<"/admin/newsletter
           accent
           label="Confirmed"
           value={confirmed.toLocaleString("en-US")}
-          hint="Provably theirs, and the only addresses safe to mail"
+          hint="Proven real. Only these are safe to email"
         />
         <Stat
           framed
-          label="Pending"
+          label="Waiting"
           value={(counts.get("PENDING") ?? 0).toLocaleString("en-US")}
           hint="Never confirmed"
         />
@@ -144,7 +144,7 @@ export default async function NewsletterPage(props: PageProps<"/admin/newsletter
           framed
           label="Unsubscribed"
           value={(counts.get("UNSUBSCRIBED") ?? 0).toLocaleString("en-US")}
-          hint="Kept on file so they stay off the list"
+          hint="Kept on file so they are never emailed again"
         />
       </PanelGrid>
 
@@ -187,7 +187,7 @@ export default async function NewsletterPage(props: PageProps<"/admin/newsletter
                 <tr>
                   <Th>Email</Th>
                   <Th>State</Th>
-                  <Th>Source</Th>
+                  <Th>Signed up from</Th>
                   <Th numeric>Joined</Th>
                   <Th className="text-right">Actions</Th>
                 </tr>
@@ -246,24 +246,24 @@ export default async function NewsletterPage(props: PageProps<"/admin/newsletter
         ) : (
           <EmptyState title={q ? `Nothing matches "${q}"` : "No subscribers yet"}>
             {q
-              ? "Search matches on any part of the address, so a shorter query may find it."
-              : "Addresses arrive here as people sign up, and stay pending until they confirm."}
+              ? "Search looks at any part of the address, so a shorter search may find it."
+              : "Addresses appear here as people sign up. They wait until the person confirms."}
           </EmptyState>
         )}
       </Panel>
 
-      <Panel title="About the export" className="border-dashed bg-transparent">
+      <Panel title="About the download" className="border-dashed bg-transparent">
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-          The export contains confirmed addresses only —{" "}
+          The download holds confirmed addresses only —{" "}
           <span className="tabular text-sakura">{confirmed.toLocaleString("en-US")}</span> of{" "}
           <span className="tabular">
             {[...counts.values()].reduce((a, b) => a + b, 0).toLocaleString("en-US")}
           </span>{" "}
-          on file. Pending addresses were typed into a form by someone who never proved the address
-          was theirs, and unsubscribed ones asked to be left alone. Mailing either is how a sending
-          domain ends up on a blocklist, which costs more to undo than the addresses were worth.
+          on file. Waiting addresses were never proven, and unsubscribed people asked to be left
+          alone. Emailing either group can get our emails marked as spam, which is slow and costly to
+          fix.
           {confirmed === 0
-            ? " The export appears once at least one address is confirmed; there is nothing to download yet."
+            ? " The download button appears once at least one address is confirmed."
             : null}
         </p>
       </Panel>

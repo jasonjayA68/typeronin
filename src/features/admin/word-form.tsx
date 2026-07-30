@@ -11,8 +11,8 @@ import { Label } from "@/shared/components/ui/label";
 
 /**
  * Adding words. Client-side because both forms report a result worth reading —
- * a refusal, or how many rows an import actually landed — rather than just
- * navigating away.
+ * why a save was refused, or how many rows an import actually added — rather
+ * than just navigating away.
  */
 
 type Category = { id: string; name: string };
@@ -111,7 +111,7 @@ export function WordCreate({ categories }: { categories: Category[] }) {
           name="definition"
           maxLength={300}
           autoComplete="off"
-          placeholder="The clue shown in SCROLL. Leave blank for a typing-only word."
+          placeholder="The clue shown in Find the Word. Leave blank for a typing-only word."
         />
       </div>
 
@@ -149,11 +149,11 @@ export function WordImport({ categories }: { categories: Category[] }) {
       <p className="text-sm leading-relaxed text-muted-foreground">
         Columns:{" "}
         <code className="text-foreground">text,difficulty,lang,tags,frequency,category,active,definition</code>
-        . A header row is optional, and only <code className="text-foreground">text</code>,{" "}
-        <code className="text-foreground">difficulty</code> and the trailing{" "}
-        <code className="text-foreground">definition</code> matter here — an exported file feeds
-        straight back. A word with a definition becomes a SCROLL question. Tags use a pipe, not a
-        comma. Rows already in the category are skipped.
+        . The header row is optional. Only <code className="text-foreground">text</code>,{" "}
+        <code className="text-foreground">difficulty</code> and{" "}
+        <code className="text-foreground">definition</code> are used here, so a file you exported can
+        go straight back in. A word with a meaning becomes a Find the Word question. Separate tags
+        with a pipe (|), not a comma. Words already in the category are skipped.
       </p>
 
       <div className="space-y-2">
@@ -180,7 +180,7 @@ export function WordImport({ categories }: { categories: Category[] }) {
           spellCheck={false}
           value={csv}
           onChange={(event) => setCsv(event.target.value)}
-          placeholder={"text,difficulty,lang,tags,frequency\nkatana,EASY,en,short|common,1200"}
+          placeholder={"text,difficulty,lang,tags,frequency\nbridge,EASY,en,short|common,1200"}
           className={cn(field, "h-auto resize-y py-2 font-mono text-xs")}
         />
       </div>

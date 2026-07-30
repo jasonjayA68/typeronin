@@ -30,7 +30,7 @@ export default async function NewPostPage() {
   return (
     <AdminPage
       title="New post"
-      description="It is saved as a draft. Nothing is public until someone publishes it."
+      description="Write your post here. It saves as a draft. No one else can see it until you publish it."
     >
       <PostEditor
         postId={null}

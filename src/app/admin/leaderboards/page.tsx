@@ -32,10 +32,10 @@ const CONTROL =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30";
 
 const SCOPES = [
-  ["GLOBAL", "Global — all time"],
+  ["GLOBAL", "Everyone — all time"],
   ["WEEKLY", "Weekly"],
   ["MONTHLY", "Monthly"],
-  ["COUNTRY", "Country"],
+  ["COUNTRY", "By country"],
 ] as const;
 
 // Server-rendered only, and fixed to UTC: a season boundary that reads
@@ -107,7 +107,7 @@ async function removeSeason(formData: FormData) {
   "use server";
 
   if (formData.get("confirm") !== "on") {
-    redirect(back({ error: "Tick the confirmation to delete a season." }));
+    redirect(back({ error: "Tick the box to confirm before deleting a season." }));
   }
 
   const result = await deleteSeason(text(formData.get("id")));
@@ -153,7 +153,7 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
   return (
     <AdminPage
       title="Leaderboards"
-      description="A season is a window with a name: it decides which runs a standing is drawn from, and freezes when it closes. The reset schedule is data here rather than a cron literal in code."
+      description="A season is a named period of time, such as July 2026. Only games played inside that period count towards its ranking. When you close a season, its ranking stops changing."
     >
       {error ? (
         <p
@@ -172,12 +172,12 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
       {seasons.length ? (
         <PanelGrid cols={3}>
           <Stat framed label="Seasons" value={String(seasons.length)} />
-          <Stat framed accent label="Open" value={String(open)} hint="Not yet frozen." />
+          <Stat framed accent label="Open" value={String(open)} hint="Still counting games." />
           <Stat
             framed
-            label="Cached standings"
+            label="Saved rankings"
             value={cached.toLocaleString("en-US")}
-            hint="Rows the ranking job has written. It does not exist yet."
+            hint="This will read zero until the ranking job is built."
           />
         </PanelGrid>
       ) : null}
@@ -186,16 +186,16 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
         {seasons.length ? (
           <DataTable>
             <caption className="sr-only">
-              Every leaderboard season, with its scope, window, cached standings and whether it is
+              Every leaderboard season, with its type, dates, saved rankings and whether it is
               closed.
             </caption>
             <thead>
               <tr>
                 <Th>Season</Th>
-                <Th>Scope</Th>
+                <Th>Type</Th>
                 <Th>Starts</Th>
                 <Th>Ends</Th>
-                <Th numeric>Standings</Th>
+                <Th numeric>Rankings</Th>
                 <Th>State</Th>
                 <Th className="text-right">Actions</Th>
               </tr>
@@ -228,7 +228,7 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
                         <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <input type="checkbox" name="confirm" className="size-3.5 accent-sakura" />
                           <span className="sr-only">Confirm deleting {season.label}</span>
-                          Sure
+                          I am sure
                         </label>
                         <Button type="submit" size="xs" variant="destructive">
                           Delete
@@ -245,19 +245,18 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
             title="No seasons yet"
             action={<PanelLink href="#open-season">Open the first one below</PanelLink>}
           >
-            Nothing has been ranked into a window. The table is empty because no season has ever
-            been opened — not because a job failed.
+            No season has been opened yet. Nothing has failed. Open one below to start counting.
           </EmptyState>
         )}
       </Panel>
 
       <Panel title="Open a season">
         <form action={openSeason} className="grid scroll-mt-8 gap-4 sm:grid-cols-2" id="open-season">
-          <Field name="label" label="Label" hint="How people will read it, e.g. July 2026.">
+          <Field name="label" label="Name" hint="What players will see, for example July 2026.">
             <Input id="label" name="label" required maxLength={60} placeholder="July 2026" />
           </Field>
 
-          <Field name="scope" label="Scope" hint="One season per scope may begin at any given moment.">
+          <Field name="scope" label="Type" hint="Two seasons of the same type cannot start at the same time.">
             <select id="scope" name="scope" defaultValue="MONTHLY" className={CONTROL}>
               {SCOPES.map(([value, label]) => (
                 <option key={value} value={value}>
@@ -271,7 +270,7 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
             <Input id="startsAt" name="startsAt" type="datetime-local" required className="tabular" />
           </Field>
 
-          <Field name="endsAt" label="Ends" hint="Must be after the start.">
+          <Field name="endsAt" label="Ends" hint="Must be later than the start.">
             <Input id="endsAt" name="endsAt" type="datetime-local" required className="tabular" />
           </Field>
 
@@ -283,25 +282,22 @@ export default async function LeaderboardsPage(props: PageProps<"/admin/leaderbo
         </form>
       </Panel>
 
-      <Panel title="Where standings come from" className="border-dashed bg-transparent">
+      <Panel title="Where rankings come from" className="border-dashed bg-transparent">
         <div className="space-y-4 text-sm leading-relaxed text-pretty text-muted-foreground">
           <p>
-            Rankings are derived from <code className="text-foreground">TypingSession</code>. That
-            table is the truth and can rebuild any standing at any time.{" "}
-            <code className="text-foreground">LeaderboardEntry</code> is only a cache of that
-            derivation, because ranking every session on every page view does not survive contact
-            with a real leaderboard.
+            Rankings are worked out from the games people have played. Those records are the real
+            source, and a ranking can always be worked out again from them.
           </p>
           <p>
-            <span className="text-foreground">The job that writes that cache does not exist yet.</span>{" "}
-            A season opened here is a real row with a real window, and it will hold zero standings
-            until the job is built. Nothing on this page computes a rank, and nothing invents one —
-            the count above is honest, and it will read zero.
+            <span className="text-foreground">
+              The job that works out and saves rankings is not built yet.
+            </span>{" "}
+            A season you open here is real, but it will show zero rankings until that job exists.
+            Nothing on this page makes up a number.
           </p>
           <p>
-            Deleting a season drops its cached standings with it. That loses nothing permanent for
-            the same reason: the runs are untouched, and the cache is recomputable once there is
-            something to recompute it with.
+            Deleting a season also deletes its saved rankings. Nothing is lost for good: the games
+            themselves are kept, and the rankings can be worked out again.
           </p>
         </div>
       </Panel>

@@ -18,19 +18,17 @@ export default async function PlayLimitsPage() {
   return (
     <AdminPage
       title="Daily limits"
-      description="How much a player may earn in a day, how quickly, and at what rate. Left at their defaults these do nothing — a cap of zero is no cap — so the games play exactly as before until you set a real value."
+      description="Set how many games a player can earn from each day, how long they must wait between games, and how much Honor a game pays. Honor is the points players earn. A limit of 0 means no limit."
     >
-      <Panel title="Games, cooldown & multiplier">
+      <Panel title="Games, waiting time and payout">
         <PlayLimitsEditor initial={limits} />
       </Panel>
 
-      <Panel title="How this works" className="border-dashed bg-transparent">
+      <Panel title="Good to know" className="border-dashed bg-transparent">
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-          Stored as one <code className="text-xs">Setting</code> row under{" "}
-          <code className="text-xs">play</code>, validated before it is written. The limit is
-          enforced where runs are recorded, not in the browser, so it holds against a scripted
-          client — a game past the cap is simply not saved and earns nothing. The day resets at
-          midnight UTC.
+          These limits are applied on our servers, not in the player&apos;s browser, so they cannot be
+          worked around. A game played past the daily limit is not saved and earns nothing. The day
+          starts again at midnight UTC.
         </p>
       </Panel>
     </AdminPage>

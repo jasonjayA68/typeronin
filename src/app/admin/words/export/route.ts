@@ -4,7 +4,7 @@ import { requirePermission } from "@/features/admin/guard";
 import { prisma } from "@/lib/prisma";
 
 /**
- * The corpus as a CSV file.
+ * The word list as a CSV file.
  *
  * A Route Handler is a public endpoint like any action, so it carries the same
  * read guard as the page. It honours the page's filters, so the file matches

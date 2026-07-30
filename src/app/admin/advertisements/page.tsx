@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/shared/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "Advertisements",
+  title: "Ads",
   robots: { index: false, follow: false },
 };
 
@@ -21,8 +21,8 @@ export default async function AdvertisementsPage() {
 
   return (
     <AdminPage
-      title="Advertisements"
-      description="Pages ask for a slot by name and know nothing else — not the network, not the unit, not whether it is on. Everything below is that decision."
+      title="Ads"
+      description="Every ad position on the site, and what fills it. Turn a position on or off here, and choose whether it shows on desktop, on mobile, or both."
     >
       {/* The publisher id is the one piece that is not a row, so say where it is. */}
       <div
@@ -35,20 +35,21 @@ export default async function AdvertisementsPage() {
       >
         {isAdSenseConfigured ? (
           <p>
-            AdSense is configured for this deployment. Slots set to AdSense with a unit id will
-            serve real adverts.
+            AdSense is set up on this site. Ad positions set to AdSense with a unit id will show real
+            ads.
           </p>
         ) : (
           <p>
-            No AdSense publisher id is set for this deployment, so every slot renders the house
-            placeholder and no Google script is loaded. Set{" "}
+            No AdSense account is set up on this site, so every ad position shows our own placeholder
+            and no Google code is loaded. Set{" "}
             <code className="text-foreground">NEXT_PUBLIC_ADSENSE_CLIENT_ID</code> to change that.
           </p>
         )}
       </div>
 
       <p className="text-sm text-muted-foreground">
-        <span className="tabular text-sakura">{live}</span> of {placements.length} slots live.
+        <span className="tabular text-sakura">{live}</span> of {placements.length} ad positions are
+        on.
       </p>
 
       <div className="space-y-3">
@@ -56,7 +57,7 @@ export default async function AdvertisementsPage() {
           <section
             key={placement.id}
             className={cn(
-              "min-w-0 rounded-xl border border-border bg-card/60 p-5 transition-colors",
+              "min-w-0 rounded-xl border border-border bg-card p-5 transition-colors",
               !placement.isActive && "border-dashed bg-transparent"
             )}
           >
@@ -66,7 +67,7 @@ export default async function AdvertisementsPage() {
                 <div className="mt-1 flex items-center gap-3">
                   <code className="tabular text-xs text-muted-foreground">{placement.slug}</code>
                   <StatusDot tone={placement.isActive ? "on" : "off"}>
-                    {placement.isActive ? "Live" : "Off"}
+                    {placement.isActive ? "On" : "Off"}
                   </StatusDot>
                 </div>
               </div>
@@ -115,7 +116,7 @@ export default async function AdvertisementsPage() {
               </ul>
             ) : (
               <p className="mt-4 border-t border-border/60 pt-4 text-xs text-muted-foreground">
-                Nothing booked. An enabled slot with no advert renders nothing at all.
+                Nothing booked. An ad position with nothing in it shows nothing.
               </p>
             )}
           </section>
@@ -124,10 +125,9 @@ export default async function AdvertisementsPage() {
 
       <Panel title="Not built yet" className="border-dashed bg-transparent">
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-          Creating and editing individual adverts from here — the server actions exist and are
-          guarded, but the form does not. Booking a unit today means an insert. Rewarded and
-          interstitial formats also need their player-facing flows before they can be switched on
-          honestly.
+          You cannot add or edit a single ad from this page yet. For now a developer must add it in
+          the database. Reward and full-screen ads also need work in the game before they can be
+          turned on.
         </p>
       </Panel>
     </AdminPage>

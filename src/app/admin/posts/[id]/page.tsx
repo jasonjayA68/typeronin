@@ -85,7 +85,7 @@ export default async function EditPostPage(props: PageProps<"/admin/posts/[id]">
       description={
         parsed.ok
           ? undefined
-          : `This post's body could not be read (${parsed.message}) and is shown empty. Saving will replace it — open it in the database first if the writing matters.`
+          : `The text of this post could not be read (${parsed.message}), so the box below is empty. If you save now, the old text is lost. Ask a developer to look at it first if the writing matters.`
       }
     >
       <PostEditor

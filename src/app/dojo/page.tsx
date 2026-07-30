@@ -17,7 +17,7 @@ import { Button } from "@/shared/components/ui/button";
 export const metadata: Metadata = {
   title: "The Dojo",
   description:
-    "Play typing games — Typing Phrases and Find the Word. Every game is scored on speed and accuracy, and earns Honor.",
+    "Play two free typing games: Typing Phrases and Find the Word. Every game is scored on speed and accuracy, and earns Honor points.",
 };
 
 export default async function DojoPage() {
@@ -31,8 +31,8 @@ export default async function DojoPage() {
     getKataPassages(),
   ]);
 
-  // The daily-games counter. `remaining` is null only if an admin has set the
-  // cap to unlimited; normally it is a number out of the daily maximum.
+  // The games-left counter. `remaining` is null only if an admin has set the cap
+  // to unlimited; normally it is a number out of the daily maximum.
   const cap = playState.limits.maxGamesPerDay;
   const remaining = playState.remaining;
 
@@ -43,16 +43,16 @@ export default async function DojoPage() {
         <PageHeader
           eyebrow="Play · Learn · Earn"
           title="The Dojo"
-          lede="Pick a game and play. Typing Phrases trains your speed; Find the Word builds your English. Both earn Honor."
+          lede="Pick a game and play. Typing Phrases builds your typing speed. Find the Word builds your English. Both earn Honor — the points you earn by playing."
         />
         <Container className="py-12 sm:py-16">
           {/* Daily games remaining — the one meter that matters while you play. */}
-          <div className="mx-auto mb-8 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card/60 px-5 py-4">
+          <div className="mx-auto mb-8 flex max-w-md items-center justify-between gap-4 rounded-2xl border border-border/60 bg-card px-5 py-4">
             <div>
               <p className="font-heading text-[0.7rem] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
-                Daily Games Remaining
+                Games Left Today
               </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">Resets every day</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">You get new games every day</p>
             </div>
             <p className="tabular text-2xl font-semibold text-sakura">
               {remaining === null ? (
@@ -66,9 +66,9 @@ export default async function DojoPage() {
           </div>
 
           {playState?.limitReached ? (
-            <div className="gold-edge mx-auto max-w-xl rounded-2xl bg-card/60 p-8 text-center sm:p-10">
+            <div className="gold-edge mx-auto max-w-xl rounded-2xl bg-card p-8 text-center sm:p-10">
               <p className="font-heading text-xs tracking-[0.22em] text-sakura uppercase">
-                That&apos;s all for today
+                That is all for today
               </p>
               <p className="mt-3 text-lg text-pretty">{LIMIT_REACHED_MESSAGE}</p>
               <p className="tabular mt-4 text-sm text-muted-foreground">

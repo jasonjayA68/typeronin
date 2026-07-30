@@ -22,28 +22,30 @@ export type AuthResult =
 
 const NOT_CONFIGURED: AuthResult = {
   status: "error",
-  message:
-    "Accounts are not connected yet — Supabase keys are missing from this deployment. Training will open once they are set.",
+  message: "Accounts are not ready on this site yet. Please try again later.",
 };
 
 /**
  * Supabase's messages are serviceable but generic. Translate the handful a
- * student will actually hit; pass anything else through rather than swallowing
+ * player will actually hit; pass anything else through rather than swallowing
  * a real error behind flavour text.
+ *
+ * The sign-in message names neither the email nor the password on purpose: it
+ * must not tell a stranger which of the two they got right.
  */
 function readable(message: string): string {
   const m = message.toLowerCase();
   if (m.includes("invalid login credentials")) {
-    return "That email and password do not match an account.";
+    return "That email or password is not right. Please try again.";
   }
   if (m.includes("email not confirmed")) {
-    return "Confirm your email first — the link is in your inbox.";
+    return "Please confirm your email first. Look for our link in your inbox.";
   }
   if (m.includes("user already registered") || m.includes("already been registered")) {
-    return "That email already has an account. Sign in instead.";
+    return "That email already has an account. Please sign in instead.";
   }
   if (m.includes("rate limit") || m.includes("too many")) {
-    return "Too many attempts. Wait a moment before trying again.";
+    return "Too many tries. Please wait a minute, then try again.";
   }
   return message;
 }
@@ -58,7 +60,7 @@ export async function signIn(
   // Never trust the client's validation — it is a convenience, not a control.
   const parsed = loginSchema.safeParse(values);
   if (!parsed.success) {
-    return { status: "error", message: "Check the details and try again." };
+    return { status: "error", message: "Please check what you typed and try again." };
   }
 
   const supabase = await createClient();
@@ -86,7 +88,7 @@ export async function signUp(values: unknown): Promise<AuthResult> {
 
   const parsed = registerSchema.safeParse(values);
   if (!parsed.success) {
-    return { status: "error", message: "Check the details and try again." };
+    return { status: "error", message: "Please check what you typed and try again." };
   }
 
   const supabase = await createClient();
@@ -128,7 +130,7 @@ export async function requestPasswordReset(values: unknown): Promise<AuthResult>
 
   const parsed = forgotSchema.safeParse(values);
   if (!parsed.success) {
-    return { status: "error", message: "That does not look like an email address." };
+    return { status: "error", message: "That email address does not look right." };
   }
 
   const supabase = await createClient();
@@ -157,7 +159,7 @@ export async function updatePassword(values: unknown): Promise<AuthResult> {
 
   const parsed = resetSchema.safeParse(values);
   if (!parsed.success) {
-    return { status: "error", message: "Check the details and try again." };
+    return { status: "error", message: "Please check what you typed and try again." };
   }
 
   const supabase = await createClient();
@@ -168,7 +170,7 @@ export async function updatePassword(values: unknown): Promise<AuthResult> {
   if (!user) {
     return {
       status: "error",
-      message: "That recovery link has expired. Request a new one.",
+      message: "That link has expired. Please ask for a new one.",
     };
   }
 

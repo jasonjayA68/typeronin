@@ -9,17 +9,17 @@ import { SiteHeader } from "@/shared/components/layout/site-header";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "How to reach the house — on social, or in writing.",
+  description: "How to reach us — on social media, or by email.",
 };
 
 /**
- * Where to reach the house.
+ * Where to reach us.
  *
  * Social is the front door: it is where the product is answered day to day, and
  * the links come from the admin panel rather than this file, so a network is
- * added without a deploy. The two written addresses stay because a DM is not a
- * durable channel for a data-protection request or a legal notice — those need
- * somewhere that can be evidenced later.
+ * added without a deploy. The two email addresses stay because a private message
+ * is not a durable channel for a data-protection request or a legal notice —
+ * those need somewhere that can be evidenced later.
  *
  * There is deliberately no contact FORM. A form promises a queue somebody works,
  * and there is no inbox behind one here; a link to a channel that is genuinely
@@ -30,12 +30,12 @@ const WRITTEN = [
   {
     address: "privacy@typeronin.com",
     label: "Your data",
-    note: "Access, correction and deletion requests, and anything about the privacy notice.",
+    note: "Ask to see, correct or delete your data. Also for questions about our privacy notice.",
   },
   {
     address: "legal@typeronin.com",
     label: "Legal",
-    note: "Questions about the terms, and formal notices.",
+    note: "Questions about our terms, and formal legal notices.",
   },
 ] as const;
 
@@ -47,27 +47,29 @@ export default async function ContactPage() {
       <SiteHeader />
       <main className="flex-1">
         <PageHeader
-          eyebrow="The Scrolls"
+          eyebrow="Help"
           title="Contact"
-          lede="The house keeps no support desk. It answers on social, and in writing where a record is needed."
+          lede="We have no support phone line. We answer on social media, and by email when you need a written record."
         />
         <Container width="narrow" className="py-12 sm:py-16">
           <section aria-labelledby="social" className="scroll-mt-24">
             <h2 id="social" className="text-xl font-semibold sm:text-2xl">
-              On social
+              On social media
             </h2>
             <div className="mt-4 space-y-5 leading-relaxed text-muted-foreground">
               {linked ? (
                 <>
                   <p>
-                    The quickest way to reach us, and where questions about training, Honor and
-                    payouts are answered. Send a message on whichever you already use.
+                    This is the fastest way to reach us. We answer questions about the games, about
+                    Honor — the points you earn by playing — and about payouts. Send a message on
+                    whichever network you already use.
                   </p>
                   <SocialLinks variant="named" />
                 </>
               ) : (
                 <p>
-                  No social channels are published yet. Until they are, use the addresses below.
+                  We have not published any social media accounts yet. Until we do, use the email
+                  addresses below.
                 </p>
               )}
             </div>
@@ -77,12 +79,12 @@ export default async function ContactPage() {
 
           <section aria-labelledby="written" className="scroll-mt-24">
             <h2 id="written" className="text-xl font-semibold sm:text-2xl">
-              In writing
+              By email
             </h2>
             <div className="mt-4 space-y-4 leading-relaxed text-muted-foreground">
               <p>
-                For anything that should leave a record — a request about your data, or a legal
-                notice — write rather than message.
+                Some things need a written record. Send an email for a request about your data, or
+                for a legal notice.
               </p>
               <ul className="space-y-4">
                 {WRITTEN.map((entry) => (

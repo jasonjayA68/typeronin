@@ -25,10 +25,10 @@ import { Panel } from "@/features/admin/ui";
 /**
  * The post editor.
  *
- * Saving and publishing are two buttons because they are two permissions — see
- * features/blog/post-actions.ts. A writer holding only `blog:write` gets the
- * whole editor and no way to put it live, and the state panel says so rather
- * than showing a button that would 404 them.
+ * Saving and publishing are two buttons because they need two different
+ * permissions — see features/blog/post-actions.ts. A writer who can only write
+ * gets the whole editor and no way to put a post live, and the Status panel says
+ * so rather than showing a button that would refuse them.
  */
 
 export type PostDraftValues = {
@@ -62,9 +62,9 @@ const field =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30";
 
 const STATUS_COPY: Record<string, string> = {
-  DRAFT: "Only people with access to this panel can read it.",
-  SCHEDULED: "Written and dated. The publisher job puts it live when the time comes.",
-  PUBLISHED: "Live. Anyone can read it.",
+  DRAFT: "Only admins can read this. Readers cannot see it.",
+  SCHEDULED: "Written and dated. It goes live on its own at the time you set.",
+  PUBLISHED: "Live on the blog. Anyone can read it.",
   ARCHIVED: "Taken off the blog. The writing is kept.",
 };
 
@@ -257,36 +257,35 @@ export function PostEditor(props: PostEditorProps) {
                 id="post-title"
                 value={values.title}
                 disabled={pending}
-                placeholder="The way of the keyboard"
+                placeholder="Five ways to type faster"
                 onChange={(e) => set("title", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="post-slug">Slug</Label>
+              <Label htmlFor="post-slug">Web address</Label>
               <Input
                 id="post-slug"
                 value={values.slug}
                 disabled={pending}
-                placeholder="Left blank, it is derived from the title"
+                placeholder="Leave empty and it is made from the title"
                 onChange={(e) => set("slug", e.target.value)}
               />
               {status === "PUBLISHED" ? (
                 <p className="text-xs text-warning">
-                  This post is live. Changing the slug changes its URL, and every link to the old
-                  one stops working.
+                  This post is live. Changing the web address breaks every link to the old one.
                 </p>
               ) : null}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="post-excerpt">Excerpt</Label>
+              <Label htmlFor="post-excerpt">Short summary</Label>
               <textarea
                 id="post-excerpt"
                 rows={2}
                 value={values.excerpt}
                 disabled={pending}
-                placeholder="One paragraph. Used on cards, and as the SEO description when none is set."
+                placeholder="One short paragraph. Shown in post lists and in search results."
                 onChange={(e) => set("excerpt", e.target.value)}
                 className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
               />
@@ -294,7 +293,7 @@ export function PostEditor(props: PostEditorProps) {
           </div>
         </Panel>
 
-        <Panel title="Body">
+        <Panel title="Post text">
           <BodyEditor
             initialContent={props.initialContent}
             disabled={pending}
@@ -309,7 +308,7 @@ export function PostEditor(props: PostEditorProps) {
       </div>
 
       <div className="min-w-0 space-y-4">
-        <Panel title="State">
+        <Panel title="Status">
           <div className="space-y-4">
             <div>
               <p className="font-heading text-sm tracking-wide">
@@ -339,7 +338,7 @@ export function PostEditor(props: PostEditorProps) {
 
             {!props.postId ? (
               <p className="text-xs text-muted-foreground">
-                A post is created as a draft. Publishing comes after it exists.
+                A new post is saved as a draft. You can publish it after you save.
               </p>
             ) : props.canPublish ? (
               <div className="space-y-3 border-t border-border pt-4">
@@ -368,7 +367,9 @@ export function PostEditor(props: PostEditorProps) {
                 {dirty && status !== "PUBLISHED" ? (
                   // Publishing sends what is in the database, not what is on
                   // screen. Rather than silently publishing the old text, say so.
-                  <p className="text-xs text-muted-foreground">Save first — publishing sends the saved version.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Save first. Publishing sends the saved version, not what is on screen.
+                  </p>
                 ) : null}
 
                 <div className="space-y-2">
@@ -414,7 +415,7 @@ export function PostEditor(props: PostEditorProps) {
                       onChange={(e) => flag("isFeatured", e.target.checked)}
                       className="size-4 accent-sakura"
                     />
-                    Featured
+                    Show as featured
                   </Label>
                   <Label htmlFor="post-trending" className="text-xs">
                     <input
@@ -425,10 +426,10 @@ export function PostEditor(props: PostEditorProps) {
                       onChange={(e) => flag("isTrending", e.target.checked)}
                       className="size-4 accent-sakura"
                     />
-                    Pinned as trending
+                    Show as trending
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    An editorial pin, independent of what readers actually read.
+                    You choose this by hand. It is not based on what readers actually read.
                   </p>
                 </div>
 
@@ -443,7 +444,7 @@ export function PostEditor(props: PostEditorProps) {
                       <DialogTitle>Delete {values.title || "this post"}</DialogTitle>
                       <DialogDescription>
                         This removes the post and every comment on it, for good. Archiving takes it
-                        off the blog and keeps the writing — that is nearly always the one you want.
+                        off the blog but keeps the writing. That is usually the better choice.
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -459,14 +460,14 @@ export function PostEditor(props: PostEditorProps) {
               </div>
             ) : (
               <p className="border-t border-border pt-4 text-xs text-muted-foreground">
-                Publishing needs the <code className="text-xs">blog:publish</code> permission, which
-                this account does not hold. Save the draft and someone who has it can put it live.
+                Your account is not allowed to publish. Save the draft, and someone who is allowed
+                can put it live.
               </p>
             )}
           </div>
         </Panel>
 
-        <Panel title="Filing">
+        <Panel title="Category and tags">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="post-category">Category</Label>
@@ -477,7 +478,7 @@ export function PostEditor(props: PostEditorProps) {
                 onChange={(e) => set("categoryId", e.target.value)}
                 className={field}
               >
-                <option value="">Uncategorised</option>
+                <option value="">No category</option>
                 {props.categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -492,12 +493,12 @@ export function PostEditor(props: PostEditorProps) {
                 id="post-tags"
                 value={values.tags}
                 disabled={pending}
-                placeholder="kata, posture, drills"
+                placeholder="typing, practice, beginners"
                 onChange={(e) => set("tags", e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Separated by commas. A tag is a page with a URL, so new ones are made as needed and
-                matched case-insensitively.
+                Separate tags with commas. Each tag gets its own page. New tags are created for you,
+                and capital letters do not matter.
               </p>
             </div>
           </div>
@@ -506,8 +507,8 @@ export function PostEditor(props: PostEditorProps) {
         <Panel title="Images">
           <div className="space-y-4">
             <ImageField
-              label="Featured image"
-              hint="Shown on cards and at the top of the article."
+              label="Main image"
+              hint="Shown in post lists and at the top of the post."
               picked={featured}
               disabled={pending}
               onPick={(media) => {
@@ -520,8 +521,8 @@ export function PostEditor(props: PostEditorProps) {
               }}
             />
             <ImageField
-              label="Social image"
-              hint="What appears when the link is shared. Falls back to the featured image."
+              label="Sharing image"
+              hint="Shown when the link is shared on social media. Uses the main image if empty."
               picked={og}
               disabled={pending}
               onPick={(media) => {
@@ -536,39 +537,39 @@ export function PostEditor(props: PostEditorProps) {
           </div>
         </Panel>
 
-        <Panel title="Search">
+        <Panel title="Google search">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="post-seo-title">SEO title</Label>
+              <Label htmlFor="post-seo-title">Title in search results</Label>
               <Input
                 id="post-seo-title"
                 value={values.seoTitle}
                 disabled={pending}
-                placeholder="Falls back to the title"
+                placeholder="Uses the post title if empty"
                 onChange={(e) => set("seoTitle", e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="post-seo-description">SEO description</Label>
+              <Label htmlFor="post-seo-description">Description in search results</Label>
               <textarea
                 id="post-seo-description"
                 rows={2}
                 value={values.seoDescription}
                 disabled={pending}
-                placeholder="Falls back to the excerpt"
+                placeholder="Uses the short summary if empty"
                 onChange={(e) => set("seoDescription", e.target.value)}
                 className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50 dark:bg-input/30"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="post-canonical">Canonical URL</Label>
+              <Label htmlFor="post-canonical">Original link</Label>
               <Input
                 id="post-canonical"
                 value={values.canonicalUrl}
                 disabled={pending}
-                placeholder="Only if this was published elsewhere first"
+                placeholder="Only if this post appeared on another site first"
                 onChange={(e) => set("canonicalUrl", e.target.value)}
               />
             </div>

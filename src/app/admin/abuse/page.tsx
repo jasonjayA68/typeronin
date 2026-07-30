@@ -7,11 +7,11 @@ import { requirePermission } from "@/features/admin/guard";
 import { AdminPage, EmptyState, Panel } from "@/features/admin/ui";
 
 export const metadata: Metadata = {
-  title: "Abuse checks",
+  title: "Suspicious accounts",
   robots: { index: false, follow: false },
 };
 
-/** A badge for an account's current state within a group. */
+/** A badge showing what has already been done to an account in a group. */
 function StateTag({ status, isFlagged }: { status: string; isFlagged: boolean }) {
   if (status === "BANNED")
     return <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[0.65rem] font-semibold text-destructive">Banned</span>;
@@ -26,13 +26,13 @@ function StateTag({ status, isFlagged }: { status: string; isFlagged: boolean })
 function GroupCard({ label, group }: { label: string; group: AbuseGroup }) {
   const ids = group.accounts.map((a) => a.id);
   return (
-    <div className="rounded-xl border border-border/60 bg-card/40 p-4">
+    <div className="rounded-xl border border-border/60 bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs tracking-wide text-muted-foreground uppercase">{label}</p>
           <p className="tabular truncate font-medium">{group.key}</p>
           <p className="text-xs text-muted-foreground">
-            {group.accounts.length} accounts share this
+            {group.accounts.length} accounts use this
           </p>
         </div>
         <AbuseGroupActions profileIds={ids} />
@@ -63,8 +63,8 @@ export default async function AbuseChecksPage() {
 
   return (
     <AdminPage
-      title="Abuse checks"
-      description="Accounts that share one sign-in IP address or one payout number. A shared value is a signal, not proof — a household or a shared phone is innocent — so review each group before you flag or ban it. Every action is logged and can be undone per account from Users."
+      title="Suspicious accounts"
+      description="Accounts that share one sign-in address or one payout number. Sharing is not proof of cheating. A family or one shared phone looks the same. Check each group before you mark or ban it. Every action is saved in the activity log, and you can undo it per account from Users."
     >
       <Panel title={`Same payout number (${sharedNumbers.length})`}>
         {sharedNumbers.length ? (
@@ -74,22 +74,22 @@ export default async function AbuseChecksPage() {
             ))}
           </div>
         ) : (
-          <EmptyState title="Nothing to review">
-            No payout number is currently used by more than one account.
+          <EmptyState title="Nothing to check">
+            No payout number is used by more than one account.
           </EmptyState>
         )}
       </Panel>
 
-      <Panel title={`Same IP address (${sharedIps.length})`} className="mt-4">
+      <Panel title={`Same sign-in address (${sharedIps.length})`} className="mt-4">
         {sharedIps.length ? (
           <div className="space-y-3">
             {sharedIps.map((g) => (
-              <GroupCard key={g.key} label="IP address" group={g} />
+              <GroupCard key={g.key} label="Sign-in address" group={g} />
             ))}
           </div>
         ) : (
-          <EmptyState title="Nothing to review">
-            No IP address has signed in more than one account.
+          <EmptyState title="Nothing to check">
+            No sign-in address has been used by more than one account.
           </EmptyState>
         )}
       </Panel>

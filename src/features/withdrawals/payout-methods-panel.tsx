@@ -103,7 +103,7 @@ export function PayoutMethodsPanel({ methods }: { methods: SavedPayoutMethod[] }
 
   const onPickQr = async (file: File) => {
     if (!(QR_MIME_TYPES as readonly string[]).includes(file.type)) {
-      toast.error("Use a JPEG, PNG, or WebP image.");
+      toast.error("Please use a JPEG, PNG, or WebP image.");
       return;
     }
     try {
@@ -111,7 +111,7 @@ export function PayoutMethodsPanel({ methods }: { methods: SavedPayoutMethod[] }
       qrBlob.current = blob;
       setQrPreview(URL.createObjectURL(blob));
     } catch {
-      toast.error("That image could not be read.");
+      toast.error("We could not read that image. Please try another one.");
     }
   };
 
@@ -218,7 +218,7 @@ export function PayoutMethodsPanel({ methods }: { methods: SavedPayoutMethod[] }
         </ul>
       ) : (
         <p className="rounded-lg border border-dashed border-border px-6 py-6 text-center text-sm text-muted-foreground">
-          No saved payout methods yet. Add one to withdraw faster next time.
+          You have not saved a payout method yet. Add one to withdraw faster next time.
         </p>
       )}
 
@@ -268,7 +268,7 @@ export function PayoutMethodsPanel({ methods }: { methods: SavedPayoutMethod[] }
 
           {form.method === "BANK" ? (
             <div className="space-y-2">
-              <Label htmlFor="pm-details">Bank name / extra details</Label>
+              <Label htmlFor="pm-details">Bank name and any extra details</Label>
               <Input
                 id="pm-details"
                 value={form.details}
@@ -317,7 +317,7 @@ export function PayoutMethodsPanel({ methods }: { methods: SavedPayoutMethod[] }
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Scan-ready image of your {info?.label} QR. JPEG, PNG, or WebP.
+                Upload a clear image of your {info?.label} QR code. Use JPEG, PNG, or WebP.
               </p>
             </div>
           ) : null}

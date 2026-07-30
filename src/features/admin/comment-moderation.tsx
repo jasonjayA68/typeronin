@@ -41,11 +41,11 @@ const PAST: Record<Intent, string> = {
 };
 
 /**
- * The queue.
+ * The list of comments to review.
  *
- * Selection is the only reason this is a client component: the rows, the filter
- * and the counts are all server-rendered. Every button routes to an action that
- * re-checks the permission, so nothing here is load-bearing for authorisation.
+ * Ticking rows is the only reason this is a client component: the rows, the
+ * filter and the counts are all server-rendered. Every button calls an action
+ * that re-checks the permission, so nothing here decides who is allowed in.
  */
 export function CommentQueue({ rows }: { rows: CommentRow[] }) {
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -92,7 +92,7 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
       {selected.size > 0 ? (
         <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-border pb-4">
           <p className="mr-auto text-xs text-muted-foreground">
-            <span className="tabular text-sakura">{selected.size}</span> selected
+            <span className="tabular text-sakura">{selected.size}</span> ticked
           </p>
           {(["approve", "reject", "spam"] as const).map((intent) => (
             <Button
@@ -118,7 +118,7 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
 
       <DataTable>
         <caption className="sr-only">
-          Comments awaiting the selected moderation state, newest first.
+          Comments in the group you picked, newest first.
         </caption>
         <thead>
           <tr>
@@ -126,15 +126,15 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
               <input
                 type="checkbox"
                 checked={allSelected}
-                aria-label={allSelected ? "Clear selection" : "Select every comment shown"}
+                aria-label={allSelected ? "Untick every comment" : "Tick every comment shown"}
                 onChange={() => setSelected(allSelected ? new Set() : new Set(rows.map((r) => r.id)))}
                 className="size-4 accent-sakura"
               />
             </Th>
             <Th>Comment</Th>
-            <Th>Author</Th>
+            <Th>Written by</Th>
             <Th>Post</Th>
-            <Th numeric>Created</Th>
+            <Th numeric>Written</Th>
             <Th className="text-right">Actions</Th>
           </tr>
         </thead>
@@ -145,7 +145,7 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
                 <input
                   type="checkbox"
                   checked={selected.has(row.id)}
-                  aria-label={`Select comment by ${row.authorName}`}
+                  aria-label={`Tick the comment by ${row.authorName}`}
                   onChange={() => toggle(row.id)}
                   className="size-4 accent-sakura"
                 />
@@ -153,7 +153,7 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
               <Td>
                 <span className="block max-w-[22rem] text-pretty">
                   {row.isReply ? (
-                    <span className="mr-1.5 text-xs text-muted-foreground">reply</span>
+                    <span className="mr-1.5 text-xs text-muted-foreground">reply to another comment</span>
                   ) : null}
                   {row.body}
                 </span>
@@ -161,7 +161,7 @@ export function CommentQueue({ rows }: { rows: CommentRow[] }) {
               <Td>
                 <span className="block max-w-[9rem] truncate">{row.authorName}</span>
                 {row.isGuest ? (
-                  <span className="mt-0.5 block text-xs text-muted-foreground">guest</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">not signed in</span>
                 ) : null}
               </Td>
               <Td>

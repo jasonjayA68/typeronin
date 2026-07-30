@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 
-import { nextRank, rankForHonor } from "@/features/gamification/ranks";
+import { nextRank, rankForHonor, rankLabel } from "@/features/gamification/ranks";
 import { Empty, Panel, Stat, when } from "@/features/profile/dashboard-panels";
 import { getPublicProfile } from "@/features/profile/queries";
 import { Container } from "@/shared/components/layout/container";
@@ -98,7 +98,7 @@ export async function generateMetadata({
 
   return {
     title: profile.displayName,
-    description: `${profile.displayName} holds the rank of ${rank.name}, with a best of ${best} WPM.`,
+    description: `${profile.displayName} is ${rankLabel(rank)}, with a best of ${best} words per minute.`,
   };
 }
 
@@ -174,11 +174,11 @@ export default async function PublicProfilePage({
                   <Stat label="Avg WPM" value={String(stats.avgWpm)} />
                   <Stat label="Accuracy" value={`${stats.avgAccuracy}%`} />
                   <Stat label="Rhythm" value={String(stats.avgMa)} />
-                  <Stat label="Sessions" value={String(stats.sessions)} />
-                  <Stat label="Words cut" value={stats.wordsCut.toLocaleString()} />
+                  <Stat label="Games" value={String(stats.sessions)} />
+                  <Stat label="Words typed" value={stats.wordsCut.toLocaleString()} />
                 </div>
               ) : (
-                <Empty>This student has not yet cut their first passage.</Empty>
+                <Empty>This player has not finished a game yet.</Empty>
               )}
             </Panel>
 
@@ -206,18 +206,21 @@ export default async function PublicProfilePage({
                   ))}
                 </ul>
               ) : (
-                <Empty>No cuts recorded yet.</Empty>
+                <Empty>No games recorded yet.</Empty>
               )}
             </Panel>
 
             {/* Badges */}
-            <Panel title="Bushido Trials">
+            <Panel title="Achievements">
               {badges.length ? (
                 <ul className="space-y-2">
                   {badges.map((badge) => (
                     <li key={badge.achievement.slug} className="flex items-center gap-3">
-                      <span aria-hidden="true" className="font-heading text-lg text-sakura">
-                        {badge.achievement.kanji}
+                      {/* The badge face used to be the achievement's kanji. Those
+                          are gone — an achievement now says what it is in words —
+                          so the marker is a plain dot rather than an empty gap. */}
+                      <span aria-hidden="true" className="text-lg leading-none text-sakura">
+                        &bull;
                       </span>
                       <span className="min-w-0 flex-1 truncate text-sm">
                         {badge.achievement.name}
@@ -229,7 +232,7 @@ export default async function PublicProfilePage({
                   ))}
                 </ul>
               ) : (
-                <Empty>No trials passed yet.</Empty>
+                <Empty>No achievements yet.</Empty>
               )}
             </Panel>
           </div>

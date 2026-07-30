@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRightIcon, LoaderCircleIcon, MailCheckIcon } from "lucide-react";
+import { LoaderCircleIcon, MailCheckIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,25 +12,34 @@ import {
   FieldError,
   FormNotice,
   NotConnectedNotice,
+  authFieldClass,
+  authLinkClass,
 } from "@/features/auth/auth-form-shell";
 import { forgotSchema, type ForgotValues } from "@/features/auth/schemas";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
+/**
+ * Deliberately says "if that email has an account". Naming the address without
+ * confirming it exists is what keeps this form from being a way to test who
+ * has signed up here.
+ */
 function Sent({ email }: { email: string }) {
   return (
     <div className="w-full max-w-sm text-center">
       <span className="mx-auto grid size-12 place-items-center rounded-full border border-sakura/40 bg-sakura/10 text-sakura">
         <MailCheckIcon aria-hidden="true" className="size-5" />
       </span>
-      <h1 className="mt-6 font-sans text-2xl font-semibold tracking-normal text-balance">Check your email</h1>
+      <h1 className="mt-6 font-sans text-2xl font-semibold tracking-normal text-balance">
+        Check your email
+      </h1>
       <p className="mt-3 text-pretty text-muted-foreground">
-        If <span className="text-foreground">{email}</span> has an account, we&apos;ve sent a
-        password reset link. It expires soon, so use it right away.
+        If <span className="text-foreground">{email}</span> has an account, we just sent a link to
+        set a new password. The link only works for a short time, so use it soon.
       </p>
-      <p className="mt-6 text-sm text-muted-foreground">
-        <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
+      <p className="mt-6 flex justify-center text-sm text-muted-foreground">
+        <Link href="/login" className={authLinkClass}>
           Back to sign in
         </Link>
       </p>
@@ -66,47 +75,53 @@ export function ForgotForm({ configured }: { configured: boolean }) {
 
   return (
     <AuthFormShell
-      title="Reset your password"
-      lede="Enter your email and we'll send you a reset link."
+      title="Forgot your password?"
+      lede="We'll email you a link to set a new one."
       footer={
-        <>
-          Remembered it?{" "}
-          <Link href="/login" className="text-sakura underline-offset-4 hover:underline">
-            Sign in
-          </Link>
-        </>
+        <Link href="/login" className={authLinkClass}>
+          Back to sign in
+        </Link>
       }
     >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-        {error ? <FormNotice tone="error">{error}</FormNotice> : null}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <FormNotice tone="error">{error}</FormNotice>
 
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? "email-error" : undefined}
-            className="mt-2"
-            {...register("email")}
-          />
-          <FieldError id="email-error" message={errors.email?.message} />
+        <div className="space-y-5">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
+              className={authFieldClass}
+              {...register("email")}
+            />
+            <FieldError id="email-error" message={errors.email?.message} />
+          </div>
+
+          <Button
+            type="submit"
+            variant="dojo"
+            size="xl"
+            className="w-full"
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
+                Sending…
+              </>
+            ) : (
+              "Send me a link"
+            )}
+          </Button>
+
+          {configured ? null : <NotConnectedNotice />}
         </div>
-
-        <Button type="submit" variant="dojo" size="lg" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <LoaderCircleIcon aria-hidden="true" className="animate-spin" />
-          ) : (
-            <>
-              Send a recovery link
-              <ArrowRightIcon aria-hidden="true" />
-            </>
-          )}
-        </Button>
-
-        {configured ? null : <NotConnectedNotice />}
       </form>
     </AuthFormShell>
   );

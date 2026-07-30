@@ -28,9 +28,9 @@ import { Label } from "@/shared/components/ui/label";
 /**
  * The request dialog.
  *
- * It shows the payout as the amount is typed — gross, fee and what actually
+ * It shows the payout as the amount is typed — cash value, fee and what actually
  * arrives — computed with the very functions the server writes down, so the
- * figure on screen is the figure that gets frozen into the row. The submit stays
+ * figure on screen is the figure that gets fixed into the row. The submit stays
  * disabled until the amount is one the server would accept, which turns the
  * min/max/balance rules into guidance rather than a rejection after the fact.
  */
@@ -118,15 +118,15 @@ export function RequestWithdrawalButton({
         <DialogHeader>
           <DialogTitle>Request a withdrawal</DialogTitle>
           <DialogDescription>
-            The Honor leaves your balance now and is held until this is paid or refused. The rate is
-            frozen at the moment you request.
+            The Honor leaves your balance now. We hold it until the payment is sent or refused. The
+            rate is fixed at the moment you request.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {saved ? (
             <p className="rounded-lg border border-sakura/30 bg-sakura/5 px-3 py-2 text-xs text-muted-foreground">
-              Pre-filled from your default payout method. Edit anything below if you need to.
+              We filled this in from your default payout method. You can change anything below.
             </p>
           ) : null}
 
@@ -148,7 +148,7 @@ export function RequestWithdrawalButton({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="wd-name">Account holder</Label>
+            <Label htmlFor="wd-name">Account holder name</Label>
             <Input
               id="wd-name"
               value={values.accountName}
@@ -177,7 +177,7 @@ export function RequestWithdrawalButton({
                 id="wd-details"
                 value={values.details}
                 disabled={pending}
-                placeholder="Which bank"
+                placeholder="The name of your bank"
                 onChange={(e) => set("details", e.target.value)}
               />
             </div>
@@ -199,14 +199,14 @@ export function RequestWithdrawalButton({
             </div>
             <p className="text-xs text-muted-foreground">
               You have <span className="tabular text-foreground">{balance.toLocaleString()}</span>{" "}
-              Honor ({honorToCash(balance, config)}). Minimum{" "}
-              <span className="tabular">{config.minWithdrawalHonor.toLocaleString()}</span>.
+              Honor ({honorToCash(balance, config)}). The smallest amount you can withdraw is{" "}
+              <span className="tabular">{config.minWithdrawalHonor.toLocaleString()}</span> Honor.
             </p>
           </div>
 
           {/* The payout, spelled out as they type. */}
           {amount > 0 ? (
-            <div className="rounded-lg border border-border bg-card/60 p-4 text-sm">
+            <div className="rounded-lg border border-border bg-card p-4 text-sm">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-muted-foreground">Cash value</span>
                 <span className="tabular">{formatCash(quote.grossCents)}</span>

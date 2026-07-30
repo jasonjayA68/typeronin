@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/shared/components/ui/dialog";
 
-/** Pull a pending request back. The Honor returns to the balance on confirm. */
+/** Take a pending request back. The Honor returns to the balance on confirm. */
 export function CancelWithdrawalButton({ id }: { id: string }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -27,7 +27,7 @@ export function CancelWithdrawalButton({ id }: { id: string }) {
         toast.error(result.message);
         return;
       }
-      toast.success("Withdrawal cancelled — your Honor is back");
+      toast.success("Withdrawal cancelled. Your Honor is back in your balance.");
       setOpen(false);
     });
 
@@ -42,8 +42,8 @@ export function CancelWithdrawalButton({ id }: { id: string }) {
         <DialogHeader>
           <DialogTitle>Cancel this withdrawal?</DialogTitle>
           <DialogDescription>
-            The Honor held against it returns to your balance immediately. You can request again
-            afterwards.
+            The Honor we are holding goes back to your balance straight away. You can request another
+            withdrawal after that.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

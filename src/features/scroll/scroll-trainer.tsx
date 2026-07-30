@@ -14,17 +14,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/ui/button";
 
 /**
- * SCROLL — the vocabulary game.
+ * Find the Word — the vocabulary game. ("Scroll" is the internal name, kept in
+ * every identifier, action and table; only the label the player reads changed.)
  *
- * A definition is shown; the player picks the word it belongs to from a handful
- * of choices, and the answer is revealed with a sword cut on the card they
- * struck: one clean stroke for a right answer, two crossing ones and a red flash
- * for a wrong one — the heavier cut for the heavier moment. Each stroke is a
- * blade, a spark where it bites, and the scar it leaves; the clean scar fades,
- * the wrong one holds as an X so the verdict is still there a second later. The
- * timing is what sells it and it lives in globals.css (.cut-*).
+ * A meaning is shown; the player picks the word it belongs to from a handful of
+ * choices, and the answer is revealed with a slash animation across the card they
+ * chose: one stroke for a right answer, two crossing strokes and a red flash for
+ * a wrong one — the heavier mark for the heavier moment. The right answer's mark
+ * fades, the wrong answer's holds as an X so the result is still readable a
+ * second later. The timing is what sells it and it lives in globals.css (.cut-*).
  *
- * The run of correct answers is the combo, and the whole round's Honor is settled
+ * The run of correct answers is the streak, and the whole round's Honor is settled
  * by the server, which recomputes it from the counts rather than trusting them.
  */
 
@@ -37,9 +37,9 @@ const ROUND_SIZE = 10;
 /* The shape of a slash.
    -----------------------------------------------------------------------
    Each stroke is a crescent: an arc that bows across the card and closes to
-   a point at either end, thickest where the blade bit hardest. Both paths
-   below are the same arc drawn at two weights — a wide one for the blade in
-   flight, a fine one for the scar it leaves.
+   a point at either end, thickest in the middle. Both paths below are the
+   same arc drawn at two weights — a wide one for the stroke in flight, a
+   fine one for the mark it leaves behind.
 
    They are drawn with preserveAspectRatio="none" so the crescent stretches
    to the width of whatever card it lands on. That does flatten the arc on a
@@ -50,7 +50,7 @@ const BLADE_BODY = "M4 32 Q100 -16 196 32 Q100 2 4 32 Z";
 const BLADE_CORE = "M16 31 Q100 -13 184 31 Q100 -4 16 31 Z";
 const SCAR_ARC = "M10 31.5 Q100 -12.5 190 31.5 Q100 -6.5 10 31.5 Z";
 
-/** The edge mid-swing: the tone's crescent with a white one riding its edge. */
+/** The stroke mid-swing: the tone's crescent with a white one riding its edge. */
 function CutBlade() {
   return (
     <svg className="cut-blade" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
@@ -60,7 +60,7 @@ function CutBlade() {
   );
 }
 
-/** The mark left behind, on the same arc the blade travelled. */
+/** The mark left behind, on the same arc the stroke travelled. */
 function CutScar({ className }: { className: string }) {
   return (
     <svg
@@ -143,7 +143,7 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
       setRankDismissed(false);
       if (result.status === "saved") {
         setRemaining(result.remaining);
-        // Extra Honor from any Bushido trial or Mission this round completed.
+        // Extra Honor from any achievement or mission this round completed.
         if (result.bonus) celebrateBonus(result.bonus.unlocked);
       } else if (result.status === "limit") setRemaining(0);
       gust(correct >= wrong ? 1 : 0.5);
@@ -158,8 +158,8 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
 
     setPicked(choice);
     setSlash({ key: index, wrong: !right });
-    // A sword's ring on the cut — a bright "shing" for right, a duller strike
-    // for wrong. Synthesised (no audio file), and skipped under reduced-motion.
+    // A sound on the slash — a bright ring for right, a duller knock for wrong.
+    // Synthesised (no audio file), and skipped under reduced-motion.
     playSlash(right ? "clean" : "wrong");
     if (right) {
       setCorrect((c) => c + 1);
@@ -185,14 +185,14 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
   if (loadError) {
     return (
       <div className="rounded-2xl border border-dashed border-border px-6 py-16 text-center">
-        <p className="font-heading text-sm tracking-wide">SCROLL is not ready</p>
+        <p className="font-heading text-sm tracking-wide">Find the Word is not ready</p>
         <p className="mx-auto mt-2 max-w-sm text-sm text-pretty text-muted-foreground">{loadError}</p>
       </div>
     );
   }
 
   if (!questions) {
-    return <div className="min-h-72 animate-pulse rounded-2xl border border-border/60 bg-card/40" />;
+    return <div className="min-h-72 animate-pulse rounded-2xl border border-border/60 bg-card" />;
   }
 
   /* ----------------------------------------------------------------- result */
@@ -201,14 +201,15 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
     const dayDone = remaining === 0;
     return (
       <>
-        <div className="gold-edge animate-in fade-in slide-in-from-bottom-2 rounded-2xl bg-card/60 p-8 text-center duration-500">
+        <div className="gold-edge animate-in fade-in slide-in-from-bottom-2 rounded-2xl bg-card p-8 text-center duration-500">
           <p className="font-heading text-xs tracking-[0.22em] text-sakura uppercase">Round complete</p>
           <p className="mt-3 text-3xl font-semibold">
             <span className="tabular text-gradient-gold">{correct}</span>
             <span className="text-muted-foreground"> / {questions.length}</span>
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Best run of <span className="tabular text-foreground">{maxCombo}</span>.
+            Longest streak: <span className="tabular text-foreground">{maxCombo}</span> correct in a
+            row.
           </p>
 
           <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
@@ -225,11 +226,11 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             ) : saved?.status === "limit" ? (
               saved.message
             ) : saved?.status === "cooldown" ? (
-              `Too soon — wait ${saved.secondsLeft}s, and the next round will count.`
+              `Please wait ${saved.secondsLeft} seconds. Your next round will then count.`
             ) : saved?.status === "error" ? (
               saved.message
             ) : (
-              "Settling the round…"
+              "Saving your score…"
             )}
           </p>
 
@@ -237,7 +238,7 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             {dayDone ? (
               <Button asChild variant="dojo">
                 <Link href="/dashboard">
-                  See your standing
+                  See your progress
                   <ArrowRightIcon aria-hidden="true" />
                 </Link>
               </Button>
@@ -268,7 +269,12 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
 
   return (
     <div className="space-y-6">
-      {/* Progress + combo */}
+      {/* What to do, how it is scored, and what it pays. */}
+      <p className="text-xs text-muted-foreground">
+        Read the meaning, then pick the word that matches it. Every correct answer earns Honor.
+      </p>
+
+      {/* Progress + streak */}
       <div className="flex items-center justify-between gap-4 text-sm">
         <p className="text-muted-foreground">
           Question <span className="tabular text-foreground">{index + 1}</span> of{" "}
@@ -277,26 +283,26 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
         <div className="flex items-center gap-4">
           {combo >= 2 ? (
             <span className="font-heading text-xs tracking-[0.16em] text-sakura uppercase">
-              {combo} combo
+              {combo} in a row
             </span>
           ) : null}
           {remaining !== null ? (
             <span className="text-xs text-muted-foreground">
-              <span className="tabular text-sakura">{remaining}</span> left today
+              <span className="tabular text-sakura">{remaining}</span> games left today
             </span>
           ) : null}
         </div>
       </div>
 
       {/* The prompt */}
-      <div className="paper-texture rounded-2xl border border-border/60 bg-card/40 p-8 text-center sm:p-10">
+      <div className="paper-texture rounded-2xl border border-border/60 bg-card p-8 text-center sm:p-10">
         <p className="font-heading text-[0.7rem] tracking-[0.22em] text-muted-foreground uppercase">
-          What word means
+          Which word means this
         </p>
         <p className="mt-3 text-lg text-pretty sm:text-xl">{question!.definition}</p>
       </div>
 
-      {/* Choices — the cut lands here, on the answer you chose. */}
+      {/* Choices — the slash lands here, on the answer you chose. */}
       <div className="grid gap-3 sm:grid-cols-2">
         {question!.choices.map((choice) => {
           const isAnswer = choice === question!.answer;
@@ -315,8 +321,8 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                 isPicked && slash && "z-20",
                 !revealed && "border-border/60 hover:border-sakura/50 hover:bg-sakura/5",
                 revealed && isAnswer && "border-success/60 bg-success/10 text-success",
-                // The card answers the cut: a nudge for a clean one, a knock for
-                // a wrong one. Only ever on the card that was actually struck.
+                // The card reacts: a nudge for a right answer, a knock for a
+                // wrong one. Only ever on the card the player actually chose.
                 revealed && isPicked && isAnswer && "cut-recoil",
                 revealed &&
                   isPicked &&
@@ -327,10 +333,10 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
             >
               {choice}
               {isPicked && slash ? (
-                /* The cut. Each stroke is a crescent blade and the scar it
-                   leaves — see the .cut-* rules in globals.css. The wrapper
-                   carries the tone, so the same parts draw both the clean cut
-                   and the wrong one. */
+                /* The slash. Each stroke is a crescent and the mark it leaves —
+                   see the .cut-* rules in globals.css. The wrapper carries the
+                   tone, so the same parts draw both the right answer and the
+                   wrong one. */
                 <span
                   key={slash.key}
                   aria-hidden="true"
@@ -339,7 +345,7 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
                   {slash.wrong ? (
                     <>
                       {/* Two strokes, the second a beat later, crossing into an
-                          X that holds once the blades have gone. */}
+                          X that holds once the strokes have gone. */}
                       <CutBlade />
                       <CutScar className="cut-scar-hold" />
                       <span className="cut-cross">
@@ -364,8 +370,8 @@ export function ScrollTrainer({ playState = null }: { playState?: TrainerPlaySta
       <p className="min-h-5 text-center text-sm text-muted-foreground" aria-live="polite">
         {revealed
           ? picked === question!.answer
-            ? "Clean cut."
-            : `The word was “${question!.answer}”.`
+            ? "Correct."
+            : `The right word was “${question!.answer}”.`
           : "Choose the word."}
       </p>
     </div>

@@ -16,11 +16,11 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
 /**
- * The typed economy editor.
+ * The Honor value editor.
  *
  * Controlled state rather than a raw form, because this screen shows its own
- * consequences: change the rate and the worked example beneath it re-reckons
- * live, so an operator sees what "1000 Honor to the dollar" actually pays before
+ * consequences: change the rate and the worked example beside it updates as you
+ * type, so an admin sees what "1000 Honor for one dollar" actually pays before
  * they save it. A number that decides real payouts should not be set blind.
  *
  * Follows the same shape as the category editor — local state, a transition for
@@ -119,7 +119,7 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         toast.error(result.message);
         return;
       }
-      toast.success("Economy saved");
+      toast.success("Saved");
     });
 
   return (
@@ -127,8 +127,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           id="economy-rate"
-          label="Conversion rate"
-          hint="How much Honor equals one dollar."
+          label="Cash value"
+          hint="How much Honor a player needs to earn one dollar."
           suffix="Honor = $1"
           value={draft.honorPerDollar}
           onChange={(v) => set("honorPerDollar", v)}
@@ -136,8 +136,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         />
         <Field
           id="economy-fee"
-          label="Processing fee"
-          hint="Taken from each payout. Zero disables it."
+          label="Service fee"
+          hint="Taken out of each payout. Set 0 for no fee."
           suffix="%"
           value={draft.processingFeePercent}
           onChange={(v) => set("processingFeePercent", v)}
@@ -145,8 +145,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         />
         <Field
           id="economy-min"
-          label="Minimum withdrawal"
-          hint="The smallest payout a player may request."
+          label="Smallest payout"
+          hint="The least a player can ask for at one time."
           suffix="Honor"
           value={draft.minWithdrawalHonor}
           onChange={(v) => set("minWithdrawalHonor", v)}
@@ -154,8 +154,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         />
         <Field
           id="economy-max"
-          label="Maximum withdrawal"
-          hint="The largest single payout."
+          label="Largest payout"
+          hint="The most a player can ask for at one time."
           suffix="Honor"
           value={draft.maxWithdrawalHonor}
           onChange={(v) => set("maxWithdrawalHonor", v)}
@@ -163,8 +163,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         />
         <Field
           id="economy-daily"
-          label="Daily withdrawal limit"
-          hint="How many payouts one account may request a day."
+          label="Payout requests per day"
+          hint="How many times one account can ask in a day."
           suffix="per day"
           value={draft.dailyWithdrawalLimit}
           onChange={(v) => set("dailyWithdrawalLimit", v)}
@@ -172,13 +172,13 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
         />
         <div className="flex items-end">
           <Button size="sm" onClick={save} disabled={pending}>
-            {pending ? "Saving" : "Save economy"}
+            {pending ? "Saving" : "Save"}
           </Button>
         </div>
       </div>
 
       {/* The consequence, spelled out. */}
-      <aside className="rounded-xl border border-border bg-card/60 p-5">
+      <aside className="rounded-xl border border-border bg-card p-5">
         <p className="font-heading text-xs font-semibold tracking-[0.16em] text-foreground uppercase">
           At this rate
         </p>
@@ -188,20 +188,20 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
             <dd className="tabular text-foreground">{honorToCash(1000, preview)}</dd>
           </div>
           <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-muted-foreground">Minimum payout</dt>
+            <dt className="text-muted-foreground">Smallest payout</dt>
             <dd className="tabular text-foreground">
               {honorToCash(preview.minWithdrawalHonor, preview)}
             </dd>
           </div>
           <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-muted-foreground">Maximum payout</dt>
+            <dt className="text-muted-foreground">Largest payout</dt>
             <dd className="tabular text-foreground">
               {honorToCash(preview.maxWithdrawalHonor, preview)}
             </dd>
           </div>
           {preview.processingFeePercent > 0 ? (
             <div className="flex items-baseline justify-between gap-3 border-t border-border/60 pt-3">
-              <dt className="text-muted-foreground">Fee on the max</dt>
+              <dt className="text-muted-foreground">Fee on the largest</dt>
               <dd className="tabular text-sakura">
                 −
                 {formatCash(
@@ -216,7 +216,8 @@ export function EconomyEditor({ initial }: { initial: EconomyConfig }) {
           ) : null}
         </dl>
         <p className="mt-4 text-xs text-muted-foreground">
-          Defaults: {DEFAULT_ECONOMY.honorPerDollar.toLocaleString()} Honor to the dollar, no fee.
+          Starting values: {DEFAULT_ECONOMY.honorPerDollar.toLocaleString()} Honor for one dollar, no
+          fee.
         </p>
       </aside>
     </div>

@@ -12,10 +12,10 @@ import { Label } from "@/shared/components/ui/label";
 /**
  * The daily-limits editor.
  *
- * Same shape as the economy editor: local state, a transition, a toast. The
- * consequence of each knob is spelled out beneath it in plain terms, because "0"
- * meaning "unlimited" or "no cooldown" is the kind of thing that is obvious to
- * whoever wrote it and a trap for whoever reads it next.
+ * Same shape as the Honor value editor: local state, a transition, a toast. What
+ * each field does is spelled out beside it in plain terms, because "0" meaning
+ * "no limit" or "no wait" is obvious to whoever wrote it and a trap for whoever
+ * reads it next.
  */
 
 type Draft = {
@@ -101,7 +101,7 @@ export function PlayLimitsEditor({ initial }: { initial: PlayLimits }) {
         <Field
           id="pl-max"
           label="Games per day"
-          hint="0 means no limit."
+          hint="How many games a player can earn from each day. 0 means no limit."
           suffix="games"
           value={draft.maxGamesPerDay}
           onChange={(v) => set("maxGamesPerDay", v)}
@@ -109,8 +109,8 @@ export function PlayLimitsEditor({ initial }: { initial: PlayLimits }) {
         />
         <Field
           id="pl-cooldown"
-          label="Cooldown"
-          hint="Between counted games. 0 means none."
+          label="Wait between games"
+          hint="How long a player must wait before the next game counts. 0 means no wait."
           suffix="seconds"
           value={draft.cooldownSeconds}
           onChange={(v) => set("cooldownSeconds", v)}
@@ -118,8 +118,8 @@ export function PlayLimitsEditor({ initial }: { initial: PlayLimits }) {
         />
         <Field
           id="pl-mult"
-          label="Honor multiplier"
-          hint="Scales every payout. 100 leaves it unchanged."
+          label="Honor payout"
+          hint="100 pays the normal amount. 200 pays double. 50 pays half."
           suffix="%"
           value={draft.honorMultiplierPercent}
           onChange={(v) => set("honorMultiplierPercent", v)}
@@ -133,17 +133,17 @@ export function PlayLimitsEditor({ initial }: { initial: PlayLimits }) {
       </div>
 
       {/* In plain words. */}
-      <aside className="rounded-xl border border-border bg-card/60 p-5 text-sm">
+      <aside className="rounded-xl border border-border bg-card p-5 text-sm">
         <p className="font-heading text-xs font-semibold tracking-[0.16em] text-foreground uppercase">
-          In effect
+          What this means
         </p>
         <ul className="mt-4 space-y-2 text-muted-foreground">
           <li>
             {max === 0 ? (
-              "No daily cap — players may train as much as they like."
+              "No daily limit. Players can play as much as they like."
             ) : (
               <>
-                Each player may earn from{" "}
+                Each player can earn from{" "}
                 <span className="tabular text-foreground">{max}</span>{" "}
                 {max === 1 ? "game" : "games"} a day.
               </>
@@ -154,25 +154,26 @@ export function PlayLimitsEditor({ initial }: { initial: PlayLimits }) {
               "No wait between games."
             ) : (
               <>
-                A <span className="tabular text-foreground">{cooldown}s</span> wait between counted
-                games.
+                Players wait <span className="tabular text-foreground">{cooldown}s</span> before the
+                next game counts.
               </>
             )}
           </li>
           <li>
             {mult === 100 ? (
-              "Honor pays at its normal rate."
+              "Honor pays the normal amount."
             ) : (
               <>
-                Honor pays at{" "}
+                Honor pays{" "}
                 <span className="tabular text-foreground">{mult}%</span>
-                {mult > 100 ? " — a bonus." : mult < 100 ? " — reduced." : ""}
+                {mult > 100 ? " — more than normal." : mult < 100 ? " — less than normal." : ""}
               </>
             )}
           </li>
         </ul>
         <p className="mt-4 text-xs text-muted-foreground">
-          Defaults: no cap, no cooldown, {DEFAULT_PLAY_LIMITS.honorMultiplierPercent}% Honor.
+          Starting values: no daily limit, no wait,{" "}
+          {DEFAULT_PLAY_LIMITS.honorMultiplierPercent}% Honor.
         </p>
       </aside>
     </div>

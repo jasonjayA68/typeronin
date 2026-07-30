@@ -6,7 +6,7 @@ import { AdminPage, DataTable, EmptyState, Panel, Td, Th, Tr } from "@/features/
 import { when } from "@/features/profile/dashboard-panels";
 
 export const metadata: Metadata = {
-  title: "Audit log",
+  title: "Activity log",
   robots: { index: false, follow: false },
 };
 
@@ -16,8 +16,8 @@ export default async function AuditPage() {
 
   return (
     <AdminPage
-      title="Audit log"
-      description="Every administrative action, newest first. Append-only: nothing here can be edited from the panel, which is the only property that makes a log worth keeping."
+      title="Activity log"
+      description="A record of every action taken in the admin pages, newest first. Nothing here can be edited or deleted."
     >
       <Panel>
         {entries.length ? (
@@ -25,9 +25,9 @@ export default async function AuditPage() {
             <thead>
               <Tr>
                 <Th>Action</Th>
-                <Th>Entity</Th>
-                <Th>By</Th>
-                <Th>Detail</Th>
+                <Th>Item</Th>
+                <Th>Done by</Th>
+                <Th>Details</Th>
                 <Th numeric>When</Th>
               </Tr>
             </thead>
@@ -52,8 +52,8 @@ export default async function AuditPage() {
             </tbody>
           </DataTable>
         ) : (
-          <EmptyState title="Nothing has been administered yet">
-            Actions taken in this panel are recorded here.
+          <EmptyState title="Nothing here yet">
+            Actions taken in the admin pages are recorded here.
           </EmptyState>
         )}
       </Panel>

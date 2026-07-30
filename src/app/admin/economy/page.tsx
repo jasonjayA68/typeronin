@@ -7,7 +7,7 @@ import { EconomyEditor } from "@/features/economy/economy-editor";
 import { getEconomyConfig } from "@/features/economy/service";
 
 export const metadata: Metadata = {
-  title: "Honor economy",
+  title: "Honor value",
   robots: { index: false, follow: false },
 };
 
@@ -24,22 +24,19 @@ export default async function EconomyPage() {
 
   return (
     <AdminPage
-      title="Honor economy"
-      description="What a run is worth in cash, and the bounds a payout must fall within. The rate is never hardcoded — it is this row, read by every wallet and every withdrawal."
+      title="Honor value"
+      description="Set how much cash Honor is worth, and the smallest and largest payout. Honor is the points players earn. Every wallet and payout uses the numbers on this page."
     >
-      <Panel title="Conversion & withdrawals">
+      <Panel title="Cash value and payout limits">
         <EconomyEditor initial={config} />
       </Panel>
 
-      <Panel title="How this is stored" className="border-dashed bg-transparent">
+      <Panel title="Good to know" className="border-dashed bg-transparent">
         <p className="text-sm leading-relaxed text-pretty text-muted-foreground">
-          One <code className="text-xs">Setting</code> row under the key{" "}
-          <code className="text-xs">economy</code>, validated against a fixed schema before it can be
-          written — so no malformed rate reaches production, and no migration is needed to change a
-          value.{" "}
+          Your changes are checked before they are saved, so a bad value cannot go live.{" "}
           {isDefault
-            ? "Nothing has been saved yet, so these are the built-in defaults."
-            : "These values were set here."}
+            ? "Nothing has been saved yet, so these are the starting values."
+            : "These values were set on this page."}
         </p>
       </Panel>
     </AdminPage>

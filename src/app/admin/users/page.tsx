@@ -86,8 +86,8 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
       <div>
         <h1 className="text-2xl font-semibold sm:text-3xl">Users</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The fifty users holding the most Honor. Roles decide what a user may reach in this
-          panel; everything else here is read from the tables that own it.
+          The fifty users with the most Honor, the points players earn. A role decides which admin
+          pages a person can open.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
           role="status"
           className="rounded-lg border border-sakura/30 bg-sakura/10 px-4 py-3 text-sm text-sakura"
         >
-          That change was refused. Nothing was altered.
+          That change was not allowed. Nothing was changed.
         </p>
       ) : null}
 
@@ -108,7 +108,7 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
         <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
           <table className="w-full min-w-3xl border-collapse text-sm">
             <caption className="sr-only">
-              Users ordered by Honor, with their roles, sessions played and the date they joined.
+              Users ordered by Honor, with their roles, games played and the date they joined.
             </caption>
             <thead>
               <tr className="border-b border-border bg-muted/40 text-xs tracking-[0.14em] text-muted-foreground uppercase">
@@ -128,7 +128,7 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                   Honor
                 </th>
                 <th scope="col" className="px-4 py-3 text-right font-medium">
-                  Sessions
+                  Games
                 </th>
                 <th scope="col" className="px-4 py-3 text-right font-medium">
                   Joined
@@ -136,7 +136,7 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                 {canWrite ? (
                   <>
                     <th scope="col" className="px-4 py-3 text-right font-medium">
-                      Admin
+                      Admin role
                     </th>
                     <th scope="col" className="px-4 py-3 text-right font-medium">
                       Manage
@@ -218,16 +218,16 @@ export default async function StudentsPage(props: PageProps<"/admin/users">) {
                             type="submit"
                             size="sm"
                             variant={isAdmin ? "outline" : "secondary"}
-                            // Revoking your own admin role would lock you out; the
+                            // Removing your own admin role would lock you out; the
                             // action refuses it regardless, this only says so early.
                             disabled={isAdmin && isSelf}
                             title={
                               isAdmin && isSelf
-                                ? "You cannot revoke your own admin role."
+                                ? "You cannot remove your own admin role."
                                 : undefined
                             }
                           >
-                            {isAdmin ? "Revoke" : "Grant"}
+                            {isAdmin ? "Remove" : "Make admin"}
                           </Button>
                         </form>
                       </td>

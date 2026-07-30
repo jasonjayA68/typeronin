@@ -92,18 +92,18 @@ export default async function MediaPage(props: PageProps<"/admin/media">) {
   return (
     <AdminPage
       title="Media library"
-      description="Every image, video and document the blog draws on. A file is uploaded once and pointed at from anywhere; the description travels with it, so alt text written here is the alt text every post shows."
+      description="Every image, video and document used on the blog. Upload a file once and use it in any post. The description you write here is used everywhere the file appears."
     >
       {!isAdminKeyConfigured ? (
         <p
           role="status"
           className="rounded-lg border border-sakura/30 bg-sakura/10 px-4 py-3 text-sm text-sakura"
         >
-          Storage is not configured, so nothing can be uploaded or deleted. Set{" "}
+          File storage is not set up, so nothing can be uploaded or deleted. A developer needs to set{" "}
           <code className="text-xs">SUPABASE_SECRET_KEY</code> in{" "}
           <code className="text-xs">.env.local</code> and run{" "}
-          <code className="text-xs">supabase/media-bucket.sql</code> once against the project. What
-          is already here still lists and still renders.
+          <code className="text-xs">supabase/media-bucket.sql</code> once. Files already here still
+          show and still work.
         </p>
       ) : null}
 
@@ -133,7 +133,7 @@ export default async function MediaPage(props: PageProps<"/admin/media">) {
               type="search"
               name="q"
               defaultValue={q ?? ""}
-              placeholder="Search name, alt or caption"
+              placeholder="Search file name or description"
               aria-label="Search media"
               className="h-7 min-w-0 flex-1"
             />
@@ -176,7 +176,7 @@ export default async function MediaPage(props: PageProps<"/admin/media">) {
                     {item.width && item.height ? ` · ${item.width}×${item.height}` : ""}
                   </p>
                   {item.kind === "IMAGE" && !item.altText ? (
-                    <p className="mt-1 text-xs text-warning">No alt text</p>
+                    <p className="mt-1 text-xs text-warning">No description</p>
                   ) : (
                     <p className="mt-1 truncate text-xs text-muted-foreground">
                       {item.altText ?? item.caption ?? "—"}
@@ -202,8 +202,8 @@ export default async function MediaPage(props: PageProps<"/admin/media">) {
         ) : (
           <EmptyState title={q || kind ? "Nothing matches" : "The library is empty"}>
             {q || kind
-              ? "No file fits this filter. Widen it, or upload what you are looking for below."
-              : "Upload the first file below. Posts point at what is here rather than carrying their own copies."}
+              ? "No file fits this filter. Try a wider filter, or upload the file below."
+              : "Upload the first file below. Posts use files from here."}
           </EmptyState>
         )}
       </Panel>

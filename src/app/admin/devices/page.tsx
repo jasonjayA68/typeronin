@@ -60,15 +60,15 @@ export default async function DevicesPage(props: PageProps<"/admin/devices">) {
   return (
     <AdminPage
       title="Devices"
-      description="Browsers seen signing in, and how many accounts each has carried. More than one account on a device is flagged for review — it is a signal, not a verdict, and a shared machine is not fraud. Trust a device to accept a legitimate share; the flag clears and does not return."
+      description="Every phone or computer used to sign in, and how many accounts each one has used. Two or more accounts on one device gets flagged so you can check it. Sharing a device is not proof of cheating. If the sharing is fine, mark the device as trusted and the flag goes away for good."
     >
       <PanelGrid cols={3}>
         <Stat label="Devices" value={total.toLocaleString()} framed />
-        <Stat label="Shared" value={sharedCount.toLocaleString()} hint="More than one account" framed />
-        <Stat label="Flagged" value={flaggedCount.toLocaleString()} hint="Awaiting review" framed accent />
+        <Stat label="Shared" value={sharedCount.toLocaleString()} hint="Used by more than one account" framed />
+        <Stat label="Flagged" value={flaggedCount.toLocaleString()} hint="Waiting for you to check" framed accent />
       </PanelGrid>
 
-      <Panel title="Register">
+      <Panel title="All devices">
         <Toolbar>
           <Pill href={link(null)} active={!onlyFlagged}>
             All devices
@@ -82,14 +82,14 @@ export default async function DevicesPage(props: PageProps<"/admin/devices">) {
           <>
             <DataTable>
               <caption className="sr-only">
-                Devices and the accounts seen on each, flagged when shared.
+                Devices and the accounts used on each, flagged when shared.
               </caption>
               <thead>
                 <Tr>
                   <Th>Accounts</Th>
-                  <Th>Fingerprint</Th>
-                  <Th>Last IP</Th>
-                  <Th numeric>Seen</Th>
+                  <Th>Device id</Th>
+                  <Th>Last sign-in address</Th>
+                  <Th numeric>Last seen</Th>
                   <Th>State</Th>
                   <Th className="text-right">Action</Th>
                 </Tr>
@@ -125,7 +125,7 @@ export default async function DevicesPage(props: PageProps<"/admin/devices">) {
                         ) : shared ? (
                           <StatusDot tone="warn">Shared</StatusDot>
                         ) : (
-                          <StatusDot tone="off">Single</StatusDot>
+                          <StatusDot tone="off">One account</StatusDot>
                         )}
                       </Td>
                       <Td className="text-right">
@@ -142,7 +142,7 @@ export default async function DevicesPage(props: PageProps<"/admin/devices">) {
         ) : (
           <EmptyState title={onlyFlagged ? "Nothing flagged" : "No devices yet"}>
             {onlyFlagged
-              ? "No device has carried more than one account. Nothing needs review."
+              ? "No device has been used by more than one account. Nothing to check."
               : "Devices appear here as people sign in."}
           </EmptyState>
         )}

@@ -120,8 +120,8 @@ function LinkDialog({ editor }: { editor: Editor }) {
           <DialogHeader>
             <DialogTitle>Link</DialogTitle>
             <DialogDescription>
-              An address on the web, or a path on this site like /blog/the-way. Clearing it removes
-              the link.
+              A full web address, or a path on this site such as /blog/typing-tips. Empty the box to
+              remove the link.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -272,7 +272,7 @@ function Toolbar({ editor }: { editor: Editor }) {
 
       <MediaPicker
         heading="Insert an image"
-        description="From the library. The post stores a reference, so fixing the alt text later fixes it here too."
+        description="Pick a file from the media library. Change its description there later and this post updates too."
         trigger={
           <Button type="button" size="xs" variant="ghost" title="Insert image">
             Image

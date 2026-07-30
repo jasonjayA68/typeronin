@@ -29,12 +29,12 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 
 /**
- * The admin's four verbs for one payout: approve, reject, mark paid, and the
- * transaction reference mark-paid requires.
+ * The four things an admin can do to one payout: approve, reject, mark paid, and
+ * put it on hold. Marking it paid asks for the transfer's reference number.
  *
- * Which buttons appear is decided by the same state-machine predicates the
- * server enforces (model.ts) — so a settled payout shows no actions, and the UI
- * can never offer a move the action would then refuse.
+ * Which buttons appear is decided by the same rules the server enforces
+ * (model.ts) — so a finished payout shows no actions, and the UI can never offer
+ * a move the server would then refuse.
  */
 export function AdminWithdrawalActions({
   id,
@@ -62,7 +62,7 @@ export function AdminWithdrawalActions({
     startTransition(async () => {
       const result = await rejectWithdrawal(id, note);
       if (!result.ok) return void toast.error(result.message);
-      toast.success("Rejected — the Honor was refunded");
+      toast.success("Rejected. The Honor went back to the player");
       setRejecting(false);
       setNote("");
     });
@@ -80,7 +80,7 @@ export function AdminWithdrawalActions({
     startTransition(async () => {
       const result = await setWithdrawalHold({ withdrawalId: id, onHold: !onHold });
       if (!result.ok) return void toast.error(result.message);
-      toast.success(onHold ? "Released" : "Held for review");
+      toast.success(onHold ? "Released" : "On hold");
     });
 
   const settled = !canApprove(status) && !canReject(status) && !canMarkPaid(status);
@@ -119,12 +119,12 @@ export function AdminWithdrawalActions({
             <DialogHeader>
               <DialogTitle>Mark as paid</DialogTitle>
               <DialogDescription>
-                Record the reference from the transfer you sent. This is final — the Honor stays
-                spent, because it became the cash.
+                Enter the reference number from the transfer you sent. This cannot be undone. The
+                Honor stays spent, because it became the cash.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
-              <Label htmlFor="wd-reference">Transaction reference</Label>
+              <Label htmlFor="wd-reference">Reference number</Label>
               <Input
                 id="wd-reference"
                 value={reference}
@@ -160,8 +160,8 @@ export function AdminWithdrawalActions({
             <DialogHeader>
               <DialogTitle>Reject this withdrawal?</DialogTitle>
               <DialogDescription>
-                The held Honor returns to the user&apos;s balance. A note is optional and is kept on
-                the record.
+                The Honor on hold goes back to the player&apos;s balance. A note is optional and is
+                kept on the record.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
@@ -170,7 +170,7 @@ export function AdminWithdrawalActions({
                 id="wd-note"
                 value={note}
                 disabled={pending}
-                placeholder="Why it was refused"
+                placeholder="Why you said no"
                 onChange={(e) => setNote(e.target.value)}
               />
             </div>
@@ -179,7 +179,7 @@ export function AdminWithdrawalActions({
                 Keep it
               </Button>
               <Button variant="destructive" size="sm" onClick={reject} disabled={pending}>
-                {pending ? "Rejecting" : "Reject and refund"}
+                {pending ? "Rejecting" : "Reject and give Honor back"}
               </Button>
             </DialogFooter>
           </DialogContent>

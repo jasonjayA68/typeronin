@@ -134,8 +134,12 @@
   /* How strongly the canopy reads. A token rather than a constant in the
      component because the two themes need different answers: on warm white the
      blossom is a tint against a near-tone, on plum it is a bright pink against
-     near-black and the same value shouts. See --tree-canopy in the dark block. */
-  --tree-canopy: 0.55;
+     near-black and the same value shouts. See --tree-canopy in the dark block.
+
+     Held down deliberately. Headings and ledes sit directly on the page with no
+     surface of their own, so whatever the canopy is worth, the reader pays for
+     it in contrast. Decoration must stay behind the text, never beside it. */
+  --tree-canopy: 0.32;
 
   --background: #fdf8fa;
   --foreground: #33242d;
@@ -204,7 +208,7 @@
   /* Well below the light value. Pink on near-black is a far higher contrast
      than pink on warm white, so the canopy that reads as a soft ceiling by day
      reads as confetti over the copy by night unless it is held back. */
-  --tree-canopy: 0.3;
+  --tree-canopy: 0.18;
 
   --background: #171015;
   --foreground: #ece0e6;

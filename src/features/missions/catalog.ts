@@ -1,18 +1,22 @@
 import type { PlayerStats } from "@/features/gamification/player-stats";
 
 /**
- * The standing orders.
+ * The ongoing goals a player works toward across every game.
  *
  * Missions have no database table of their own — they are defined here, their
- * progress is derived from session history (the same PlayerStats the Bushido
- * trials read), and only their *completion* is persisted, as a MissionClaim row.
- * That keeps a mission's definition in code review rather than in data, and means
- * a mission cannot pay twice (the claim's composite key is the guard).
+ * progress is derived from session history (the same PlayerStats the achievements
+ * read), and only their *completion* is persisted, as a MissionClaim row. That
+ * keeps a mission's definition in code review rather than in data, and means a
+ * mission cannot pay twice (the claim's composite key is the guard).
  *
  * `key` is the stable identity written to MissionClaim; never reuse a key for a
- * different order. `icon` is a lucide name the page maps to a component. Every
- * condition is reachable through KATA typing and SCROLL vocab — the two mechanics
- * that pay Honor.
+ * different mission — the keys keep their original wording even where the title a
+ * player reads has changed. `icon` is a lucide name the page maps to a component.
+ * Every condition is reachable through the two games that pay Honor: Typing
+ * Phrases and Find the Word.
+ *
+ * Titles, descriptions and progress labels are player-facing. Keep them plain:
+ * short sentences, no game jargon, nothing that needs local knowledge to read.
  */
 export type Mission = {
   key: string;
@@ -30,18 +34,18 @@ const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
 export const MISSIONS: readonly Mission[] = [
   {
     key: "unbroken-line",
-    title: "The Unbroken Line",
-    description: "Finish a kata with not one stroke astray. Backspace will not save you.",
+    title: "No Mistakes",
+    description: "Finish one Typing Phrases game without a single wrong key.",
     icon: "swords",
     honor: 250,
     xp: 60,
     met: (s) => s.cleanKatas >= 1,
-    progress: (s) => ({ ratio: clamp01(s.cleanKatas / 1), label: `${Math.min(s.cleanKatas, 1)} of 1 clean cut` }),
+    progress: (s) => ({ ratio: clamp01(s.cleanKatas / 1), label: `${Math.min(s.cleanKatas, 1)} of 1 game with no mistakes` }),
   },
   {
     key: "dawn-practice",
-    title: "Dawn Practice",
-    description: "Train five days running. The grey mornings are the ones that count.",
+    title: "Five Days of Practice",
+    description: "Play on five different days. The days do not need to be in a row.",
     icon: "sunrise",
     honor: 400,
     xp: 100,
@@ -50,46 +54,46 @@ export const MISSIONS: readonly Mission[] = [
   },
   {
     key: "still-water",
-    title: "Still Water",
-    description: "Hold Ma above 80 for a full kata. Your rhythm will drift; notice it.",
+    title: "Steady Rhythm",
+    description: "Keep your Rhythm score above 80 for a whole Typing Phrases game.",
     icon: "waves",
     honor: 350,
     xp: 90,
     met: (s) => s.maRunsAbove80 >= 1,
-    progress: (s) => ({ ratio: clamp01(s.maxMa / 80), label: `Best Ma held: ${s.maxMa} of 80` }),
+    progress: (s) => ({ ratio: clamp01(s.maxMa / 80), label: `Best Rhythm score: ${s.maxMa} of 80` }),
   },
   {
     key: "hundred-draws",
-    title: "One Hundred Draws",
-    description: "Complete one hundred draws across the dojo. Kata or scroll, each one counts.",
+    title: "One Hundred Games",
+    description: "Finish one hundred games. Typing Phrases and Find the Word both count.",
     icon: "flame",
     honor: 300,
     xp: 80,
     met: (s) => s.totalRuns >= 100,
-    progress: (s) => ({ ratio: clamp01(s.totalRuns / 100), label: `${Math.min(s.totalRuns, 100)} of 100 draws` }),
+    progress: (s) => ({ ratio: clamp01(s.totalRuns / 100), label: `${Math.min(s.totalRuns, 100)} of 100 games` }),
   },
   {
     key: "long-road",
-    title: "The Long Road",
-    description: "Carry both scrolls above 95% — a kata and a vocab scroll, neither abandoned.",
+    title: "Strong in Both Games",
+    description: "Score above 95% in one Typing Phrases game and one Find the Word round.",
     icon: "mountain",
     honor: 600,
     xp: 150,
     met: (s) => s.katas95 >= 1 && s.scrolls95 >= 1,
     progress: (s) => ({
       ratio: ((s.katas95 >= 1 ? 1 : 0) + (s.scrolls95 >= 1 ? 1 : 0)) / 2,
-      label: `${(s.katas95 >= 1 ? 1 : 0) + (s.scrolls95 >= 1 ? 1 : 0)} of 2 scrolls above 95%`,
+      label: `${(s.katas95 >= 1 ? 1 : 0) + (s.scrolls95 >= 1 ? 1 : 0)} of 2 games above 95%`,
     }),
   },
   {
     key: "no-second-chance",
-    title: "No Second Chance",
-    description: "Three katas drawn and finished without a single stroke astray.",
+    title: "Three Clean Games",
+    description: "Finish three Typing Phrases games without a single wrong key.",
     icon: "swords",
     honor: 500,
     xp: 120,
     met: (s) => s.cleanKatas >= 3,
-    progress: (s) => ({ ratio: clamp01(s.cleanKatas / 3), label: `${Math.min(s.cleanKatas, 3)} of 3 clean draws` }),
+    progress: (s) => ({ ratio: clamp01(s.cleanKatas / 3), label: `${Math.min(s.cleanKatas, 3)} of 3 games with no mistakes` }),
   },
 ];
 

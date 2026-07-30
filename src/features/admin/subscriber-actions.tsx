@@ -9,9 +9,9 @@ import { Button } from "@/shared/components/ui/button";
 /**
  * Row actions for one subscriber.
  *
- * Unsubscribe is offered first and deliberately: it keeps the address on file
- * as a record that this person asked to be left alone, which a later import
- * cannot then undo. Delete is the harder verb, for an erasure request.
+ * Unsubscribe is offered first and on purpose: it keeps the address on file as a
+ * record that this person asked to be left alone, so a later import cannot add
+ * them back. Delete is for when someone asks to be erased completely.
  */
 export function SubscriberRowActions({
   subscriberId,

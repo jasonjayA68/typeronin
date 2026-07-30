@@ -56,11 +56,25 @@ export const metadata: Metadata = {
     siteName: "TypeRonin",
     title: "TypeRonin — Type Faster. Learn English. Earn Real Rewards.",
     description: DESCRIPTION,
+    // Resolved against metadataBase above. Without an explicit card image, a
+    // shared link renders as a grey box with a headline in it, and the brand
+    // never appears at the one moment someone is deciding whether to click.
+    // Flat on paper rather than transparent: a card lands on whatever colour
+    // the host chooses, and half of them choose white.
+    images: [
+      {
+        url: "/brand/typeronin-og.png",
+        width: 1200,
+        height: 630,
+        alt: "TypeRonin — type fast",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "TypeRonin",
     description: "Free typing games. Build your speed and English, and earn real rewards.",
+    images: ["/brand/typeronin-og.png"],
   },
 };
 

@@ -113,7 +113,7 @@ export async function getAdminOverview() {
 
 export type AdminOverview = Awaited<ReturnType<typeof getAdminOverview>>;
 
-/** Placements and whatever is booked against them. */
+/** Ad positions and whatever is booked in them. */
 export async function getAdPlacements() {
   return prisma.advertisementPlacement.findMany({
     orderBy: [{ isActive: "desc" }, { slug: "asc" }],

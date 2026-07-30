@@ -8,7 +8,7 @@ import { requirePermission } from "@/features/admin/guard";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Word corpus mutations.
+ * Changes to the word list.
  *
  * Each one re-checks its own permission. A Server Action is a public endpoint —
  * the page's guard protects the render, not these.
@@ -21,21 +21,21 @@ export type WordImportResult =
   | { ok: true; added: number; skipped: number }
   | { ok: false; message: string };
 
-/** Caps, so one request cannot rewrite the corpus. */
+/** Caps, so one request cannot rewrite the whole word list. */
 const BULK_MAX = 500;
 const IMPORT_MAX_ROWS = 5000;
 
 const wordFields = {
   text: z.string().trim().min(1, "A word needs text.").max(64, "That is too long for a word."),
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]),
-  lang: z.string().trim().min(2, "Use a language tag such as en.").max(8).default("en"),
-  tags: z.array(z.string().trim().min(1).max(32)).max(12, "Twelve tags is plenty.").default([]),
+  lang: z.string().trim().min(2, "Use a language code such as en.").max(8).default("en"),
+  tags: z.array(z.string().trim().min(1).max(32)).max(12, "Use twelve tags at most.").default([]),
   frequency: z.number().int().min(0).max(10_000_000).nullable().default(null),
-  /** The meaning. Blank stores null; a word without one is not a SCROLL question. */
+  /** The meaning. Blank stores null; a word without one is not a Find the Word question. */
   definition: z
     .string()
     .trim()
-    .max(300, "A definition that long is a paragraph, not a clue.")
+    .max(300, "That meaning is too long. Keep it short, like a clue.")
     .transform((v) => v || null)
     .nullable()
     .default(null),
@@ -54,7 +54,7 @@ function refresh() {
   revalidatePath("/admin/words");
 }
 
-/** The corpus has a unique index on [text, categoryId, lang]. */
+/** The word list has a unique index on [text, categoryId, lang]. */
 function isDuplicate(error: unknown): boolean {
   return (error as { code?: string }).code === "P2002";
 }
@@ -252,9 +252,12 @@ export async function importWordsCsv(csv: string, categoryId: string): Promise<W
     .filter((line) => line.length > 0);
 
   if (splitCsvLine(lines[0] ?? "")[0]?.toLowerCase() === "text") lines.shift();
-  if (lines.length === 0) return { ok: false, message: "That CSV has no rows." };
+  if (lines.length === 0) return { ok: false, message: "That file has no rows." };
   if (lines.length > IMPORT_MAX_ROWS) {
-    return { ok: false, message: `That CSV has more than ${IMPORT_MAX_ROWS} rows. Split it.` };
+    return {
+      ok: false,
+      message: `That file has more than ${IMPORT_MAX_ROWS} rows. Split it into smaller files.`,
+    };
   }
 
   const rows: (z.infer<typeof importRowSchema> & { categoryId: string })[] = [];
@@ -286,7 +289,7 @@ export async function importWordsCsv(csv: string, categoryId: string): Promise<W
     rows.push({ ...row.data, categoryId: parsedCategory.data });
   }
 
-  if (rows.length === 0) return { ok: false, message: "No row in that CSV was usable." };
+  if (rows.length === 0) return { ok: false, message: "No row in that file could be used." };
 
   try {
     const { count } = await prisma.word.createMany({ data: rows, skipDuplicates: true });
@@ -302,6 +305,6 @@ export async function importWordsCsv(csv: string, categoryId: string): Promise<W
     return { ok: true, added: count, skipped };
   } catch (error) {
     console.error("importWordsCsv failed", error);
-    return { ok: false, message: "That import could not be completed." };
+    return { ok: false, message: "That import could not be finished." };
   }
 }

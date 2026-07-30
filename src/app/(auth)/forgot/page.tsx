@@ -4,8 +4,8 @@ import { ForgotForm } from "@/features/auth/forgot-form";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = {
-  title: "Recover your account",
-  description: "Send a recovery link and set a new password.",
+  title: "Forgot your password?",
+  description: "Get an email link and set a new password.",
 };
 
 export default function ForgotPage() {

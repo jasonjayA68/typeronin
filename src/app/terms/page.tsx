@@ -147,17 +147,17 @@ const sections: { id: string; title: string; body: ReactNode }[] = [
     body: (
       <>
         <p>
-          Nothing. Every discipline, every rank and every article is free, and there is no
-          paid tier to buy. We take no payments and hold no card details.
+          Nothing. Every game, every level and every article is free, and there is no paid
+          plan to buy. We take no payments and hold no card details.
         </p>
         <p>
-          The dojo is funded by display advertising on its pages. Advertising never buys a
-          place in the Hall of Legends, and no advert changes what you may train or how much
-          Honor a clean cut earns. Blocking adverts will not lock you out.
+          The site is paid for by the ads on its pages. Ads never buy a place on the
+          leaderboard, and no ad changes what you can play or how much Honor a game earns.
+          Blocking ads will not lock you out.
         </p>
         <p>
-          Some articles may ask you to watch a short advert to read them. That choice is
-          always yours, and declining costs you nothing but the article.
+          Some articles may ask you to watch a short ad to read them. That choice is always
+          yours, and saying no costs you nothing but the article.
         </p>
       </>
     ),

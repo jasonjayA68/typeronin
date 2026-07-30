@@ -110,26 +110,26 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
   return (
     <AdminPage
       title="Withdrawals"
-      description="Every payout request. Approving does not move money — it accepts the request; mark it paid once you have sent the transfer, with its reference. Rejecting returns the held Honor to the player."
+      description="Every request from a player to be paid in cash. Honor is the points players earn. Approving does not send money. It only accepts the request. Send the transfer yourself, then mark it paid and enter the reference number. Rejecting gives the Honor back to the player."
     >
       <PanelGrid cols={4}>
-        <Stat label="Pending" value={countOf("PENDING").toLocaleString()} framed accent />
+        <Stat label="Waiting" value={countOf("PENDING").toLocaleString()} framed accent />
         <Stat label="Approved" value={countOf("APPROVED").toLocaleString()} framed />
         <Stat
-          label="Owed (in flight)"
+          label="Still to pay"
           value={formatCash(owedAgg._sum.netCents ?? 0)}
-          hint="Cash for pending + approved"
+          hint="Waiting plus approved"
           framed
         />
         <Stat
-          label="Paid to date"
+          label="Paid so far"
           value={formatCash(paidAgg._sum.netCents ?? 0)}
-          hint="Frozen at each rate"
+          hint="At the rate on the day"
           framed
         />
       </PanelGrid>
 
-      <Panel title="Queue">
+      <Panel title="Requests">
         <Toolbar>
           <Pill href={link({ status: undefined })} active={!status}>
             All
@@ -148,10 +148,10 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
               <thead>
                 <Tr>
                   <Th>Player</Th>
-                  <Th>Method</Th>
-                  <Th>Destination</Th>
+                  <Th>Pay by</Th>
+                  <Th>Send to</Th>
                   <Th numeric>Honor</Th>
-                  <Th numeric>Net</Th>
+                  <Th numeric>Cash</Th>
                   <Th>State</Th>
                   <Th>Date</Th>
                   <Th className="text-right">Actions</Th>
@@ -219,7 +219,7 @@ export default async function AdminWithdrawalsPage(props: PageProps<"/admin/with
           <EmptyState title="Nothing here">
             {status
               ? `No ${STATUS_LABEL[status].toLowerCase()} withdrawals.`
-              : "No withdrawals have been requested yet."}
+              : "No one has asked to be paid yet."}
           </EmptyState>
         )}
       </Panel>

@@ -38,20 +38,20 @@ const pillars = [
     tag: "Learn",
     title: "Build speed and English",
     description:
-      "Grow your typing speed and your English vocabulary at the same time — a little sharper every day.",
+      "Grow your typing speed and your English vocabulary at the same time. You improve a little every day.",
   },
   {
     icon: WalletIcon,
     tag: "Earn",
     title: "Turn skill into rewards",
     description:
-      "Clean play earns Honor. Honor raises your rank and converts into real rewards you can withdraw.",
+      "Accurate play earns Honor — the points you earn by playing. Honor moves you up the levels. You can turn it into real rewards and withdraw them.",
   },
 ] as const;
 
 /** The live-feel stats in the hero. Illustrative, not a claim about any user. */
 const stats = [
-  { label: "Words per minute", value: "128" },
+  { label: "Words per minute (WPM)", value: "128" },
   { label: "Accuracy", value: "98.4%" },
   { label: "Rhythm", value: "91" },
 ] as const;
@@ -66,12 +66,12 @@ const steps = [
   {
     n: "2",
     title: "Earn Honor",
-    body: "Accurate, steady play scores highest. Missions and achievements pay bonus Honor.",
+    body: "Accurate, steady play scores highest. Missions and achievements pay extra Honor.",
   },
   {
     n: "3",
-    title: "Rank up & cash out",
-    body: "Climb nine ranks and convert your Honor into real rewards you can withdraw.",
+    title: "Level up and cash out",
+    body: "Move up through nine levels. Turn your Honor into real rewards you can withdraw.",
   },
 ] as const;
 
@@ -79,11 +79,11 @@ const steps = [
 const faqs = [
   {
     q: "What is TypeRonin?",
-    a: "A free play-to-earn typing platform. You play quick typing games, build real English and typing skill, and earn rewards you can withdraw.",
+    a: "A free typing game site. You play quick games, build real typing and English skill, and earn rewards you can withdraw.",
   },
   {
     q: "How do I earn rewards?",
-    a: "Every accurate game earns Honor. Honor raises your rank and converts to real cash rewards. The cleaner you play, the more you earn.",
+    a: "Every accurate game earns Honor points. Honor moves you up the levels and turns into real cash rewards. The fewer mistakes you make, the more you earn.",
   },
   {
     q: "Do I need to pay anything?",
@@ -94,8 +94,8 @@ const faqs = [
     a: "Yes. The whole platform is in English and open worldwide. Compete on the global leaderboard wherever you are.",
   },
   {
-    q: "Why is backspace disabled?",
-    a: "It trains real accuracy. When every keystroke is final, you slow down just enough to hit the right key — and your speed climbs for keeps.",
+    q: "Why can I not use backspace?",
+    a: "It teaches real accuracy. When you cannot fix a mistake, you learn to hit the right key the first time. Your speed then grows and stays.",
   },
 ] as const;
 
@@ -171,7 +171,7 @@ export default async function Home() {
           <Container>
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold text-balance sm:text-4xl">
-                One platform, three wins
+                One site, three things you get
               </h2>
               <p className="mt-3 text-pretty text-muted-foreground">
                 Play a quick game, get better every day, and earn as you go.
@@ -180,7 +180,7 @@ export default async function Home() {
 
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {pillars.map((pillar) => (
-                <Card key={pillar.title} className="gold-edge bg-card/60 backdrop-blur-sm">
+                <Card key={pillar.title} className="gold-edge bg-card backdrop-blur-sm">
                   <CardHeader>
                     <span className="mb-3 grid size-11 place-items-center rounded-xl border border-sakura/30 bg-sakura/10 text-sakura">
                       <pillar.icon className="size-5" aria-hidden="true" />
@@ -216,7 +216,7 @@ export default async function Home() {
               {steps.map((step) => (
                 <li
                   key={step.n}
-                  className="rounded-2xl border border-border/60 bg-card/60 p-6 text-center"
+                  className="rounded-2xl border border-border/60 bg-card p-6 text-center"
                 >
                   <span className="mx-auto grid size-10 place-items-center rounded-full border border-sakura/40 bg-sakura/10 font-heading text-base font-semibold text-sakura">
                     {step.n}
@@ -249,21 +249,24 @@ export default async function Home() {
           <AdSlot placement="between-sections" className="mt-20" />
         </Container>
 
-        {/* ---------------- Why stay: ranks + global play ---------------- */}
+        {/* ---------------- Why stay: levels + global play ---------------- */}
         <section id="ranks" className="scroll-mt-20 py-20">
           <Container>
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-semibold text-balance sm:text-4xl">
-                Climb nine ranks
+                Nine levels to climb
               </h2>
               <p className="mt-3 text-pretty text-muted-foreground">
-                Every rank is earned through accurate play — never bought. Progress is yours to keep.
+                You reach every level by playing well. You cannot buy one. Your progress is yours to
+                keep.
               </p>
             </div>
 
             <ol className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-2">
               {RANKS.map((rank, i) => (
                 <li key={rank.slug} className="flex items-center gap-2">
+                  {/* The number leads, the name follows: a visitor who has never
+                      seen the names still reads the ladder at a glance. */}
                   <span
                     className={cn(
                       "rounded-full border px-3 py-1.5 text-sm font-medium",
@@ -272,7 +275,8 @@ export default async function Home() {
                         : "border-border bg-card text-muted-foreground"
                     )}
                   >
-                    {rank.name}
+                    <span className="tabular font-semibold">Level {i + 1}</span>
+                    <span className="ml-1.5 opacity-70">{rank.name}</span>
                   </span>
                   {i < RANKS.length - 1 ? (
                     <ArrowRightIcon
@@ -284,7 +288,7 @@ export default async function Home() {
               ))}
             </ol>
 
-            <div className="mx-auto mt-12 flex max-w-2xl items-start gap-4 rounded-2xl border border-border/60 bg-card/50 p-6">
+            <div className="mx-auto mt-12 flex max-w-2xl items-start gap-4 rounded-2xl border border-border/60 bg-card p-6">
               <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-sakura/30 bg-sakura/10 text-sakura">
                 <GlobeIcon className="size-5" aria-hidden="true" />
               </span>
@@ -335,7 +339,7 @@ export default async function Home() {
             </div>
 
             <div className="mt-12 text-center">
-              <p className="text-muted-foreground">Your first reward is a few clean games away.</p>
+              <p className="text-muted-foreground">Your first reward is a few games away.</p>
               <Button asChild variant="dojo" size="xl" className="mt-5">
                 <Link href={playHref}>
                   {playLabel}
@@ -358,7 +362,7 @@ export default async function Home() {
           <div className="mx-auto flex max-w-2xl flex-col items-center gap-2 text-center">
             <TrophyIcon aria-hidden="true" className="size-6 text-sakura" />
             <p className="text-sm text-muted-foreground">
-              Free to play · Rewards you can withdraw · Ranked play worldwide
+              Free to play · Rewards you can withdraw · Players in every country
             </p>
           </div>
         </Container>

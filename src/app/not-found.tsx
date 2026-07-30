@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/ui/button";
  * Rendered inside the root layout, which already owns <html>/<body> and a flex
  * column — this <main> is the direct child that claims the remaining height.
  * Deliberately standalone: the header and footer would crowd the composition
- * below the fold, and an empty room suits a path that leads nowhere.
+ * below the fold, and a quiet, empty page suits a link that led nowhere.
  */
 export default function NotFound() {
   return (
@@ -37,7 +37,7 @@ export default function NotFound() {
         />
 
         <p className="mt-8 font-heading text-xs font-semibold tracking-[0.22em] text-sakura uppercase">
-          Off the path
+          Page not found
         </p>
 
         <p
@@ -48,22 +48,22 @@ export default function NotFound() {
         </p>
 
         <h1 className="mt-6 text-3xl font-semibold text-balance sm:text-4xl">
-          This path leads nowhere.
+          This page does not exist.
         </h1>
 
         <p className="mt-4 text-pretty text-muted-foreground sm:text-lg">
-          Even a master takes a wrong turn. The page you sought is not here. Return to the
-          path and take your stance again.
+          The page you wanted is not here. It may have moved, or the link may be wrong. Use a button
+          below to keep playing.
         </p>
 
         <InkDivider crest className="my-10" />
 
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <Button asChild variant="dojo" size="xl">
-            <Link href="/dojo">Return to the dojo</Link>
+            <Link href="/dojo">Go to The Dojo</Link>
           </Button>
           <Button asChild variant="outline" size="xl">
-            <Link href="/">The home path</Link>
+            <Link href="/">Go to the home page</Link>
           </Button>
         </div>
       </div>
